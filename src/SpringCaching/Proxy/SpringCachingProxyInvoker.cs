@@ -34,10 +34,32 @@ namespace SpringCaching.Proxy
         }
         #endregion
 
+
+        /// <summary>
+        /// invoke proxy
+        /// <para><see cref="ICacheEvictRequirement"/></para>
+        /// </summary>
+        /// <param name="proxy"></param>
+        /// <param name="requirement"></param>
+        /// <param name="invoker"></param>
+        public static void Invoke(ISpringCachingProxyContext context, Action invoker)
+        {
+            // Action has no result,so not support ICacheableRequirement and ICachePutRequirement
+            var cacheEvictRequirements = context.Requirement.GetCacheEvictRequirements() ?? ArrayEx.Empty<ICacheEvictRequirement>();
+            foreach (var cacheEvictRequirement in cacheEvictRequirements.Where(s => s.BeforeInvocation))
+            {
+                InvokeCacheEvict(context, cacheEvictRequirement);
+            }
+            invoker();
+            foreach (var cacheEvictRequirement in cacheEvictRequirements.Where(s => !s.BeforeInvocation))
+            {
+                InvokeCacheEvict(context, cacheEvictRequirement);
+            }
+        }
+
         /// <summary>
         /// async invoke proxy
         /// <para><see cref="ICacheEvictRequirement"/></para>
-        /// <para><see cref="ICacheableRequirement"/></para>
         /// </summary>
         /// <param name="proxy"></param>
         /// <param name="requirement"></param>
@@ -45,16 +67,54 @@ namespace SpringCaching.Proxy
         /// <returns></returns>
         public static async Task InvokeAsync(ISpringCachingProxyContext context, Func<Task> invoker)
         {
+            // Func<Task> has no result,so not support ICacheableRequirement and ICachePutRequirement
             var cacheEvictRequirements = context.Requirement.GetCacheEvictRequirements() ?? ArrayEx.Empty<ICacheEvictRequirement>();
             foreach (var cacheEvictRequirement in cacheEvictRequirements.Where(s => s.BeforeInvocation))
             {
-                InvokeCacheEvict(context, cacheEvictRequirement);
+                await InvokeCacheEvictAsync(context, cacheEvictRequirement).ConfigureAwait(false);
             }
             await invoker().ConfigureAwait(false);
             foreach (var cacheEvictRequirement in cacheEvictRequirements.Where(s => !s.BeforeInvocation))
             {
-                InvokeCacheEvict(context, cacheEvictRequirement);
+                await InvokeCacheEvictAsync(context, cacheEvictRequirement).ConfigureAwait(false);
             }
+        }
+
+        /// <summary>
+        /// invoke proxy
+        /// <para><see cref="ICacheEvictRequirement"/></para>
+        /// </summary>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="proxy"></param>
+        /// <param name="requirement"></param>
+        /// <param name="invoker"></param>
+        /// <returns></returns>
+        public static TResult? Invoke<TResult>(ISpringCachingProxyContext context, Func<TResult?> invoker)
+        {
+            var cacheEvictRequirements = context.Requirement.GetCacheEvictRequirements();
+            var cacheableRequirements = context.Requirement.GetCacheableRequirements();
+
+            if (cacheEvictRequirements != null)
+            {
+                foreach (var cacheEvictRequirement in cacheEvictRequirements.Where(s => s.BeforeInvocation))
+                {
+                    InvokeCacheEvict(context, cacheEvictRequirement);
+                }
+            }
+
+            var invokeValue = cacheableRequirements == null ?
+             invoker()
+             : InvokeCacheable(context, cacheableRequirements, invoker);
+
+            if (cacheEvictRequirements != null)
+            {
+                foreach (var cacheEvictRequirement in cacheEvictRequirements.Where(s => !s.BeforeInvocation))
+                {
+                    InvokeCacheEvict(context, cacheEvictRequirement);
+                }
+            }
+
+            return invokeValue;
         }
 
         /// <summary>
@@ -95,65 +155,51 @@ namespace SpringCaching.Proxy
             return invokeValue;
         }
 
-        /// <summary>
-        /// invoke proxy
-        /// <para><see cref="ICacheEvictRequirement"/></para>
-        /// </summary>
-        /// <param name="proxy"></param>
-        /// <param name="requirement"></param>
-        /// <param name="invoker"></param>
-        public static void Invoke(ISpringCachingProxyContext context, Action invoker)
-        {
-            var cacheEvictRequirements = context.Requirement.GetCacheEvictRequirements() ?? ArrayEx.Empty<ICacheEvictRequirement>();
-            foreach (var cacheEvictRequirement in cacheEvictRequirements.Where(s => s.BeforeInvocation))
-            {
-                InvokeCacheEvict(context, cacheEvictRequirement);
-            }
-            invoker();
-            foreach (var cacheEvictRequirement in cacheEvictRequirements.Where(s => !s.BeforeInvocation))
-            {
-                InvokeCacheEvict(context, cacheEvictRequirement);
-            }
-        }
-        /// <summary>
-        /// invoke proxy
-        /// <para><see cref="ICacheEvictRequirement"/></para>
-        /// </summary>
-        /// <typeparam name="TResult"></typeparam>
-        /// <param name="proxy"></param>
-        /// <param name="requirement"></param>
-        /// <param name="invoker"></param>
-        /// <returns></returns>
-        public static TResult? Invoke<TResult>(ISpringCachingProxyContext context, Func<TResult?> invoker)
-        {
-            var cacheEvictRequirements = context.Requirement.GetCacheEvictRequirements();
-            var cacheableRequirements = context.Requirement.GetCacheableRequirements();
-
-            if (cacheEvictRequirements != null)
-            {
-                foreach (var cacheEvictRequirement in cacheEvictRequirements.Where(s => s.BeforeInvocation))
-                {
-                    InvokeCacheEvict(context, cacheEvictRequirement);
-                }
-            }
-
-            var invokeValue = cacheableRequirements == null ?
-             invoker()
-             : InvokeCacheable(context, cacheableRequirements, invoker);
-
-            if (cacheEvictRequirements != null)
-            {
-                foreach (var cacheEvictRequirement in cacheEvictRequirements.Where(s => !s.BeforeInvocation))
-                {
-                    InvokeCacheEvict(context, cacheEvictRequirement);
-                }
-            }
-
-            return invokeValue;
-        }
-
 
         #region invoke Cacheable
+        private static TResult? InvokeCacheable<TResult>(ISpringCachingProxyContext context, IList<ICacheableRequirement> cacheableRequirements, Func<TResult?> invoker)
+        {
+            var proxy = context.Proxy;
+            var requirement = context.Requirement;
+            string[] keys = new string[cacheableRequirements.Count];
+            int index = -1;
+            foreach (var cacheableRequirement in cacheableRequirements)
+            {
+                index++;
+                if (cacheableRequirement == null)
+                {
+                    continue;
+                }
+                string key = GetCacheKey(cacheableRequirement.Value, cacheableRequirement.Key, cacheableRequirement.KeyGenerator, requirement);
+                //cache key
+                keys[index] = key;
+                var cacheResult = proxy.CacheProvider.Get<TResult>(key);
+                if (cacheResult.Item1)
+                {
+                    //if has cache , return it
+                    return cacheResult.Item2;
+                }
+            }
+            var invokerValue = invoker();
+
+            //cache value
+            index = -1;
+            foreach (var cacheableRequirement in cacheableRequirements)
+            {
+                index++;
+                if (cacheableRequirement == null)
+                {
+                    continue;
+                }
+                if (!IsCacheResult(cacheableRequirement, requirement, invokerValue))
+                {
+                    continue;
+                }
+                //cache it
+                SetCache(proxy.CacheProvider, keys[index]!, invokerValue, cacheableRequirement);
+            }
+            return invokerValue;
+        }
         private static async Task<TResult?> InvokeCacheableAsync<TResult>(ISpringCachingProxyContext context, IList<ICacheableRequirement> cacheableRequirements, Func<Task<TResult?>> invoker)
         {
             var proxy = context.Proxy;
@@ -197,53 +243,20 @@ namespace SpringCaching.Proxy
             }
             return invokerValue;
         }
-
-        private static TResult? InvokeCacheable<TResult>(ISpringCachingProxyContext context, IList<ICacheableRequirement> cacheableRequirements, Func<TResult?> invoker)
-        {
-            var proxy = context.Proxy;
-            var requirement = context.Requirement;
-            string[] keys = new string[cacheableRequirements.Count];
-            int index = -1;
-            foreach (var cacheableRequirement in cacheableRequirements)
-            {
-                index++;
-                if (cacheableRequirement == null)
-                {
-                    continue;
-                }
-                string key = GetCacheKey(cacheableRequirement.Value, cacheableRequirement.Key, cacheableRequirement.KeyGenerator, requirement);
-                //cache key
-                keys[index] = key;
-                var cacheResult = proxy.CacheProvider.Get<TResult>(key);
-                if (cacheResult.Item1)
-                {
-                    //if has cache , return it
-                    return cacheResult.Item2;
-                }
-            }
-            var invokerValue = invoker();
-
-            //cache value
-            index = -1;
-            foreach (var cacheableRequirement in cacheableRequirements)
-            {
-                index++;
-                if (cacheableRequirement == null)
-                {
-                    continue;
-                }
-                if (!IsCacheResult(cacheableRequirement,requirement, invokerValue))
-                {
-                    continue;
-                }
-                //cache it
-                SetCache(proxy.CacheProvider, keys[index]!, invokerValue, cacheableRequirement);
-            }
-            return invokerValue;
-        }
         #endregion
 
         #region invoke CacheEvict
+        private static void InvokeCacheEvict(ISpringCachingProxyContext context, ICacheEvictRequirement cacheEvictRequirement)
+        {
+            if (cacheEvictRequirement == null)
+            {
+                return;
+            }
+            string key = cacheEvictRequirement.AllEntries ?
+                cacheEvictRequirement.Value :
+                GetCacheKey(cacheEvictRequirement.Value, cacheEvictRequirement.Key, cacheEvictRequirement.KeyGenerator, context.Requirement);
+            context.Proxy.CacheProvider.Remove(key);
+        }
         private static Task InvokeCacheEvictAsync(ISpringCachingProxyContext context, ICacheEvictRequirement cacheEvictRequirement)
         {
             if (cacheEvictRequirement == null)
@@ -256,17 +269,6 @@ namespace SpringCaching.Proxy
             return context.Proxy.CacheProvider.RemoveAsync(key);
         }
 
-        private static void InvokeCacheEvict(ISpringCachingProxyContext context, ICacheEvictRequirement cacheEvictRequirement)
-        {
-            if (cacheEvictRequirement == null)
-            {
-                return;
-            }
-            string key = cacheEvictRequirement.AllEntries ?
-                cacheEvictRequirement.Value :
-                GetCacheKey(cacheEvictRequirement.Value, cacheEvictRequirement.Key, cacheEvictRequirement.KeyGenerator, context.Requirement);
-            context.Proxy.CacheProvider.Remove(key);
-        }
         #endregion
 
         //        #region invoke CachePut
