@@ -22,18 +22,23 @@
             return Task.FromResult(new List<string>());
         }
 
-        [Cacheable("getAllInternalTest", ExpirationPolicy = ExpirationPolicy.Absolute, ExpirationUnit = ExpirationUnit.Minute, ExpirationValue = 1)]
-        [CachePut("getAllInternalTest_CachePut", ExpirationPolicy = ExpirationPolicy.Absolute, ExpirationUnit = ExpirationUnit.Minute, ExpirationValue = 1)]
-        protected virtual Task<List<string>> GetAllInternal()
+        [Cacheable("getTest", ExpirationPolicy = ExpirationPolicy.Absolute, ExpirationUnit = ExpirationUnit.Minute, ExpirationValue = 1)]
+        [CachePut("getTest_CachePut", ExpirationPolicy = ExpirationPolicy.Absolute, ExpirationUnit = ExpirationUnit.Minute, ExpirationValue = 1)]
+        protected virtual Task<List<string>> Get(int id)
         {
             // support protected method
             return Task.FromResult(new List<string>());
         }
         [CacheEvict("getAllTest")]
-        public virtual Task Update()
+        protected virtual Task Update()
         {
             return Task.CompletedTask;
-        }        
+        }     
+        [CacheEvict("getTest")]
+        public virtual Task Update(int id)
+        {
+            return Task.CompletedTask;
+        }                
     }   
    ```
 
