@@ -23,11 +23,9 @@ namespace SpringCaching.Requirement
         /// </summary>
         string? Condition { get; }
         /// <summary>
-        /// Spring Expression Language (SpEL) expression used to veto method caching.
-        /// Unlike condition, this expression is evaluated after the method has been called and can therefore refer to the result.
-        /// Default is "", meaning that caching is never vetoed.
+        /// if result is null, don't cache it
         /// </summary>
-        string? Unless { get; }
+        public bool UnlessNull { get; set; }
 
         ExpirationPolicy ExpirationPolicy { get; }
         ExpirationUnit ExpirationUnit { get; }
@@ -36,7 +34,5 @@ namespace SpringCaching.Requirement
 
         IKeyGenerator? KeyGenerator { get; }
         IPredicateGenerator? ConditionGenerator { get; }
-        IPredicateGenerator? UnlessGenerator { get; }
-
     }
 }

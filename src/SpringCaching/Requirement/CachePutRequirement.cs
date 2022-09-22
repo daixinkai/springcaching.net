@@ -12,7 +12,7 @@ namespace SpringCaching.Requirement
         public CachePutRequirement(string value) : base(value)
         {
         }
-        public string? Unless { get; set; }
-        public IPredicateGenerator? UnlessGenerator { get; set; }
+        /// <inheritdoc />
+        public bool UnlessNull { get; set; }
     }
 }

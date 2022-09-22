@@ -21,6 +21,7 @@ namespace SpringCaching.Tests
             Random random = new Random();
             //return Task.FromResult(new string[random.Next(1, 10)].Select(s => random.Next(1, 10000).ToString()).ToList());
             return GetAllNameTests(new int[random.Next(1, 10)].Select(s => random.Next(1, 10000)).ToArray(), null, 1);
+            //return Task.FromResult(default(List<string>));
         }
 
         [Cacheable("getAllNameTests", ExpirationPolicy = ExpirationPolicy.Absolute, ExpirationUnit = ExpirationUnit.Minute, ExpirationValue = 1)]

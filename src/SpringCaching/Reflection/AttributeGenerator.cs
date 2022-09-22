@@ -49,14 +49,15 @@ namespace SpringCaching.Reflection
 
         protected void SetConditionGeneratorProperty(ILGenerator iLGenerator, string? expression, IList<FieldBuilderDescriptor> fieldBuilders)
         {
-            if (fieldBuilders.Count == 0)
-            {
-                return;
-            }
-            iLGenerator.Emit(OpCodes.Dup);
-            EmitConditionGenerator(iLGenerator, expression, fieldBuilders);
-            iLGenerator.Emit(OpCodes.Callvirt, typeof(CacheableRequirementBase).GetProperty("ConditionGenerator")!.SetMethod!);
-            iLGenerator.Emit(OpCodes.Nop);
+            //TODO: SetConditionGeneratorProperty
+            //if (fieldBuilders.Count == 0)
+            //{
+            //    return;
+            //}
+            //iLGenerator.Emit(OpCodes.Dup);
+            //EmitConditionGenerator(iLGenerator, expression, fieldBuilders);
+            //iLGenerator.Emit(OpCodes.Callvirt, typeof(CacheableRequirementBase).GetProperty("ConditionGenerator")!.SetMethod!);
+            //iLGenerator.Emit(OpCodes.Nop);
         }
 
         protected void EmitKeyGenerator(ILGenerator iLGenerator, string? expression, IList<FieldBuilderDescriptor> fieldBuilders)

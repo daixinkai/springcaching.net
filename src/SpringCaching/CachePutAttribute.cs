@@ -11,7 +11,9 @@ namespace SpringCaching
         public CachePutAttribute(string value) : base(value)
         {
         }
-        /// <inheritdoc />
-        public string? Unless { get; set; }
+        /// <summary>
+        /// if result is null, don't cache it
+        /// </summary>
+        public bool UnlessNull { get; set; }
     }
 }

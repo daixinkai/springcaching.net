@@ -55,10 +55,10 @@ namespace SpringCaching.Reflection
             iLGenerator.Emit(OpCodes.Ldstr, attribute.Value);
             iLGenerator.Emit(OpCodes.Newobj, typeof(CachePutRequirement).GetConstructors()[0]);
             SetDefaultProperty(iLGenerator, attribute, fieldBuilders);
-            //Unless
-            if (attribute.Unless != null)
+            //UnlessNull
+            if (attribute.UnlessNull)
             {
-                iLGenerator.EmitSetProperty(typeof(CachePutRequirement).GetProperty("Unless")!, attribute.Unless, true);
+                iLGenerator.EmitSetProperty(typeof(CachePutRequirement).GetProperty("UnlessNull")!, attribute.UnlessNull, true);
             }
         }
 

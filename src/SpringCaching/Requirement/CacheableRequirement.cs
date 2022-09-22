@@ -12,15 +12,13 @@ namespace SpringCaching.Requirement
         public CacheableRequirement(string value) : base(value)
         {
         }
-
+        /// <inheritdoc />
         public ExpirationPolicy ExpirationPolicy { get; set; }
-
+        /// <inheritdoc />
         public ExpirationUnit ExpirationUnit { get; set; }
-
+        /// <inheritdoc />
         public int ExpirationValue { get; set; }
-
-        public string? Unless { get; set; }
-
-        public IPredicateGenerator? UnlessGenerator { get; set; }
+        /// <inheritdoc />
+        public bool UnlessNull { get; set; }
     }
 }

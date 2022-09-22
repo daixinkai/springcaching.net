@@ -70,10 +70,10 @@ namespace SpringCaching.Reflection
             iLGenerator.EmitSetProperty(typeof(CacheableRequirement).GetProperty("ExpirationUnit")!, attribute.ExpirationUnit, true);
             //ExpirationValue
             iLGenerator.EmitSetProperty(typeof(CacheableRequirement).GetProperty("ExpirationValue")!, attribute.ExpirationValue, true);
-            //Unless
-            if (attribute.Unless != null)
+            //UnlessNull
+            if (attribute.UnlessNull)
             {
-                iLGenerator.EmitSetProperty(typeof(CachePutRequirement).GetProperty("Unless")!, attribute.Unless, true);
+                iLGenerator.EmitSetProperty(typeof(CacheableRequirement).GetProperty("UnlessNull")!, attribute.UnlessNull, true);
             }
         }
 

@@ -15,11 +15,8 @@ namespace SpringCaching
         public ExpirationUnit ExpirationUnit { get; set; }
         public int ExpirationValue { get; set; }
         /// <summary>
-        /// Spring Expression Language (SpEL) expression used to veto method caching.
-        /// Unlike condition, this expression is evaluated after the method has been called and can therefore refer to the result.
-        /// Default is "", meaning that caching is never vetoed.
+        /// if result is null, don't cache it
         /// </summary>
-        [Obsolete("not support now")]
-        public string? Unless { get; set; }
+        public bool UnlessNull { get; set; }
     }
 }

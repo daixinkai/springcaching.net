@@ -23,15 +23,11 @@ namespace SpringCaching.Requirement
         /// </summary>
         string? Condition { get; }
         /// <summary>
-        /// Spring Expression Language (SpEL) expression used to veto the cache put operation.
-        /// Default is "", meaning that caching is never vetoed.
-        /// The SpEL expression evaluates against a dedicated context that provides the following meta-data
+        /// if result is null, don't cache it
         /// </summary>
-        string? Unless { get; }
+        public bool UnlessNull { get; set; }
 
         IKeyGenerator? KeyGenerator { get; }
         IPredicateGenerator? ConditionGenerator { get; }
-        IPredicateGenerator? UnlessGenerator { get; }
-
     }
 }

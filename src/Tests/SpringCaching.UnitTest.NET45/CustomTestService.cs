@@ -146,11 +146,9 @@ namespace SpringCaching.UnitTest.NET45
 
         public string Condition => throw new NotImplementedException();
 
-        public string Unless => throw new NotImplementedException();
-
         public IPredicateGenerator ConditionGenerator => throw new NotImplementedException();
 
-        public IPredicateGenerator UnlessGenerator => throw new NotImplementedException();
+        public bool UnlessNull { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
     }
 
 }
