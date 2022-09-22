@@ -1,3 +1,51 @@
 # springcaching.net
 
 *spring Cacheable,CacheEvict,CachePut for .net*
+
+## Usage
+
+1. Install the NuGet package
+
+    `PM> Install-Package SpringCaching`
+
+2. In your service method
+   
+   ```c#
+    [SpringCaching]
+    public class TestService : ITestService
+    {
+        [Cacheable("getAllTest", ExpirationPolicy = ExpirationPolicy.Absolute, ExpirationUnit = ExpirationUnit.Minute, ExpirationValue = 1)]
+        [CachePut("getAllTest_CachePut", ExpirationPolicy = ExpirationPolicy.Absolute, ExpirationUnit = ExpirationUnit.Minute, ExpirationValue = 1)]
+        public virtual Task<List<string>> GetAll()
+        {
+            // method must be virtual
+            return Task.FromResult(new List<string>());
+        }
+
+        [Cacheable("getAllInternalTest", ExpirationPolicy = ExpirationPolicy.Absolute, ExpirationUnit = ExpirationUnit.Minute, ExpirationValue = 1)]
+        [CachePut("getAllInternalTest_CachePut", ExpirationPolicy = ExpirationPolicy.Absolute, ExpirationUnit = ExpirationUnit.Minute, ExpirationValue = 1)]
+        protected virtual Task<List<string>> GetAllInternal()
+        {
+            // support protected method
+            return Task.FromResult(new List<string>());
+        }
+        [CacheEvict("getAllTest")]
+        public virtual Task Update()
+        {
+            return Task.CompletedTask;
+        }        
+    }   
+   ```
+
+3. Install the NuGet package on .net core application
+
+    `PM> Install-Package SpringCaching.DependencyInjection`
+
+    ```c#
+        services.AddTransient<interface,impl > ();
+        services.AddScoped <interface,impl > ();
+        services.AddSingleton <interface,impl>();
+        .....................
+        //at last
+        services.AddSpringCaching();
+    ```
