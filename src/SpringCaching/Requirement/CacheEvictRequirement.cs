@@ -3,29 +3,20 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SpringCaching.Infrastructure;
 
 namespace SpringCaching.Requirement
 {
-    public class CacheEvictRequirement : ICacheEvictRequirement
+    public class CacheEvictRequirement : CacheableRequirementBase, ICacheEvictRequirement
     {
-        public CacheEvictRequirement(string value, IKeyGenerator? keyGenerator)
+        public CacheEvictRequirement(string value) : base(value)
         {
-            Value = value ?? throw new ArgumentNullException(nameof(value));
-            KeyGenerator = keyGenerator;
         }
 
-        /// <inheritdoc />
-        public string Value { get; }
-        /// <inheritdoc />
-        public string? Key { get; set; }
-        /// <inheritdoc />
-        public string? Condition { get; set; }
         /// <inheritdoc />
         public bool AllEntries { get; set; }
         /// <inheritdoc />
         public bool BeforeInvocation { get; set; }
-
-        public IKeyGenerator? KeyGenerator { get; }
 
     }
 }

@@ -1,4 +1,5 @@
 ﻿using SpringCaching.Formatting;
+using SpringCaching.Requirement;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -6,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SpringCaching.Requirement
+namespace SpringCaching.Infrastructure
 {
     public abstract class SimpleKeyGenerator : IKeyGenerator
     {
@@ -86,20 +87,6 @@ namespace SpringCaching.Requirement
             }
         }
 
-        public class EnumerableToStringKeyGenerator<T> : SimpleKeyGenerator where T : struct
-        {
-            public EnumerableToStringKeyGenerator(IEnumerable<T>? value)
-            {
-                _value = value;
-            }
-
-            private readonly IEnumerable<T>? _value;
-            protected override string? GetKey()
-            {
-                return _value.ToString();
-            }
-        }
-
         public class JsonKeyGenerator<T> : SimpleKeyGenerator
         {
             public JsonKeyGenerator(T? value, string? nullValue)
@@ -122,7 +109,7 @@ namespace SpringCaching.Requirement
 #if NET45 || NETSTANDARD2_0
                 string json = Encoding.UTF8.GetString(NewtonsoftJsonCacheSerializer.JsonCacheSerializer.SerializeObject(_value));
 #else
-                string json= Encoding.UTF8.GetString(SystemTextJsonCacheSerializer.JsonCacheSerializer.SerializeObject(_value));
+                string json = Encoding.UTF8.GetString(SystemTextJsonCacheSerializer.JsonCacheSerializer.SerializeObject(_value));
 #endif
                 return IncludePrefix ? GetPrefix() + json : json;
             }
@@ -133,7 +120,7 @@ namespace SpringCaching.Requirement
 
         protected abstract string? GetKey();
 
-        string? IKeyGenerator.GetKey(string? key, ISpringCachingRequirement requirement) => GetKey();
+        string? IKeyGenerator.GetKey(string? expression, ISpringCachingRequirement requirement) => GetKey();
 
     }
 }

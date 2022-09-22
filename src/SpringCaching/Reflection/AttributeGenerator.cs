@@ -7,6 +7,8 @@ using System.Reflection.Emit;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
+using SpringCaching.Infrastructure;
 using SpringCaching.Requirement;
 
 namespace SpringCaching.Reflection
@@ -16,13 +18,60 @@ namespace SpringCaching.Reflection
     {
         public abstract bool Build(TypeBuilder typeBuilder, Type attributeType, IList<Attribute> attributes, IList<FieldBuilderDescriptor> fieldBuilders);
 
-        protected void EmitKeyGenerator(ILGenerator iLGenerator, string? key, IList<FieldBuilderDescriptor> fieldBuilders)
+
+        protected void SetDefaultProperty(ILGenerator iLGenerator, CacheableBaseAttribute attribute, IList<FieldBuilderDescriptor> fieldBuilders)
         {
-            if (string.IsNullOrWhiteSpace(key))
+            SetKeyGeneratorProperty(iLGenerator, attribute.Key, fieldBuilders);
+            SetConditionGeneratorProperty(iLGenerator, attribute.Condition, fieldBuilders);
+            //Key
+            if (attribute.Key != null)
+            {
+                iLGenerator.EmitSetProperty(typeof(CacheableRequirementBase).GetProperty("Key")!, attribute.Key, true);
+            }
+            //Condition
+            if (attribute.Condition != null)
+            {
+                iLGenerator.EmitSetProperty(typeof(CacheableRequirementBase).GetProperty("Condition")!, attribute.Condition, true);
+            }
+        }
+
+        protected void SetKeyGeneratorProperty(ILGenerator iLGenerator, string? expression, IList<FieldBuilderDescriptor> fieldBuilders)
+        {
+            if (fieldBuilders.Count == 0)
+            {
+                return;
+            }
+            iLGenerator.Emit(OpCodes.Dup);
+            EmitKeyGenerator(iLGenerator, expression, fieldBuilders);
+            iLGenerator.Emit(OpCodes.Callvirt, typeof(CacheableRequirementBase).GetProperty("KeyGenerator")!.SetMethod!);
+            iLGenerator.Emit(OpCodes.Nop);
+        }
+
+        protected void SetConditionGeneratorProperty(ILGenerator iLGenerator, string? expression, IList<FieldBuilderDescriptor> fieldBuilders)
+        {
+            if (fieldBuilders.Count == 0)
+            {
+                return;
+            }
+            iLGenerator.Emit(OpCodes.Dup);
+            EmitConditionGenerator(iLGenerator, expression, fieldBuilders);
+            iLGenerator.Emit(OpCodes.Callvirt, typeof(CacheableRequirementBase).GetProperty("ConditionGenerator")!.SetMethod!);
+            iLGenerator.Emit(OpCodes.Nop);
+        }
+
+        protected void EmitKeyGenerator(ILGenerator iLGenerator, string? expression, IList<FieldBuilderDescriptor> fieldBuilders)
+        {
+            if (string.IsNullOrWhiteSpace(expression))
             {
                 EmitSImpleKeyGenerator(iLGenerator, fieldBuilders);
                 return;
             }
+            iLGenerator.Emit(OpCodes.Ldnull);
+        }
+
+        protected void EmitConditionGenerator(ILGenerator iLGenerator, string? expression, IList<FieldBuilderDescriptor> fieldBuilders)
+        {
+            //TODO : ConditionGenerator
             iLGenerator.Emit(OpCodes.Ldnull);
         }
 

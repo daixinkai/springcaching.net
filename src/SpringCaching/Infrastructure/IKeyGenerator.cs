@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SpringCaching.Requirement;
 
-namespace SpringCaching.Requirement
+namespace SpringCaching.Infrastructure
 {
     public interface IKeyGenerator
     {
-        string? GetKey(string? key, ISpringCachingRequirement requirement);
+        string? GetKey(string? expression, ISpringCachingRequirement requirement);
     }
 }

@@ -1,19 +1,19 @@
-﻿using SpringCaching.Requirement;
+﻿using SpringCaching.Infrastructure;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
+using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
-namespace SpringCaching
+namespace SpringCaching.Requirement
 {
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    [AttributeUsage(AttributeTargets.Method, Inherited = true, AllowMultiple = true)]
-    public abstract class CacheableBaseAttribute : Attribute
+    public abstract class CacheableRequirementBase
     {
-        public CacheableBaseAttribute(string value)
+        public CacheableRequirementBase(string value)
         {
             Value = value ?? throw new ArgumentNullException(nameof(value));
         }
+
         /// <inheritdoc />
         public string Value { get; }
         /// <summary>
@@ -25,8 +25,11 @@ namespace SpringCaching
         /// Spring Expression Language (SpEL) expression used for making the method caching conditional.
         /// Default is "", meaning the method result is always cached.
         /// </summary>
-        [Obsolete("not support now")]
         public string? Condition { get; set; }
+        /// <inheritdoc />
+        public IKeyGenerator? KeyGenerator { get; set; }
+        /// <inheritdoc />
+        public IPredicateGenerator? ConditionGenerator { get; set; }
 
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using SpringCaching.Infrastructure;
 
 namespace SpringCaching.Requirement
 {
@@ -16,14 +17,26 @@ namespace SpringCaching.Requirement
         /// Default is "", meaning all method parameters are considered as a key, unless a custom keyGenerator has been configured.
         /// </summary>
         string? Key { get; }
+        /// <summary>
+        /// Spring Expression Language (SpEL) expression used for making the method caching conditional.
+        /// Default is "", meaning the method result is always cached.
+        /// </summary>
+        string? Condition { get; }
+        /// <summary>
+        /// Spring Expression Language (SpEL) expression used to veto method caching.
+        /// Unlike condition, this expression is evaluated after the method has been called and can therefore refer to the result.
+        /// Default is "", meaning that caching is never vetoed.
+        /// </summary>
+        string? Unless { get; }
 
         ExpirationPolicy ExpirationPolicy { get; }
         ExpirationUnit ExpirationUnit { get; }
         int ExpirationValue { get; }
 
-        //string? Condition { get; }
 
         IKeyGenerator? KeyGenerator { get; }
+        IPredicateGenerator? ConditionGenerator { get; }
+        IPredicateGenerator? UnlessGenerator { get; }
 
     }
 }

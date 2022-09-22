@@ -22,7 +22,7 @@ namespace SpringCaching.Reflection
 
             #region override SpringCachingRequirementProxy.GetCacheEvictRequirements
 
-            var method = typeof(SpringCachingRequirementProxy).GetMethod("GetCacheEvictRequirements");
+            var method = typeof(SpringCachingRequirementProxy).GetMethod("GetCacheEvictRequirements")!;
             MethodAttributes methodAttributes =
                 MethodAttributes.Public
                 | MethodAttributes.SpecialName
@@ -54,15 +54,18 @@ namespace SpringCaching.Reflection
         private void GeneratorCacheEvictRequirement(ILGenerator iLGenerator, CacheEvictAttribute attribute, IList<FieldBuilderDescriptor> fieldBuilders)
         {
             iLGenerator.Emit(OpCodes.Ldstr, attribute.Value);
-            EmitKeyGenerator(iLGenerator, attribute.Key, fieldBuilders);
             iLGenerator.Emit(OpCodes.Newobj, typeof(CacheEvictRequirement).GetConstructors()[0]);
-            #region other property
-            //Condition
-            if (attribute.Condition != null)
+            SetDefaultProperty(iLGenerator, attribute, fieldBuilders);
+            //AllEntries
+            if (attribute.AllEntries)
             {
-                iLGenerator.EmitSetProperty(typeof(CacheEvictRequirement).GetProperty("Condition"), attribute.Condition, true);
+                iLGenerator.EmitSetProperty(typeof(CacheEvictRequirement).GetProperty("AllEntries")!, attribute.AllEntries, true);
             }
-            #endregion
+            //BeforeInvocation
+            if (attribute.BeforeInvocation)
+            {
+                iLGenerator.EmitSetProperty(typeof(CacheEvictRequirement).GetProperty("BeforeInvocation")!, attribute.BeforeInvocation, true);
+            }
         }
 
     }

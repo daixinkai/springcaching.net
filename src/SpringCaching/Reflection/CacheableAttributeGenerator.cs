@@ -30,7 +30,7 @@ namespace SpringCaching.Reflection
 
             #region override SpringCachingRequirementProxy.GetCacheableRequirements
 
-            var method = typeof(SpringCachingRequirementProxy).GetMethod("GetCacheableRequirements");
+            var method = typeof(SpringCachingRequirementProxy).GetMethod("GetCacheableRequirements")!;
 
             MethodAttributes methodAttributes =
                 MethodAttributes.Public
@@ -62,21 +62,19 @@ namespace SpringCaching.Reflection
         private void GeneratorCacheableRequirement(ILGenerator iLGenerator, CacheableAttribute attribute, IList<FieldBuilderDescriptor> fieldBuilders)
         {
             iLGenerator.Emit(OpCodes.Ldstr, attribute.Value);
-            EmitKeyGenerator(iLGenerator, attribute.Key, fieldBuilders);
             iLGenerator.Emit(OpCodes.Newobj, typeof(CacheableRequirement).GetConstructors()[0]);
-            #region other property
+            SetDefaultProperty(iLGenerator, attribute, fieldBuilders);
             //ExpirationPolicy
-            iLGenerator.EmitSetProperty(typeof(CacheableRequirement).GetProperty("ExpirationPolicy"), attribute.ExpirationPolicy, true);
+            iLGenerator.EmitSetProperty(typeof(CacheableRequirement).GetProperty("ExpirationPolicy")!, attribute.ExpirationPolicy, true);
             //ExpirationUnit
-            iLGenerator.EmitSetProperty(typeof(CacheableRequirement).GetProperty("ExpirationUnit"), attribute.ExpirationUnit, true);
+            iLGenerator.EmitSetProperty(typeof(CacheableRequirement).GetProperty("ExpirationUnit")!, attribute.ExpirationUnit, true);
             //ExpirationValue
-            iLGenerator.EmitSetProperty(typeof(CacheableRequirement).GetProperty("ExpirationValue"), attribute.ExpirationValue, true);
-            //Condition
-            if (attribute.Condition != null)
+            iLGenerator.EmitSetProperty(typeof(CacheableRequirement).GetProperty("ExpirationValue")!, attribute.ExpirationValue, true);
+            //Unless
+            if (attribute.Unless != null)
             {
-                iLGenerator.EmitSetProperty(typeof(CacheableRequirement).GetProperty("Condition"), attribute.Condition, true);
+                iLGenerator.EmitSetProperty(typeof(CachePutRequirement).GetProperty("Unless")!, attribute.Unless, true);
             }
-            #endregion
         }
 
     }

@@ -3,23 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SpringCaching.Infrastructure;
 
 namespace SpringCaching.Requirement
 {
-    public class CacheableRequirement : ICacheableRequirement
+    public class CacheableRequirement : CacheableRequirementBase, ICacheableRequirement
     {
-        public CacheableRequirement(string value, IKeyGenerator? keyGenerator)
+        public CacheableRequirement(string value) : base(value)
         {
-            Value = value ?? throw new ArgumentNullException(nameof(value));
-            KeyGenerator = keyGenerator;
         }
-
-        /// <inheritdoc />
-        public string Value { get; }
-        /// <inheritdoc />
-        public string? Key { get; set; }
-        /// <inheritdoc />
-        public string? Condition { get; set; }
 
         public ExpirationPolicy ExpirationPolicy { get; set; }
 
@@ -27,7 +19,8 @@ namespace SpringCaching.Requirement
 
         public int ExpirationValue { get; set; }
 
-        public IKeyGenerator? KeyGenerator { get; }
+        public string? Unless { get; set; }
 
+        public IPredicateGenerator? UnlessGenerator { get; set; }
     }
 }

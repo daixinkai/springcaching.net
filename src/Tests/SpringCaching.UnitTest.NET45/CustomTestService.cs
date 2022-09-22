@@ -1,4 +1,5 @@
-﻿using SpringCaching.Proxy;
+﻿using SpringCaching.Infrastructure;
+using SpringCaching.Proxy;
 using SpringCaching.Requirement;
 using SpringCaching.Tests;
 using System;
@@ -41,8 +42,11 @@ namespace SpringCaching.UnitTest.NET45
             IList<ICacheableRequirement> ISpringCachingRequirement.GetCacheableRequirements()
             {
                 return new ICacheableRequirement[] {
-                    new CacheableRequirement("getNames",new SimpleKeyGenerator.StringKeyGenerator(_idStr,"null")),
-                    new CacheableRequirement("getNames1",new SimpleKeyGenerator.StringKeyGenerator(_idStr,"null")){
+                    new CacheableRequirement("getNames"){
+                    KeyGenerator=new SimpleKeyGenerator.StringKeyGenerator(_idStr,"null")
+                    },
+                    new CacheableRequirement("getNames1"){
+                     KeyGenerator=new SimpleKeyGenerator.StringKeyGenerator(_idStr,"null"),
                      Condition="",
                       ExpirationUnit= ExpirationUnit.Minute,
                        ExpirationPolicy= ExpirationPolicy.None
@@ -139,6 +143,14 @@ namespace SpringCaching.UnitTest.NET45
         int ICacheableRequirement.ExpirationValue => 211;
 
         public IKeyGenerator KeyGenerator => throw new NotImplementedException();
+
+        public string Condition => throw new NotImplementedException();
+
+        public string Unless => throw new NotImplementedException();
+
+        public IPredicateGenerator ConditionGenerator => throw new NotImplementedException();
+
+        public IPredicateGenerator UnlessGenerator => throw new NotImplementedException();
     }
 
 }

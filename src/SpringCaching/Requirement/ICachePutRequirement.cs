@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SpringCaching.Infrastructure;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -16,13 +17,21 @@ namespace SpringCaching.Requirement
         /// Default is "", meaning all method parameters are considered as a key, unless a custom keyGenerator has been configured.
         /// </summary>
         string? Key { get; }
-
+        /// <summary>
+        /// Spring Expression Language (SpEL) expression used for making the method caching conditional.
+        /// Default is "", meaning the method result is always cached.
+        /// </summary>
         string? Condition { get; }
-        ///// <summary>
-        ///// Spring Expression Language (SpEL) expression used to veto the cache put operation.
-        ///// Default is "", meaning that caching is never vetoed.
-        ///// The SpEL expression evaluates against a dedicated context that provides the following meta-data
-        ///// </summary>
-        //string? Unless { get; }
+        /// <summary>
+        /// Spring Expression Language (SpEL) expression used to veto the cache put operation.
+        /// Default is "", meaning that caching is never vetoed.
+        /// The SpEL expression evaluates against a dedicated context that provides the following meta-data
+        /// </summary>
+        string? Unless { get; }
+
+        IKeyGenerator? KeyGenerator { get; }
+        IPredicateGenerator? ConditionGenerator { get; }
+        IPredicateGenerator? UnlessGenerator { get; }
+
     }
 }
