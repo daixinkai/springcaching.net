@@ -5,6 +5,14 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<LangVersion>10</LangVersion>
+		<Version>1.0.0</Version>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<PackageProjectUrl>https://github.com/daixinkai/springcaching.net</PackageProjectUrl>
+		<Authors>daixinkai</Authors>
+		<PackageId>SpringCaching.DependencyInjection</PackageId>
+		<Description>SpringCaching for Microsoft.Extensions.DependencyInjection</Description>
+		<DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
+		<NoWarn>1701;1702;1591</NoWarn>
 	</PropertyGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">

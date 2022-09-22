@@ -16,6 +16,7 @@ namespace SpringCaching.Tests
 
 
         [Cacheable("getAllNames", ExpirationPolicy = ExpirationPolicy.Absolute, ExpirationUnit = ExpirationUnit.Minute, ExpirationValue = 1)]
+        [CachePut("getAllNames_CachePut", ExpirationPolicy = ExpirationPolicy.Absolute, ExpirationUnit = ExpirationUnit.Minute, ExpirationValue = 1)]
         public virtual Task<List<string>> GetAllNames()
         {
             Random random = new Random();
