@@ -7,12 +7,10 @@ using System.Threading.Tasks;
 
 namespace SpringCaching.Requirement
 {
-    public abstract class CachePutRequirement : CacheableRequirementBase, ICachePutRequirement
+    public class CachePutRequirement : CacheableRequirement, ICachePutRequirement
     {
         public CachePutRequirement(string value) : base(value)
         {
         }
-        /// <inheritdoc />
-        public bool UnlessNull { get; set; }
     }
 }

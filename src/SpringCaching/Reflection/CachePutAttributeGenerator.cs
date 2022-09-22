@@ -55,6 +55,12 @@ namespace SpringCaching.Reflection
             iLGenerator.Emit(OpCodes.Ldstr, attribute.Value);
             iLGenerator.Emit(OpCodes.Newobj, typeof(CachePutRequirement).GetConstructors()[0]);
             SetDefaultProperty(iLGenerator, attribute, fieldBuilders);
+            //ExpirationPolicy
+            iLGenerator.EmitSetProperty(typeof(CachePutRequirement).GetProperty("ExpirationPolicy")!, attribute.ExpirationPolicy, true);
+            //ExpirationUnit
+            iLGenerator.EmitSetProperty(typeof(CachePutRequirement).GetProperty("ExpirationUnit")!, attribute.ExpirationUnit, true);
+            //ExpirationValue
+            iLGenerator.EmitSetProperty(typeof(CachePutRequirement).GetProperty("ExpirationValue")!, attribute.ExpirationValue, true);
             //UnlessNull
             if (attribute.UnlessNull)
             {

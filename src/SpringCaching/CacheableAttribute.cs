@@ -6,7 +6,7 @@ using System.Xml.Linq;
 namespace SpringCaching
 {
     //[AttributeUsage(AttributeTargets.Method, Inherited = true, AllowMultiple = false)]
-    public sealed class CacheableAttribute : CacheableBaseAttribute
+    public class CacheableAttribute : CacheableBaseAttribute
     {
         public CacheableAttribute(string value) : base(value)
         {

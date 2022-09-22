@@ -1,4 +1,5 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SpringCaching.Infrastructure;
 using SpringCaching.Reflection;
 using SpringCaching.Tests;
 using System;
