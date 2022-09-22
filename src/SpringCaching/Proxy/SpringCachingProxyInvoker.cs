@@ -288,6 +288,27 @@ namespace SpringCaching.Proxy
         #endregion
 
         #region invoke CachePut
+        private static void InvokeCachePut<TResult>(ISpringCachingProxyContext context, IList<ICachePutRequirement> cachePutRequirements, FuncInvoker<TResult> invoker)
+        {
+            var proxy = context.Proxy;
+            var requirement = context.Requirement;
+            var invokerValue = invoker.GetResult();
+            foreach (var cachePutRequirement in cachePutRequirements)
+            {
+                if (cachePutRequirement == null)
+                {
+                    continue;
+                }
+                if (!IsCacheResult(cachePutRequirement, requirement, invokerValue))
+                {
+                    //don't cache
+                    continue;
+                }
+                //cache it
+                string key = GetCacheKey(cachePutRequirement.Value, cachePutRequirement.Key, cachePutRequirement.KeyGenerator, requirement);
+                SetCache(proxy.CacheProvider, key, invokerValue, cachePutRequirement);
+            }
+        }
         private static async Task InvokeCachePutAsync<TResult>(ISpringCachingProxyContext context, IList<ICachePutRequirement> cachePutRequirements, AsyncFuncInvoker<TResult> invoker)
         {
             var proxy = context.Proxy;
@@ -310,27 +331,6 @@ namespace SpringCaching.Proxy
             }
         }
 
-        private static void InvokeCachePut<TResult>(ISpringCachingProxyContext context, IList<ICachePutRequirement> cachePutRequirements, FuncInvoker<TResult> invoker)
-        {
-            var proxy = context.Proxy;
-            var requirement = context.Requirement;
-            var invokerValue = invoker.GetResult();
-            foreach (var cachePutRequirement in cachePutRequirements)
-            {
-                if (cachePutRequirement == null)
-                {
-                    continue;
-                }
-                if (!IsCacheResult(cachePutRequirement, requirement, invokerValue))
-                {
-                    //don't cache
-                    continue;
-                }
-                //cache it
-                string key = GetCacheKey(cachePutRequirement.Value, cachePutRequirement.Key, cachePutRequirement.KeyGenerator, requirement);
-                SetCache(proxy.CacheProvider, key, invokerValue, cachePutRequirement);
-            }
-        }
         #endregion
 
         private static Task SetCacheAsync<TResult>(ICacheProvider cacheProvider, string key, TResult value, ICacheableRequirement cacheableRequirement)
