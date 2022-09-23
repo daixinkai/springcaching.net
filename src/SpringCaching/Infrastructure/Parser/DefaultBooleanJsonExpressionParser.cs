@@ -10,7 +10,7 @@ namespace SpringCaching.Infrastructure.Parser
     {
         public IParsedBooleanExpression Parse(string expression, IDictionary<string, object>? arguments)
         {
-            return new ParsedBooleanExpression(expression, false, false);
+            return new ParsedBooleanExpression(expression, true, true);
         }
     }
 }
