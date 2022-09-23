@@ -122,7 +122,8 @@ namespace SpringCaching.Reflection
                 //if (!method.Attributes.HasFlag(MethodAttributes.Virtual))
                 if (!method.IsVirtual || method.IsFinal)
                 {
-                    continue;
+                    throw new NotSupportedException($"method of \"{method.DeclaringType.FullName}.{method.Name}({string.Join(",", method.GetParameters().Select(s => s.ParameterType.FullName))})\" must can override");
+                    //continue;
                 }
                 if (method.Attributes.HasFlag(MethodAttributes.Public)
                     || method.Attributes.HasFlag(MethodAttributes.Family)
