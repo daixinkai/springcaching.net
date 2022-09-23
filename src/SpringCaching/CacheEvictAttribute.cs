@@ -8,7 +8,7 @@ using SpringCaching.Requirement;
 namespace SpringCaching
 {
     //[AttributeUsage(AttributeTargets.Method, Inherited = true, AllowMultiple = false)]
-    public class CacheEvictAttribute : CacheableBaseAttribute
+    public class CacheEvictAttribute : CacheBaseAttribute
     {
         public CacheEvictAttribute(string value) : base(value)
         {

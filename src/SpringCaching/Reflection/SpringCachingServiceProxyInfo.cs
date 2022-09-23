@@ -26,6 +26,8 @@ namespace SpringCaching.Reflection
         private FieldBuilder? _cacheProviderFieldBuilder;
         private FieldBuilder? _optionsFieldBuilder;
 
+        private bool _implementProxy;
+
         public void Build()
         {
             if (TypeInfo != null)
@@ -34,8 +36,14 @@ namespace SpringCaching.Reflection
             }
             string typeFullName = ServiceType.FullName + /*"_SpringCaching_" +*/ Suffix; ;
             _typeBuilder = CreateTypeBuilder(typeFullName, ServiceType);
-            _cacheProviderFieldBuilder = _typeBuilder.DefineField("_cacheProvider", typeof(ICacheProvider), FieldAttributes.Private);
-            _optionsFieldBuilder = _typeBuilder.DefineField("_options", typeof(SpringCachingOptions), FieldAttributes.Private);
+
+            if (!typeof(ISpringCachingProxy).IsAssignableFrom(ServiceType))
+            {
+                _implementProxy = true;
+                _cacheProviderFieldBuilder = _typeBuilder.DefineField("_cacheProvider", typeof(ICacheProvider), FieldAttributes.Private);
+                _optionsFieldBuilder = _typeBuilder.DefineField("_options", typeof(SpringCachingOptions), FieldAttributes.Private);
+            }
+
             if (ServiceType.GetConstructors().Length > 1)
             {
                 throw new ArgumentException($"ServiceType : {ServiceType.FullName} has multiple  constructors!");
@@ -43,13 +51,14 @@ namespace SpringCaching.Reflection
             var serviceTypeConstructor = ServiceType.GetConstructors()[0];
             var serviceTypeConstructorParameters = serviceTypeConstructor.GetParameters();
 
-            #region Constructor
-            ConstructorBuilder constructorBuilder = _typeBuilder.DefineConstructor(
-              MethodAttributes.Public,
-              CallingConventions.Standard,
+            var constructorParameterTypes = _implementProxy ?
                 serviceTypeConstructorParameters.Select(s => s.ParameterType).Concat(new Type[] { typeof(ICacheProvider), typeof(SpringCachingOptions) }).ToArray()
-                );
+                : serviceTypeConstructorParameters.Select(s => s.ParameterType).ToArray();
+
+            #region Constructor
+            ConstructorBuilder constructorBuilder = _typeBuilder.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, constructorParameterTypes);
             int index = 0;
+
             string cacheProviderParameterName = "springCachingCacheProvider";
             string optionsParameterName = "springCachingOptions";
             foreach (var item in serviceTypeConstructorParameters)
@@ -65,8 +74,11 @@ namespace SpringCaching.Reflection
                 index++;
                 constructorBuilder.DefineParameter(index, item.Attributes, item.Name);
             }
-            constructorBuilder.DefineParameter(index + 1, ParameterAttributes.None, cacheProviderParameterName);
-            constructorBuilder.DefineParameter(index + 2, ParameterAttributes.None, optionsParameterName);
+            if (_implementProxy)
+            {
+                constructorBuilder.DefineParameter(index + 1, ParameterAttributes.None, cacheProviderParameterName);
+                constructorBuilder.DefineParameter(index + 2, ParameterAttributes.None, optionsParameterName);
+            }
 
             ILGenerator constructorIlGenerator = constructorBuilder.GetILGenerator();
             //call base.constructor
@@ -80,26 +92,32 @@ namespace SpringCaching.Reflection
                 constructorIlGenerator.Emit(OpCodes.Call, serviceTypeConstructor);
                 constructorIlGenerator.Emit(OpCodes.Nop);
             }
-            constructorIlGenerator.Emit(OpCodes.Ldarg_0);
-            constructorIlGenerator.Emit(OpCodes.Ldarg_S, index + 1);
-            constructorIlGenerator.Emit(OpCodes.Stfld, _cacheProviderFieldBuilder);
-            constructorIlGenerator.Emit(OpCodes.Ldarg_0);
-            constructorIlGenerator.Emit(OpCodes.Ldarg_S, index + 2);
-            constructorIlGenerator.Emit(OpCodes.Stfld, _optionsFieldBuilder);
+            if (_implementProxy)
+            {
+                constructorIlGenerator.Emit(OpCodes.Ldarg_0);
+                constructorIlGenerator.Emit(OpCodes.Ldarg_S, index + 1);
+                constructorIlGenerator.Emit(OpCodes.Stfld, _cacheProviderFieldBuilder);
+                constructorIlGenerator.Emit(OpCodes.Ldarg_0);
+                constructorIlGenerator.Emit(OpCodes.Ldarg_S, index + 2);
+                constructorIlGenerator.Emit(OpCodes.Stfld, _optionsFieldBuilder);
+            }
             constructorIlGenerator.Emit(OpCodes.Ret);
 
 
             #endregion
 
             #region ISpringCachingProxy
-            _typeBuilder.AddInterfaceImplementation(typeof(ISpringCachingProxy));
-            //ISpringCachingProxy.CacheProvider
-            _typeBuilder.DefineExplicitAutoPropertyFromField(typeof(ISpringCachingProxy).GetProperty("CacheProvider")!, _cacheProviderFieldBuilder);
-            //ISpringCachingProxy.Options
-            _typeBuilder.DefineExplicitAutoPropertyFromField(typeof(ISpringCachingProxy).GetProperty("Options")!, _optionsFieldBuilder);
+            if (_implementProxy)
+            {
+                _typeBuilder.AddInterfaceImplementation(typeof(ISpringCachingProxy));
+                //ISpringCachingProxy.CacheProvider
+                _typeBuilder.DefineExplicitAutoPropertyFromField(typeof(ISpringCachingProxy).GetProperty("CacheProvider")!, _cacheProviderFieldBuilder);
+                //ISpringCachingProxy.Options
+                _typeBuilder.DefineExplicitAutoPropertyFromField(typeof(ISpringCachingProxy).GetProperty("Options")!, _optionsFieldBuilder);
+            }
             #endregion
 
-            foreach (var method in ServiceType.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Where(s => s.IsDefined(typeof(CacheableBaseAttribute))))
+            foreach (var method in ServiceType.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Where(s => s.IsDefined(typeof(CacheBaseAttribute))))
             {
                 if (!method.Attributes.HasFlag(MethodAttributes.Virtual))
                 {
@@ -107,14 +125,14 @@ namespace SpringCaching.Reflection
                 }
                 if (method.Attributes.HasFlag(MethodAttributes.Public)
                     || method.Attributes.HasFlag(MethodAttributes.Family)
-                    || method.Attributes.HasFlag(MethodAttributes.Assembly)
+                    //|| method.Attributes.HasFlag(MethodAttributes.Assembly)
                     )
                 {
                     BuildMethod(method);
                 }
             }
 
-            _typeBuilder.CopyCustomAttributes(ServiceType);
+            _typeBuilder.CopyCustomAttributes(ServiceType, typeof(SpringCachingAttribute));
             TypeInfo = _typeBuilder.CreateTypeInfo();
         }
 
@@ -158,7 +176,7 @@ namespace SpringCaching.Reflection
             ILGenerator iLGenerator = methodBuilder.GetILGenerator();
 
             var invokeMethod = GetInvokeMethod(method);
-            var invokeDelegate = DefineInvokeDelegate(_typeBuilder!, iLGenerator, baseMethodBuilder, parameters, method.GetCustomAttributes<CacheableBaseAttribute>().ToArray());
+            var invokeDelegate = DefineInvokeDelegate(_typeBuilder!, iLGenerator, baseMethodBuilder, parameters, method.GetCustomAttributes<CacheBaseAttribute>().ToArray());
 
             // new SpringCachingProxyContext(proxy,requirement)
             iLGenerator.Emit(OpCodes.Ldarg_0);  //this
@@ -181,7 +199,7 @@ namespace SpringCaching.Reflection
         /// <param name="parameters"></param>
         /// <param name="attributes"></param>
         /// <returns></returns>
-        private static Tuple<LocalBuilder, LocalBuilder> DefineInvokeDelegate(TypeBuilder typeBuilder, ILGenerator iLGenerator, MethodBuilder method, ParameterInfo[] parameters, CacheableBaseAttribute[] attributes)
+        private static Tuple<LocalBuilder, LocalBuilder> DefineInvokeDelegate(TypeBuilder typeBuilder, ILGenerator iLGenerator, MethodBuilder method, ParameterInfo[] parameters, CacheBaseAttribute[] attributes)
         {
 
             Type delegateType;

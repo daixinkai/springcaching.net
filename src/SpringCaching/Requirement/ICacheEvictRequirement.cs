@@ -5,7 +5,7 @@ using SpringCaching.Infrastructure;
 
 namespace SpringCaching.Requirement
 {
-    public interface ICacheEvictRequirement : ICacheableRequirementBase
+    public interface ICacheEvictRequirement : ICacheRequirement
     {
         /// <summary>
         /// Whether all the entries inside the cache(s) are removed.

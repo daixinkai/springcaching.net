@@ -19,19 +19,19 @@ namespace SpringCaching.Reflection
         public abstract bool Build(TypeBuilder typeBuilder, Type attributeType, IList<Attribute> attributes, IList<FieldBuilderDescriptor> fieldBuilders);
 
 
-        protected void SetDefaultProperty(ILGenerator iLGenerator, CacheableBaseAttribute attribute, IList<FieldBuilderDescriptor> fieldBuilders)
+        protected void SetDefaultProperty(ILGenerator iLGenerator, CacheBaseAttribute attribute, IList<FieldBuilderDescriptor> fieldBuilders)
         {
             SetKeyGeneratorProperty(iLGenerator, attribute.Key, fieldBuilders);
             SetConditionGeneratorProperty(iLGenerator, attribute.Condition, fieldBuilders);
             //Key
             if (attribute.Key != null)
             {
-                iLGenerator.EmitSetProperty(typeof(CacheableRequirementBase).GetProperty("Key")!, attribute.Key, true);
+                iLGenerator.EmitSetProperty(typeof(CacheRequirementBase).GetProperty("Key")!, attribute.Key, true);
             }
             //Condition
             if (attribute.Condition != null)
             {
-                iLGenerator.EmitSetProperty(typeof(CacheableRequirementBase).GetProperty("Condition")!, attribute.Condition, true);
+                iLGenerator.EmitSetProperty(typeof(CacheRequirementBase).GetProperty("Condition")!, attribute.Condition, true);
             }
         }
 
@@ -43,7 +43,7 @@ namespace SpringCaching.Reflection
             }
             iLGenerator.Emit(OpCodes.Dup);
             EmitKeyGenerator(iLGenerator, expression, fieldBuilders);
-            iLGenerator.Emit(OpCodes.Callvirt, typeof(CacheableRequirementBase).GetProperty("KeyGenerator")!.SetMethod!);
+            iLGenerator.Emit(OpCodes.Callvirt, typeof(CacheRequirementBase).GetProperty("KeyGenerator")!.SetMethod!);
             iLGenerator.Emit(OpCodes.Nop);
         }
 
@@ -64,7 +64,7 @@ namespace SpringCaching.Reflection
         {
             if (string.IsNullOrWhiteSpace(expression))
             {
-                EmitSImpleKeyGenerator(iLGenerator, fieldBuilders);
+                EmitSimpleKeyGenerator(iLGenerator, fieldBuilders);
                 return;
             }
             iLGenerator.Emit(OpCodes.Ldnull);
@@ -76,7 +76,7 @@ namespace SpringCaching.Reflection
             iLGenerator.Emit(OpCodes.Ldnull);
         }
 
-        private void EmitSImpleKeyGenerator(ILGenerator iLGenerator, IList<FieldBuilderDescriptor> fieldBuilders)
+        private void EmitSimpleKeyGenerator(ILGenerator iLGenerator, IList<FieldBuilderDescriptor> fieldBuilders)
         {
             if (fieldBuilders.Count == 0)
             {

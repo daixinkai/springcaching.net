@@ -5,7 +5,7 @@ using System.Text;
 namespace SpringCaching
 {
     //[AttributeUsage(AttributeTargets.Method, Inherited = true, AllowMultiple = false)]
-    public class CachePutAttribute : CacheableBaseAttribute
+    public class CachePutAttribute : CacheBaseAttribute
     {
         public CachePutAttribute(string value) : base(value)
         {

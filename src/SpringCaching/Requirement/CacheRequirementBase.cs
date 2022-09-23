@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace SpringCaching.Requirement
 {
-    public abstract class CacheableRequirementBase : ICacheableRequirementBase
+    public abstract class CacheRequirementBase : ICacheRequirement
     {
-        public CacheableRequirementBase(string value)
+        public CacheRequirementBase(string value)
         {
             Value = value ?? throw new ArgumentNullException(nameof(value));
         }

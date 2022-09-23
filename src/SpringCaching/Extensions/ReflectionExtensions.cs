@@ -45,11 +45,15 @@ namespace SpringCaching
             }
         }
 
-        public static void CopyCustomAttributes(this TypeBuilder typeBuilder, Type type)
+        public static void CopyCustomAttributes(this TypeBuilder typeBuilder, Type type, params Type[] excludeAttributeTypes)
         {
             var datas = CustomAttributeData.GetCustomAttributes(type);
             foreach (var data in datas)
             {
+                if (excludeAttributeTypes != null && excludeAttributeTypes.Contains(data.AttributeType))
+                {
+                    continue;
+                }
                 CustomAttributeBuilder customAttributeBuilder = GetCustomAttributeBuilder(data);
                 typeBuilder.SetCustomAttribute(customAttributeBuilder);
             }

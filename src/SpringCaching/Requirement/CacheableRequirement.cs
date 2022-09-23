@@ -7,7 +7,7 @@ using SpringCaching.Infrastructure;
 
 namespace SpringCaching.Requirement
 {
-    public class CacheableRequirement : CacheableRequirementBase, ICacheableRequirement
+    public class CacheableRequirement : CacheRequirementBase, ICacheableRequirement
     {
         public CacheableRequirement(string value) : base(value)
         {

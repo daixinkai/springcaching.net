@@ -8,9 +8,9 @@ namespace SpringCaching
 {
     [EditorBrowsable(EditorBrowsableState.Never)]
     [AttributeUsage(AttributeTargets.Method, Inherited = true, AllowMultiple = true)]
-    public abstract class CacheableBaseAttribute : Attribute
+    public abstract class CacheBaseAttribute : Attribute
     {
-        public CacheableBaseAttribute(string value)
+        public CacheBaseAttribute(string value)
         {
             Value = value ?? throw new ArgumentNullException(nameof(value));
         }

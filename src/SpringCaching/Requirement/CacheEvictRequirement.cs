@@ -7,7 +7,7 @@ using SpringCaching.Infrastructure;
 
 namespace SpringCaching.Requirement
 {
-    public class CacheEvictRequirement : CacheableRequirementBase, ICacheEvictRequirement
+    public class CacheEvictRequirement : CacheRequirementBase, ICacheEvictRequirement
     {
         public CacheEvictRequirement(string value) : base(value)
         {

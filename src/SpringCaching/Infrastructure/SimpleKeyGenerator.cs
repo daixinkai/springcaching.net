@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 namespace SpringCaching.Infrastructure
 {
     public abstract class SimpleKeyGenerator : IKeyGenerator
-    {
+    {        
         public class StringKeyGenerator : SimpleKeyGenerator
         {
             public StringKeyGenerator(string? value, string? nullValue)
@@ -30,27 +30,6 @@ namespace SpringCaching.Infrastructure
                     return _nullValue;
                 }
                 return _value;
-            }
-        }
-
-        public class ClassToStringKeyGenerator<T> : SimpleKeyGenerator where T : class
-        {
-            public ClassToStringKeyGenerator(T? value, string? nullValue)
-            {
-                _value = value;
-                _nullValue = nullValue;
-            }
-
-            private readonly T? _value;
-            private readonly string? _nullValue;
-
-            protected override string? GetKey()
-            {
-                if (_value == null)
-                {
-                    return _nullValue;
-                }
-                return _value.ToString();
             }
         }
 

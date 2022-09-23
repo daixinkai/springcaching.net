@@ -5,7 +5,7 @@ using SpringCaching.Infrastructure;
 
 namespace SpringCaching.Requirement
 {
-    public interface ICacheableRequirement : ICacheableRequirementBase
+    public interface ICacheableRequirement : ICacheRequirement
     {
         /// <summary>
         /// if result is null, don't cache it

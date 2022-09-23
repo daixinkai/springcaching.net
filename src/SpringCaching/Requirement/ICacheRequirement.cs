@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace SpringCaching.Requirement
 {
-    public interface ICacheableRequirementBase
+    public interface ICacheRequirement
     {
         /// <summary>
         /// Names of the caches in which method invocation results are stored.

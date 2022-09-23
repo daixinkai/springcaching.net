@@ -371,10 +371,10 @@ namespace SpringCaching.Proxy
             }
         }
 
-        private static string GetCacheKey(ICacheableRequirementBase cacheableRequirement, ISpringCachingProxy proxy, ISpringCachingRequirement requirement)
+        private static string GetCacheKey(ICacheRequirement cacheRequirement, ISpringCachingProxy proxy, ISpringCachingRequirement requirement)
         {
-            var keyGenerator = cacheableRequirement.KeyGenerator ?? DefaultKeyGenerator.Instance;
-            return GetCacheKey(cacheableRequirement.Value, keyGenerator.GetKey(cacheableRequirement.Key, proxy.Options.KeyExpressionParser, requirement));
+            var keyGenerator = cacheRequirement.KeyGenerator ?? DefaultKeyGenerator.Instance;
+            return GetCacheKey(cacheRequirement.Value, keyGenerator.GetKey(cacheRequirement.Key, proxy.Options.KeyExpressionParser, requirement));
         }
 
         private static string GetCacheKey(string cacheableValue, string? cacheableKey)

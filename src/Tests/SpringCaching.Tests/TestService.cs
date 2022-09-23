@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SpringCaching.Proxy;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,13 +8,16 @@ using System.Threading.Tasks;
 namespace SpringCaching.Tests
 {
     [SpringCaching]
-    public class TestService : ITestService
+    public class TestService : ITestService, ISpringCachingProxy
     {
 
         public string ServiceId { get; set; }
 
         public Type ServiceType { get; set; }
 
+        public ICacheProvider CacheProvider => throw new NotImplementedException();
+
+        public SpringCachingOptions Options => throw new NotImplementedException();
 
         [Cacheable("getAllNames", ExpirationPolicy = ExpirationPolicy.Absolute, ExpirationUnit = ExpirationUnit.Minute, ExpirationValue = 1)]
         [CachePut("getAllNames_CachePut", ExpirationPolicy = ExpirationPolicy.Absolute, ExpirationUnit = ExpirationUnit.Minute, ExpirationValue = 1)]

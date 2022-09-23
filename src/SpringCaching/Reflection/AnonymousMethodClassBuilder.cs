@@ -20,7 +20,7 @@ namespace SpringCaching.Reflection
         }
         private static readonly List<AttributeGenerator> s_attributeGenerators;
 
-        public static Tuple<TypeBuilder, ConstructorInfo, MethodInfo> BuildType(ModuleBuilder moduleBuilder, MethodInfo method, ParameterInfo[] parameters, CacheableBaseAttribute[] attributes)
+        public static Tuple<TypeBuilder, ConstructorInfo, MethodInfo> BuildType(ModuleBuilder moduleBuilder, MethodInfo method, ParameterInfo[] parameters, CacheBaseAttribute[] attributes)
         {
             string typeName = method.DeclaringType!.Name;
             typeName += "_" + Guid.NewGuid().ToString("N").ToUpper();
@@ -35,7 +35,7 @@ namespace SpringCaching.Reflection
         }
 
 
-        public static Tuple<TypeBuilder, ConstructorInfo, MethodInfo> BuildType(TypeBuilder nestedForTypeBuilder, MethodInfo method, ParameterInfo[] parameters, CacheableBaseAttribute[] attributes)
+        public static Tuple<TypeBuilder, ConstructorInfo, MethodInfo> BuildType(TypeBuilder nestedForTypeBuilder, MethodInfo method, ParameterInfo[] parameters, CacheBaseAttribute[] attributes)
         {
             string fullName = nestedForTypeBuilder.BaseType!.Name + "_" + Guid.NewGuid().ToString("N").ToUpper();
             TypeBuilder typeBuilder = CreateTypeBuilder(nestedForTypeBuilder, fullName, typeof(SpringCachingRequirementProxy));
@@ -101,7 +101,7 @@ namespace SpringCaching.Reflection
             return methodBuilder;
         }
 
-        private static Tuple<TypeBuilder, ConstructorInfo, MethodInfo> FillType(TypeBuilder typeBuilder, MethodInfo method, ParameterInfo[] parameters, CacheableBaseAttribute[] attributes)
+        private static Tuple<TypeBuilder, ConstructorInfo, MethodInfo> FillType(TypeBuilder typeBuilder, MethodInfo method, ParameterInfo[] parameters, CacheBaseAttribute[] attributes)
         {
             // field
             parameters ??= method.GetParameters();
