@@ -266,7 +266,6 @@ namespace SpringCaching
         /// 生成调用父类方法  base.xxxxx(xxx)
         /// </summary>
         /// <param name="typeBuilder"></param>
-        /// <param name="serviceType"></param>
         /// <param name="method"></param>
         /// <returns></returns>
         public static MethodBuilder DefineBaseTypeMethod(this TypeBuilder typeBuilder, MethodInfo method)

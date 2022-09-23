@@ -88,67 +88,67 @@ namespace SpringCaching.UnitTest.NET45
 
     }
 
-    internal class TestService_SpringCaching_8A8F131389F24AAC88F3B610639DF6EF_8AF2457B3F454975AB79AEBCB675874B : SpringCachingRequirementProxy, ICacheableRequirement, ICacheEvictRequirement
-    {
-        // Token: 0x06000004 RID: 4 RVA: 0x00002050 File Offset: 0x00000250
-        public TestService_SpringCaching_8A8F131389F24AAC88F3B610639DF6EF_8AF2457B3F454975AB79AEBCB675874B(TestService testService, int _id)
-        {
-            this.testService = testService;
-            this._id = _id;
-        }
+    //internal class TestService_SpringCaching_8A8F131389F24AAC88F3B610639DF6EF_8AF2457B3F454975AB79AEBCB675874B : SpringCachingRequirementProxy, ICacheableRequirement, ICacheEvictRequirement
+    //{
+    //    // Token: 0x06000004 RID: 4 RVA: 0x00002050 File Offset: 0x00000250
+    //    public TestService_SpringCaching_8A8F131389F24AAC88F3B610639DF6EF_8AF2457B3F454975AB79AEBCB675874B(TestService testService, int _id)
+    //    {
+    //        this.testService = testService;
+    //        this._id = _id;
+    //    }
 
-        // Token: 0x06000005 RID: 5 RVA: 0x0000207C File Offset: 0x0000027C
-        public Task<List<string>> GetNames()
-        {
-            return this.testService.GetNames(this._id);
-        }
+    //    // Token: 0x06000005 RID: 5 RVA: 0x0000207C File Offset: 0x0000027C
+    //    public Task<List<string>> GetNames()
+    //    {
+    //        return this.testService.GetNames(this._id);
+    //    }
 
-        public string GetCalculatedKey()
-        {
-            IKeyGenerator keyGenerator = new SimpleKeyGenerator.JsonKeyGenerator<object[]>(new object[] { 1, "2", "3" }, "null");
-            //return ToStructString(_id);
-            return keyGenerator.GetKey(null, null);
-        }
+    //    public string GetCalculatedKey()
+    //    {
+    //        IKeyGenerator keyGenerator = new SimpleKeyGenerator.JsonKeyGenerator<object[]>(new object[] { 1, "2", "3" }, "null");
+    //        //return ToStructString(_id);
+    //        return keyGenerator.GetKey(null, null);
+    //    }
 
 
 
-        // Token: 0x04000002 RID: 2
-        private TestService testService;
+    //    // Token: 0x04000002 RID: 2
+    //    private TestService testService;
 
-        // Token: 0x04000003 RID: 3
-        private int _id;
+    //    // Token: 0x04000003 RID: 3
+    //    private int _id;
 
-        string ICacheableRequirement.Value => null;
+    //    string ICacheableRequirement.Value => null;
 
-        string ICacheableRequirement.Key => "1";
+    //    string ICacheableRequirement.Key => "1";
 
-        public override IDictionary<string, object> Arguments => null;
+    //    public override IDictionary<string, object> Arguments => null;
 
-        ExpirationPolicy ICacheableRequirement.ExpirationPolicy => ExpirationPolicy.None;
+    //    ExpirationPolicy ICacheableRequirement.ExpirationPolicy => ExpirationPolicy.None;
 
-        //string ICacheableRequirement.Condition => "";
+    //    //string ICacheableRequirement.Condition => "";
 
-        string ICacheEvictRequirement.Value => "1";
+    //    string ICacheEvictRequirement.Value => "1";
 
-        string ICacheEvictRequirement.Key => "1";
+    //    string ICacheEvictRequirement.Key => "1";
 
-        string ICacheEvictRequirement.Condition => "1";
+    //    string ICacheEvictRequirement.Condition => "1";
 
-        bool ICacheEvictRequirement.AllEntries => false;
+    //    bool ICacheEvictRequirement.AllEntries => false;
 
-        bool ICacheEvictRequirement.BeforeInvocation => true;
+    //    bool ICacheEvictRequirement.BeforeInvocation => true;
 
-        ExpirationUnit ICacheableRequirement.ExpirationUnit => ExpirationUnit.Second;
+    //    ExpirationUnit ICacheableRequirement.ExpirationUnit => ExpirationUnit.Second;
 
-        int ICacheableRequirement.ExpirationValue => 211;
+    //    int ICacheableRequirement.ExpirationValue => 211;
 
-        public IKeyGenerator KeyGenerator => throw new NotImplementedException();
+    //    public IKeyGenerator KeyGenerator => throw new NotImplementedException();
 
-        public string Condition => throw new NotImplementedException();
+    //    public string Condition => throw new NotImplementedException();
 
-        public IPredicateGenerator ConditionGenerator => throw new NotImplementedException();
+    //    public IPredicateGenerator ConditionGenerator => throw new NotImplementedException();
 
-        public bool UnlessNull { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-    }
+    //    public bool UnlessNull { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+    //}
 
 }

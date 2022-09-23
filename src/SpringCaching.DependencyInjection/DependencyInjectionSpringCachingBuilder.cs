@@ -14,6 +14,6 @@ namespace SpringCaching.DependencyInjection
             Options = new SpringCachingOptions();
         }
         public IServiceCollection Services { get; }
-        public SpringCachingOptions Options { get; set; }
+        public SpringCachingOptions Options { get; }
     }
 }

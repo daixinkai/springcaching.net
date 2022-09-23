@@ -33,7 +33,7 @@ namespace SpringCaching.Formatting
             return JsonConvert.DeserializeObject<TResult>(json, JsonSerializerSettings);
         }
 
-        private static JsonSerializerSettings CreateDefaultSerializerSettings()
+        public static JsonSerializerSettings CreateDefaultSerializerSettings()
         {
             return new JsonSerializerSettings()
             {

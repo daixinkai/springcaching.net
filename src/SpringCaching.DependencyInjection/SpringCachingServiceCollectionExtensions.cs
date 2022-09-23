@@ -14,9 +14,18 @@ namespace Microsoft.Extensions.DependencyInjection
     [EditorBrowsable(EditorBrowsableState.Never)]
     public static class SpringCachingServiceCollectionExtensions
     {
+
         public static IDependencyInjectionSpringCachingBuilder AddSpringCaching(this IServiceCollection services)
         {
+            return services.AddSpringCaching(options =>
+            {
+            });
+        }
+
+        public static IDependencyInjectionSpringCachingBuilder AddSpringCaching(this IServiceCollection services, Action<SpringCachingOptions> setup)
+        {
             var springCachingBuilder = new DependencyInjectionSpringCachingBuilder(services);
+            setup?.Invoke(springCachingBuilder.Options);
             services.AddSingleton<ICacheProvider, DistributedCacheProvider>();
             services.AddSingleton(springCachingBuilder.Options);
             //scan service
@@ -42,6 +51,7 @@ namespace Microsoft.Extensions.DependencyInjection
             }
             return springCachingBuilder;
         }
+
 
         private static Type? CreateProxyType(Type serviceType)
         {

@@ -1,4 +1,5 @@
 ﻿using SpringCaching.Formatting;
+using SpringCaching.Infrastructure.Parser;
 using SpringCaching.Requirement;
 using System;
 using System.Collections;
@@ -120,7 +121,7 @@ namespace SpringCaching.Infrastructure
 
         protected abstract string? GetKey();
 
-        string? IKeyGenerator.GetKey(string? expression, ISpringCachingRequirement requirement) => GetKey();
+        string? IKeyGenerator.GetKey(string? expression, IStringExpressionParser parser, ISpringCachingRequirement requirement) => GetKey();
 
     }
 }

@@ -1,4 +1,5 @@
-﻿using SpringCaching.Requirement;
+﻿using SpringCaching.Infrastructure.Parser;
+using SpringCaching.Requirement;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +10,6 @@ namespace SpringCaching.Infrastructure
 {
     public interface IPredicateGenerator
     {
-        bool Predicate(string? expression, ISpringCachingRequirement requirement);
+        bool Predicate(string? expression, IBooleanExpressionParser parser, ISpringCachingRequirement requirement);
     }
 }
