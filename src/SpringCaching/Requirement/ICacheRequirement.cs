@@ -11,7 +11,6 @@ namespace SpringCaching.Requirement
     {
         /// <summary>
         /// Names of the caches in which method invocation results are stored.
-        /// Names may be used to determine the target cache(or caches), matching the qualifier value or bean name of a specific bean definition.
         /// </summary>
         string Value { get; }
         /// <summary>

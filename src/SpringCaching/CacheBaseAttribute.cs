@@ -14,7 +14,9 @@ namespace SpringCaching
         {
             Value = value ?? throw new ArgumentNullException(nameof(value));
         }
-        /// <inheritdoc />
+        /// <summary>
+        /// Names of the caches in which method invocation results are stored.
+        /// </summary>
         public string Value { get; }
         /// <summary>
         /// Spring Expression Language (SpEL) expression for computing the key dynamically.

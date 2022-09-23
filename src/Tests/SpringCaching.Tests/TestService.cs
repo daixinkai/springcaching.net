@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace SpringCaching.Tests
 {
     [SpringCaching]
-    public class TestService : ITestService, ISpringCachingProxy
+    public class TestService : ITestService//, ISpringCachingProxy
     {
 
         public string ServiceId { get; set; }
