@@ -34,22 +34,22 @@ namespace SpringCaching
         }
 #endif
 
-        public void Set<T>(string key, T value, TimeSpan? expirationTime)
+        public void Set<T>(string key, T? value, TimeSpan? expirationTime)
         {
         }
 
-        public void SetSliding<T>(string key, T value, TimeSpan slidingExpirationTime)
+        public void SetSliding<T>(string key, T? value, TimeSpan slidingExpirationTime)
         {
         }
 
-        public Task SetAsync<T>(string key, T value, TimeSpan? expirationTime)
+        public Task SetAsync<T>(string key, T? value, TimeSpan? expirationTime)
         {
             return TaskEx.CompletedTask;
         }
 
 
 
-        public Task SetSlidingAsync<T>(string key, T value, TimeSpan slidingExpirationTime)
+        public Task SetSlidingAsync<T>(string key, T? value, TimeSpan slidingExpirationTime)
         {
             return TaskEx.CompletedTask;
         }

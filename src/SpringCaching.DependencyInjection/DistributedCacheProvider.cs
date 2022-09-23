@@ -41,7 +41,7 @@ namespace SpringCaching.DependencyInjection
             return (true, CacheSerializer.DeserializeObject<T>(buffer));
         }
 
-        public void Set<T>(string key, T value, TimeSpan? expirationTime)
+        public void Set<T>(string key, T? value, TimeSpan? expirationTime)
         {
             var buffer = CacheSerializer.SerializeObject(value);
             _distributedCache.Set(key, buffer, new DistributedCacheEntryOptions
@@ -50,7 +50,7 @@ namespace SpringCaching.DependencyInjection
             });
         }
 
-        public Task SetAsync<T>(string key, T value, TimeSpan? expirationTime)
+        public Task SetAsync<T>(string key, T? value, TimeSpan? expirationTime)
         {
             var buffer = CacheSerializer.SerializeObject(value);
             return _distributedCache.SetAsync(key, buffer, new DistributedCacheEntryOptions
@@ -59,7 +59,7 @@ namespace SpringCaching.DependencyInjection
             });
         }
 
-        public void SetSliding<T>(string key, T value, TimeSpan slidingExpirationTime)
+        public void SetSliding<T>(string key, T? value, TimeSpan slidingExpirationTime)
         {
             var buffer = CacheSerializer.SerializeObject(value);
             _distributedCache.Set(key, buffer, new DistributedCacheEntryOptions
@@ -68,7 +68,7 @@ namespace SpringCaching.DependencyInjection
             });
         }
 
-        public Task SetSlidingAsync<T>(string key, T value, TimeSpan slidingExpirationTime)
+        public Task SetSlidingAsync<T>(string key, T? value, TimeSpan slidingExpirationTime)
         {
             var buffer = CacheSerializer.SerializeObject(value);
             return _distributedCache.SetAsync(key, buffer, new DistributedCacheEntryOptions

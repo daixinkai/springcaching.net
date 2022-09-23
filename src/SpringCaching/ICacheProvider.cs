@@ -36,7 +36,7 @@ namespace SpringCaching
         /// <param name="key"></param>
         /// <param name="value"></param>
         /// <param name="expirationTime">失效时间</param>
-        void Set<T>(string key, T value, TimeSpan? expirationTime);
+        void Set<T>(string key, T? value, TimeSpan? expirationTime);
         /// <summary>
         /// set cache
         /// </summary>
@@ -45,7 +45,7 @@ namespace SpringCaching
         /// <param name="value"></param>
         /// <param name="expirationTime">失效时间</param>
         /// <returns></returns>
-        Task SetAsync<T>(string key, T value, TimeSpan? expirationTime);
+        Task SetAsync<T>(string key, T? value, TimeSpan? expirationTime);
         /// <summary>
         /// set sliding cache
         /// </summary>
@@ -53,7 +53,7 @@ namespace SpringCaching
         /// <param name="key"></param>
         /// <param name="value"></param>
         /// <param name="slidingExpirationTime">滑动失效时间</param>
-        void SetSliding<T>(string key, T value, TimeSpan slidingExpirationTime);
+        void SetSliding<T>(string key, T? value, TimeSpan slidingExpirationTime);
         /// <summary>
         /// set sliding cache
         /// </summary>
@@ -61,7 +61,7 @@ namespace SpringCaching
         /// <param name="key"></param>
         /// <param name="value"></param>
         /// <param name="slidingExpirationTime">滑动失效时间</param>
-        Task SetSlidingAsync<T>(string key, T value, TimeSpan slidingExpirationTime);
+        Task SetSlidingAsync<T>(string key, T? value, TimeSpan slidingExpirationTime);
         /// <summary>
         /// remove cache
         /// </summary>

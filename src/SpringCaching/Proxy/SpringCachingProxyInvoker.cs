@@ -330,7 +330,7 @@ namespace SpringCaching.Proxy
 
         #endregion
 
-        private static Task SetCacheAsync<TResult>(ICacheProvider cacheProvider, string key, TResult value, ICacheableRequirement cacheableRequirement)
+        private static Task SetCacheAsync<TResult>(ICacheProvider cacheProvider, string key, TResult? value, ICacheableRequirement cacheableRequirement)
         {
 
             switch (cacheableRequirement.ExpirationPolicy)
@@ -349,7 +349,7 @@ namespace SpringCaching.Proxy
             }
         }
 
-        private static void SetCache<TResult>(ICacheProvider cacheProvider, string key, TResult value, ICacheableRequirement cacheableRequirement)
+        private static void SetCache<TResult>(ICacheProvider cacheProvider, string key, TResult? value, ICacheableRequirement cacheableRequirement)
         {
             switch (cacheableRequirement.ExpirationPolicy)
             {

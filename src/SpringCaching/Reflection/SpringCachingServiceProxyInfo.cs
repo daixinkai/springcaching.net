@@ -96,10 +96,10 @@ namespace SpringCaching.Reflection
             {
                 constructorIlGenerator.Emit(OpCodes.Ldarg_0);
                 constructorIlGenerator.Emit(OpCodes.Ldarg_S, index + 1);
-                constructorIlGenerator.Emit(OpCodes.Stfld, _cacheProviderFieldBuilder);
+                constructorIlGenerator.Emit(OpCodes.Stfld, _cacheProviderFieldBuilder!);
                 constructorIlGenerator.Emit(OpCodes.Ldarg_0);
                 constructorIlGenerator.Emit(OpCodes.Ldarg_S, index + 2);
-                constructorIlGenerator.Emit(OpCodes.Stfld, _optionsFieldBuilder);
+                constructorIlGenerator.Emit(OpCodes.Stfld, _optionsFieldBuilder!);
             }
             constructorIlGenerator.Emit(OpCodes.Ret);
 
