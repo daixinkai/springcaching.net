@@ -55,7 +55,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
         private static Type? CreateProxyType(Type serviceType)
         {
-            if (serviceType.IsDefined(typeof(SpringCachingAttribute), true) && !serviceType.IsDefined(typeof(NonSpringCachingAttribute), true))
+            if (serviceType.IsDefined(typeof(SpringCachingAttribute), true) && !serviceType.IsDefined(typeof(NonSpringCachingAttribute)))
             {
                 var typeInfo = SpringCachingServiceProxy.GetProxyType(serviceType);
                 return typeInfo?.AsType();
