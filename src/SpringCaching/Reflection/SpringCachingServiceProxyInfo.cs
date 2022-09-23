@@ -119,7 +119,8 @@ namespace SpringCaching.Reflection
 
             foreach (var method in ServiceType.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Where(s => s.IsDefined(typeof(CacheBaseAttribute))))
             {
-                if (!method.Attributes.HasFlag(MethodAttributes.Virtual))
+                //if (!method.Attributes.HasFlag(MethodAttributes.Virtual))
+                if (!method.IsVirtual || method.IsFinal)
                 {
                     continue;
                 }
