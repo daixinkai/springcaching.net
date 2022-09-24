@@ -1,6 +1,6 @@
 ﻿#if NET45 || NETSTANDARD2_0
 using Newtonsoft.Json.Linq;
-using SpringCaching.Formatting;
+using SpringCaching.Serialization;
 #endif
 using System;
 using System.Collections.Generic;

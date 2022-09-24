@@ -8,14 +8,16 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using SpringCaching.Serialization;
 
-namespace SpringCaching.Formatting
+namespace SpringCaching.Serialization
 {
     public class SystemTextJsonCacheSerializer : IJsonCacheSerializer
     {
         public static readonly SystemTextJsonCacheSerializer JsonCacheSerializer = new SystemTextJsonCacheSerializer();
         public JsonSerializerOptions JsonSerializerOptions { get; } = new JsonSerializerOptions
         {
+            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
             PropertyNameCaseInsensitive = true,
+            DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         };
 
@@ -29,7 +31,7 @@ namespace SpringCaching.Formatting
         }
 
         public TResult? DeserializeObject<TResult>(byte[] value)
-        {            
+        {
             return JsonSerializer.Deserialize<TResult>(value, JsonSerializerOptions);
         }
 

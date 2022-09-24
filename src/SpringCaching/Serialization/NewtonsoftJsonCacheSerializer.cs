@@ -1,8 +1,6 @@
 ﻿#if NET45 || NETSTANDARD2_0
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
-using SpringCaching.Formatting;
-using SpringCaching.Serialization;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SpringCaching.Formatting
+namespace SpringCaching.Serialization
 {
     public class NewtonsoftJsonCacheSerializer : IJsonCacheSerializer
     {
