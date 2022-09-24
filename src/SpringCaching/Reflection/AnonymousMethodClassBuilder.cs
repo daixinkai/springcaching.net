@@ -137,16 +137,55 @@ namespace SpringCaching.Reflection
 
             if (attributes != null && attributes.Length > 0)
             {
-                foreach (var group in attributes.GroupBy(s => s.GetType()))
+
+                var cacheableAttributes = attributes.Where(s => typeof(CacheableAttribute).IsAssignableFrom(s.GetType())).ToList<Attribute>();
+                var cacheEvictAttributes = attributes.Where(s => typeof(CacheEvictAttribute).IsAssignableFrom(s.GetType())).ToList<Attribute>();
+                var cachePutAttributes = attributes.Where(s => typeof(CachePutAttribute).IsAssignableFrom(s.GetType())).ToList<Attribute>();
+
+                if (cacheableAttributes.Count > 0)
                 {
                     foreach (var attributeGenerator in s_attributeGenerators)
                     {
-                        if (attributeGenerator.Build(typeBuilder, group.Key, group.ToList<Attribute>(), fieldBuilderDescribes))
+                        if (attributeGenerator.Build(typeBuilder, typeof(CacheableAttribute), cacheableAttributes, fieldBuilderDescribes))
                         {
                             continue;
                         }
                     }
                 }
+
+                if (cacheEvictAttributes.Count > 0)
+                {
+                    foreach (var attributeGenerator in s_attributeGenerators)
+                    {
+                        if (attributeGenerator.Build(typeBuilder, typeof(CacheEvictAttribute), cacheEvictAttributes, fieldBuilderDescribes))
+                        {
+                            continue;
+                        }
+                    }
+                }
+
+                if (cachePutAttributes.Count > 0)
+                {
+                    foreach (var attributeGenerator in s_attributeGenerators)
+                    {
+                        if (attributeGenerator.Build(typeBuilder, typeof(CachePutAttribute), cachePutAttributes, fieldBuilderDescribes))
+                        {
+                            continue;
+                        }
+                    }
+                }
+
+                //foreach (var group in attributes.GroupBy(s => s.GetType()))
+                //{
+                //    foreach (var attributeGenerator in s_attributeGenerators)
+                //    {
+                //        if (attributeGenerator.Build(typeBuilder, group.Key, group.ToList<Attribute>(), fieldBuilderDescribes))
+                //        {
+                //            continue;
+                //        }
+                //    }
+                //}
+
             }
 
             MethodBuilder methodBuilder = CreateMethod(typeBuilder, method, fieldBuilders);
