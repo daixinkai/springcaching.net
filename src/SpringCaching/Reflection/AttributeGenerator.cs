@@ -101,7 +101,7 @@ namespace SpringCaching.Reflection
                 else if (parameterType.IsNullableType() && parameterType.GenericTypeArguments[0].IsPrimitive)
                 {
                     //new SimpleKeyGenerator.NullableToStringKeyGenerator<T>
-                    var keyGeneratorConstructor = typeof(SimpleKeyGenerator.NullableToStringKeyGenerator<>).MakeGenericType(parameterType).GetConstructors()[0];
+                    var keyGeneratorConstructor = typeof(SimpleKeyGenerator.NullableToStringKeyGenerator<>).MakeGenericType(parameterType.GenericTypeArguments[0]).GetConstructors()[0];
                     iLGenerator.Emit(OpCodes.Ldarg_0);
                     iLGenerator.Emit(OpCodes.Ldfld, fieldBuilder.FieldBuilder);
                     iLGenerator.Emit(OpCodes.Ldstr, "null");

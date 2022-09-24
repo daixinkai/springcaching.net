@@ -43,6 +43,13 @@ namespace SpringCaching.Tests
             return Task.FromResult(new List<string>() { count.ToString() });
         }
 
+        [Cacheable("getNames", ExpirationPolicy = ExpirationPolicy.Absolute, ExpirationUnit = ExpirationUnit.Minute, ExpirationValue = 1)]
+        public virtual Task<List<string>> GetNames(int? id)
+        {
+            int count = GetCount(id.GetValueOrDefault());
+            return Task.FromResult(new List<string>() { count.ToString() });
+        }
+
         [Cacheable("getNames_Param", Key = "#param.Id", ExpirationPolicy = ExpirationPolicy.Absolute, ExpirationUnit = ExpirationUnit.Minute, ExpirationValue = 1)]
         public virtual Task<List<string>> GetNames(TestServiceParam param)
         {
