@@ -13,5 +13,8 @@ namespace SpringCaching.Tests
         Task<List<string>> GetNames(int id);
         Task<List<string>> GetNames(string id);
         Task<List<string>> GetNames(TestServiceParam param);
+
+        Task UpdateNames();
+
     }
 }

@@ -8,14 +8,18 @@ namespace SpringCaching.TestWeb.Controllers
     public class TestController : ControllerBase
     {
         [HttpGet]
-        public async Task<ActionResult<object>> Get([FromServices] ITestService testService)
+        public async Task<ActionResult<object>> Get([FromServices] ITestService testService, [FromQuery] TestServiceParam param)
         {
             //return await testService.GetNames(null);
             //return await testService.GetAllNames();
+            if (param.Id == 0)
+            {
+                await testService.UpdateNames();
+            }
             return await testService.GetNames(new TestServiceParam
             {
-                Id = 1,
-                Name = "asd"
+                Id = param.Id ?? 1,
+                Name = param.Name ?? "asd"
             });
         }
     }

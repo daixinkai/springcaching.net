@@ -82,9 +82,10 @@ namespace SpringCaching.Tests
             return Task.FromResult(new List<string>());
         }
 
-        [CacheEvict("getNames")]
-        protected internal virtual void SetNames(int id, List<string> names)
+        [CacheEvict("getNames", Key = "*")]
+        public virtual Task UpdateNames()
         {
+            return Task.FromResult(0);
         }
 
         Task<List<string>> ITestService.GetNames(int id)

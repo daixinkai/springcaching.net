@@ -78,12 +78,62 @@ namespace SpringCaching.DependencyInjection
 
         public void Remove(string key)
         {
+            if (key != null && key.EndsWith("*"))
+            {
+                //delete with pattern
+                if (RemoveWithPattern(key))
+                {
+                    return;
+                }
+            }
             _distributedCache.Remove(key);
         }
 
-        public Task RemoveAsync(string key)
+        public async Task RemoveAsync(string key)
         {
-            return _distributedCache.RemoveAsync(key);
+            if (key != null && key.EndsWith("*"))
+            {
+                //delete with pattern
+                if (await RemoveWithPatternAsync(key))
+                {
+                    return;
+                }
+            }
+            await _distributedCache.RemoveAsync(key).ConfigureAwait(false);
         }
+
+        private bool RemoveWithPattern(string pattern)
+        {
+            //var type = _distributedCache.GetType();
+            //if (type.FullName!.Contains("Microsoft.Extensions.Caching.StackExchangeRedis.RedisCache"))
+            //{
+            //    // Microsoft.Extensions.Caching.StackExchangeRedis.RedisCache
+            //    string[]? keys = type.GetMethod("GetKeys")!.Invoke(_distributedCache, new[] { pattern }) as string[];
+            //    foreach (var key in keys!)
+            //    {
+            //        _distributedCache.Remove(key);
+            //    }
+            //    return true;
+            //}
+            return false;
+        }
+
+        private async Task<bool> RemoveWithPatternAsync(string pattern)
+        {
+            //var type = _distributedCache.GetType();
+            //if (type.FullName!.Contains("Microsoft.Extensions.Caching.StackExchangeRedis.RedisCache"))
+            //{
+            //    // Microsoft.Extensions.Caching.StackExchangeRedis.RedisCache
+            //    string[]? keys = type.GetMethod("GetKeys")!.Invoke(_distributedCache, new[] { pattern }) as string[];
+            //    foreach (var key in keys!)
+            //    {
+            //        await _distributedCache.RemoveAsync(key).ConfigureAwait(false);
+            //    }
+            //    return true;
+            //}
+            await Task.CompletedTask;
+            return false;
+        }
+
     }
 }
