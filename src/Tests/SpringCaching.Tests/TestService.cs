@@ -82,7 +82,8 @@ namespace SpringCaching.Tests
             return Task.FromResult(new List<string>());
         }
 
-        [CacheEvict("getNames", Key = "*")]
+        [CacheEvict("getNames", AllEntries = true)]
+        //[CacheEvict("*", AllEntries = true)]
         public virtual Task UpdateNames()
         {
             return Task.FromResult(0);

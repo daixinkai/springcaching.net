@@ -62,5 +62,15 @@ namespace SpringCaching
         {
             return TaskEx.CompletedTask;
         }
+
+        public void Clear(string key)
+        {
+        }
+
+        public Task ClearAsync(string key)
+        {
+            return TaskEx.CompletedTask;
+        }
+
     }
 }

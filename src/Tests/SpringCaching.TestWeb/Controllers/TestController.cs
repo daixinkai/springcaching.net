@@ -12,10 +12,13 @@ namespace SpringCaching.TestWeb.Controllers
         {
             //return await testService.GetNames(null);
             //return await testService.GetAllNames();
+
             if (param.Id == 0)
             {
                 await testService.UpdateNames();
+                return "ok";
             }
+            var result1 = await ((TestService)testService).GetNames(param.Id);
             return await testService.GetNames(new TestServiceParam
             {
                 Id = param.Id ?? 1,

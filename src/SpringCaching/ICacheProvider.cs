@@ -74,5 +74,17 @@ namespace SpringCaching
         /// <param name="key"></param>
         /// <returns></returns>
         Task RemoveAsync(string key);
+        /// <summary>
+        /// clear cache
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        void Clear(string key);
+        /// <summary>
+        /// clear cache
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        Task ClearAsync(string key);
     }
 }

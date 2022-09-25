@@ -13,7 +13,7 @@ namespace SpringCaching.DependencyInjection
         {
             _distributedCache = distributedCache ?? throw new ArgumentNullException(nameof(distributedCache));
 #if NETSTANDARD2_0
-            CacheSerializer = NewtonsoftJsonCacheSerializer.JsonCacheSerializer;    
+            CacheSerializer = NewtonsoftJsonCacheSerializer.JsonCacheSerializer;
 #else
             CacheSerializer = SystemTextJsonCacheSerializer.JsonCacheSerializer;
 #endif
@@ -78,61 +78,46 @@ namespace SpringCaching.DependencyInjection
 
         public void Remove(string key)
         {
-            if (key != null && key.EndsWith("*"))
-            {
-                //delete with pattern
-                if (RemoveWithPattern(key))
-                {
-                    return;
-                }
-            }
             _distributedCache.Remove(key);
         }
 
-        public async Task RemoveAsync(string key)
+        public Task RemoveAsync(string key)
         {
-            if (key != null && key.EndsWith("*"))
+            return _distributedCache.RemoveAsync(key);
+        }
+
+        public void Clear(string key)
+        {
+            if (_distributedCache is Microsoft.Extensions.Caching.StackExchangeRedis.RedisCache redisCache)
             {
-                //delete with pattern
-                if (await RemoveWithPatternAsync(key))
+                // Microsoft.Extensions.Caching.StackExchangeRedis.RedisCache
+                if (key != "*" && !key.EndsWith(":*"))
                 {
-                    return;
+                    key += ":*";
+                }
+                string[] keys = redisCache.GetKeys(key);
+                foreach (var cacheKey in keys!)
+                {
+                    _distributedCache.Remove(cacheKey);
                 }
             }
-            await _distributedCache.RemoveAsync(key).ConfigureAwait(false);
         }
 
-        private bool RemoveWithPattern(string pattern)
+        public async Task ClearAsync(string key)
         {
-            //var type = _distributedCache.GetType();
-            //if (type.FullName!.Contains("Microsoft.Extensions.Caching.StackExchangeRedis.RedisCache"))
-            //{
-            //    // Microsoft.Extensions.Caching.StackExchangeRedis.RedisCache
-            //    string[]? keys = type.GetMethod("GetKeys")!.Invoke(_distributedCache, new[] { pattern }) as string[];
-            //    foreach (var key in keys!)
-            //    {
-            //        _distributedCache.Remove(key);
-            //    }
-            //    return true;
-            //}
-            return false;
-        }
-
-        private async Task<bool> RemoveWithPatternAsync(string pattern)
-        {
-            //var type = _distributedCache.GetType();
-            //if (type.FullName!.Contains("Microsoft.Extensions.Caching.StackExchangeRedis.RedisCache"))
-            //{
-            //    // Microsoft.Extensions.Caching.StackExchangeRedis.RedisCache
-            //    string[]? keys = type.GetMethod("GetKeys")!.Invoke(_distributedCache, new[] { pattern }) as string[];
-            //    foreach (var key in keys!)
-            //    {
-            //        await _distributedCache.RemoveAsync(key).ConfigureAwait(false);
-            //    }
-            //    return true;
-            //}
-            await Task.CompletedTask;
-            return false;
+            if (_distributedCache is Microsoft.Extensions.Caching.StackExchangeRedis.RedisCache redisCache)
+            {
+                // Microsoft.Extensions.Caching.StackExchangeRedis.RedisCache
+                if (key != "*" && !key.EndsWith(":*"))
+                {
+                    key += ":*";
+                }
+                string[] keys = redisCache.GetKeys(key);
+                foreach (var cacheKey in keys!)
+                {
+                    await _distributedCache.RemoveAsync(cacheKey).ConfigureAwait(false);
+                }
+            }
         }
 
     }

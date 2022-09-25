@@ -265,10 +265,14 @@ namespace SpringCaching.Proxy
             {
                 return;
             }
-            string key = cacheEvictRequirement.AllEntries ?
-                cacheEvictRequirement.Value :
-                GetCacheKey(cacheEvictRequirement, context.Proxy, context.Requirement);
-            context.Proxy.CacheProvider.Remove(key);
+            if (cacheEvictRequirement.AllEntries)
+            {
+                context.Proxy.CacheProvider.Clear(cacheEvictRequirement.Value);
+            }
+            else
+            {
+                context.Proxy.CacheProvider.Remove(GetCacheKey(cacheEvictRequirement, context.Proxy, context.Requirement));
+            }
         }
         private static Task InvokeCacheEvictAsync(ISpringCachingProxyContext context, ICacheEvictRequirement cacheEvictRequirement)
         {
@@ -276,10 +280,14 @@ namespace SpringCaching.Proxy
             {
                 return TaskEx.CompletedTask;
             }
-            string key = cacheEvictRequirement.AllEntries ?
-                cacheEvictRequirement.Value :
-                GetCacheKey(cacheEvictRequirement, context.Proxy, context.Requirement);
-            return context.Proxy.CacheProvider.RemoveAsync(key);
+            if (cacheEvictRequirement.AllEntries)
+            {
+                return context.Proxy.CacheProvider.ClearAsync(cacheEvictRequirement.Value);
+            }
+            else
+            {
+                return context.Proxy.CacheProvider.RemoveAsync(GetCacheKey(cacheEvictRequirement, context.Proxy, context.Requirement));
+            }
         }
 
         #endregion
@@ -411,7 +419,7 @@ namespace SpringCaching.Proxy
             return predicateGenerator.Predicate(expression, parser, requirement);
         }
 
-   
+
         private static TimeSpan? GetExpirationTime(ICacheableRequirement cacheableRequirement)
         {
             if (cacheableRequirement.ExpirationPolicy == ExpirationPolicy.None)
