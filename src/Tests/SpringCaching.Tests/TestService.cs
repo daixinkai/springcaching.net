@@ -24,9 +24,7 @@ namespace SpringCaching.Tests
         public virtual Task<List<string>> GetAllNames()
         {
             Random random = new Random();
-            //return Task.FromResult(new string[random.Next(1, 10)].Select(s => random.Next(1, 10000).ToString()).ToList());
             return GetAllNameTests(new int[random.Next(1, 10)].Select(s => random.Next(1, 10000)).ToArray(), null, 1);
-            //return Task.FromResult(default(List<string>));
         }
 
         [Cacheable("getAllNameTests", Key = "#ids", ExpirationPolicy = ExpirationPolicy.Absolute, ExpirationUnit = ExpirationUnit.Minute, ExpirationValue = 1)]
@@ -40,20 +38,20 @@ namespace SpringCaching.Tests
         public virtual Task<List<string>> GetNames(int id)
         {
             int count = GetCount(id);
-            return Task.FromResult(new List<string>() { count.ToString() });
+            return Task.FromResult(RandomNames(count));
         }
 
         [Cacheable("getNames", ExpirationPolicy = ExpirationPolicy.Absolute, ExpirationUnit = ExpirationUnit.Minute, ExpirationValue = 1)]
         public virtual Task<List<string>> GetNames(int? id)
         {
             int count = GetCount(id.GetValueOrDefault());
-            return Task.FromResult(new List<string>() { count.ToString() });
+            return Task.FromResult(RandomNames(count));
         }
 
         [Cacheable("getNames_Param", Key = "#param.Id", ExpirationPolicy = ExpirationPolicy.Absolute, ExpirationUnit = ExpirationUnit.Minute, ExpirationValue = 1)]
         public virtual Task<List<string>> GetNames(TestServiceParam param)
         {
-            return Task.FromResult(new List<string>() { param.Id.ToString(), param.Name });
+            return Task.FromResult(new List<string>() { param.Id.ToString(), param.Name + "_" + Guid.NewGuid().ToString("N") });
         }
 
 
@@ -61,13 +59,13 @@ namespace SpringCaching.Tests
         public virtual Task<List<string>> GetNames(string id)
         {
             int count = GetCount(0);
-            return Task.FromResult(new List<string>() { count.ToString() });
+            return Task.FromResult(RandomNames(count));
         }
 
         [Cacheable("getNamesTest", ExpirationPolicy = ExpirationPolicy.Absolute, ExpirationUnit = ExpirationUnit.Minute, ExpirationValue = 1)]
         protected internal virtual Task<List<string>> GetNamesTest(int id)
         {
-            return Task.FromResult(new List<string>());
+            return Task.FromResult(RandomNames(id));
         }
 
         [Cacheable("getCount", ExpirationPolicy = ExpirationPolicy.Absolute, ExpirationUnit = ExpirationUnit.Minute, ExpirationValue = 1)]
@@ -82,11 +80,17 @@ namespace SpringCaching.Tests
             return Task.FromResult(new List<string>());
         }
 
-        [CacheEvict("getNames", AllEntries = true)]
-        //[CacheEvict("*", AllEntries = true)]
+        //[CacheEvict("getNames", AllEntries = true)]
+        [CacheEvict("*", AllEntries = true)]
         public virtual Task UpdateNames()
         {
             return Task.FromResult(0);
+        }
+
+        private List<string> RandomNames(int count)
+        {
+            Random random = new Random();
+            return new int[random.Next(1, count)].Select(s => random.Next(1, 10000).ToString()).ToList();
         }
 
         Task<List<string>> ITestService.GetNames(int id)

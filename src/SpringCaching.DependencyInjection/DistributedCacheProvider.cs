@@ -95,11 +95,12 @@ namespace SpringCaching.DependencyInjection
                 {
                     key += ":*";
                 }
-                string[] keys = redisCache.GetKeys(key);
-                foreach (var cacheKey in keys!)
-                {
-                    _distributedCache.Remove(cacheKey);
-                }
+                redisCache.DeleteKeyByPattern(key);
+                //var keys = redisCache.GetKeys(key);
+                //foreach (var cacheKey in keys!)
+                //{
+                //    _distributedCache.Remove(cacheKey);
+                //}
             }
         }
 
@@ -112,11 +113,12 @@ namespace SpringCaching.DependencyInjection
                 {
                     key += ":*";
                 }
-                string[] keys = redisCache.GetKeys(key);
-                foreach (var cacheKey in keys!)
-                {
-                    await _distributedCache.RemoveAsync(cacheKey).ConfigureAwait(false);
-                }
+                await redisCache.DeleteKeyByPatternAsync(key).ConfigureAwait(false);
+                //string[] keys = redisCache.GetKeys(key);
+                //foreach (var cacheKey in keys!)
+                //{
+                //    await _distributedCache.RemoveAsync(cacheKey).ConfigureAwait(false);
+                //}
             }
         }
 

@@ -267,11 +267,15 @@ namespace SpringCaching.Proxy
             }
             if (cacheEvictRequirement.AllEntries)
             {
-                context.Proxy.CacheProvider.Clear(cacheEvictRequirement.Value);
+                string key = string.IsNullOrWhiteSpace(cacheEvictRequirement.Key) ?
+                    cacheEvictRequirement.Value :
+                    GetCacheKey(cacheEvictRequirement, context.Proxy, context.Requirement);
+                context.Proxy.CacheProvider.Clear(key);
             }
             else
             {
-                context.Proxy.CacheProvider.Remove(GetCacheKey(cacheEvictRequirement, context.Proxy, context.Requirement));
+                string key = GetCacheKey(cacheEvictRequirement, context.Proxy, context.Requirement);
+                context.Proxy.CacheProvider.Remove(key);
             }
         }
         private static Task InvokeCacheEvictAsync(ISpringCachingProxyContext context, ICacheEvictRequirement cacheEvictRequirement)
@@ -282,11 +286,15 @@ namespace SpringCaching.Proxy
             }
             if (cacheEvictRequirement.AllEntries)
             {
-                return context.Proxy.CacheProvider.ClearAsync(cacheEvictRequirement.Value);
+                string key = string.IsNullOrWhiteSpace(cacheEvictRequirement.Key) ?
+                    cacheEvictRequirement.Value :
+                    GetCacheKey(cacheEvictRequirement, context.Proxy, context.Requirement);
+                return context.Proxy.CacheProvider.ClearAsync(key);
             }
             else
             {
-                return context.Proxy.CacheProvider.RemoveAsync(GetCacheKey(cacheEvictRequirement, context.Proxy, context.Requirement));
+                string key = GetCacheKey(cacheEvictRequirement, context.Proxy, context.Requirement);
+                return context.Proxy.CacheProvider.RemoveAsync(key);
             }
         }
 

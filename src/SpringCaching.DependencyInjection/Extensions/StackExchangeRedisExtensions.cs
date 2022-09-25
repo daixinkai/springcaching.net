@@ -69,36 +69,60 @@ namespace SpringCaching.DependencyInjection
             return instanceName;
         }
 
-        public static string[] GetKeys(this RedisCache redisCache, string keyPattern)
+        public static void DeleteKeyByPattern(this RedisCache redisCache, string keyPattern)
         {
             string instanceName = redisCache.GetInstanceName();
             keyPattern = instanceName + keyPattern;
-            var lua = @"local keys = redis.call('keys', @keyPattern); return keys;";
-            var redisResult = redisCache.GetDatabase().ScriptEvaluate(LuaScript.Prepare(lua), new { @keyPattern = keyPattern });
-            if (redisResult.IsNull)
+            var database = redisCache.GetDatabase();
+            var connection = database.Multiplexer;
+            foreach (var endPoint in connection.GetEndPoints())
             {
-                return Array.Empty<string>();
+                var server = connection.GetServer(endPoint);
+                //if (!(server.IsConnected && !server.IsReplica))
+                if (!server.IsConnected)
+                {
+                    continue;
+                }
+                var keys = server.Keys(pattern: keyPattern).ToArray();
+                if (keys.Length > 0)
+                {
+                    database.KeyDelete(keys);
+                }
+                break;
             }
-            var result = (RedisResult[])redisResult;
-            return result.Select(s => GetKey(s, instanceName)).Where(IsNotNullOrWhiteSpace).ToArray();
         }
 
-        private static string GetKey(RedisResult redisResult, string instanceName)
+        public static async Task DeleteKeyByPatternAsync(this RedisCache redisCache, string keyPattern)
         {
-            string key = (string)redisResult;
-            if (!key.StartsWith(instanceName))
+            string instanceName = redisCache.GetInstanceName();
+            keyPattern = instanceName + keyPattern;
+            var database = redisCache.GetDatabase();
+            var connection = database.Multiplexer;
+            foreach (var endPoint in connection.GetEndPoints())
             {
-                return "";
+                var server = connection.GetServer(endPoint);
+                //if (!(server.IsConnected && !server.IsReplica))
+                if (!server.IsConnected)
+                {
+                    continue;
+                }
+#if NET6_0_OR_GREATER
+                var keys = server.Keys(pattern: keyPattern).ToArray();
+#else
+                var keys = server.Keys(pattern: keyPattern).ToArray();
+#endif
+                if (keys.Length > 0)
+                {
+                    await database.KeyDeleteAsync(keys).ConfigureAwait(false);
+                }
+                break;
             }
-            return key.Replace(instanceName, "");
         }
 
         private static TField GetFieldValue<TField>(this RedisCache redisCache, string fieldName)
         {
             return GetFieldDelegate<RedisCache, TField>(fieldName)!.Invoke(redisCache);
         }
-
-        private static bool IsNotNullOrWhiteSpace(string value) => !string.IsNullOrWhiteSpace(value);
 
     }
 }
