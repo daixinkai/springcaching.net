@@ -1,5 +1,5 @@
 ﻿using SpringCaching.Infrastructure;
-using SpringCaching.Infrastructure.Parser;
+using SpringCaching.Parsing;
 using SpringCaching.Internal;
 using SpringCaching.Requirement;
 using System;

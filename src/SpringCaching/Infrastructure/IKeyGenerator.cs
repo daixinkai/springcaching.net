@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using SpringCaching.Infrastructure.Parser;
+using SpringCaching.Parsing;
 using SpringCaching.Requirement;
 
 namespace SpringCaching.Infrastructure

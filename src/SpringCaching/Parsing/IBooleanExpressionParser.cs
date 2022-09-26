@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SpringCaching.Infrastructure.Parser
+namespace SpringCaching.Parsing
 {
     public interface IBooleanExpressionParser : IExpressionParser<IParsedBooleanExpression>
     {

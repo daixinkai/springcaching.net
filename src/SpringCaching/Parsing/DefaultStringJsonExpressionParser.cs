@@ -9,7 +9,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace SpringCaching.Infrastructure.Parser
+namespace SpringCaching.Parsing
 {
     internal class DefaultStringJsonExpressionParser : DefaultJsonExpressionParser, IStringExpressionParser
     {

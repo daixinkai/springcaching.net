@@ -1,5 +1,5 @@
 ﻿using SpringCaching.Serialization;
-using SpringCaching.Infrastructure.Parser;
+using SpringCaching.Parsing;
 using SpringCaching.Requirement;
 using System;
 using System.Collections;
