@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace SpringCaching.Infrastructure
 {
-    public readonly struct PredicateGenerator : IPredicateGenerator
+    public class PredicateGenerator : IPredicateGenerator
     {
         public PredicateGenerator(bool value)
         {

@@ -84,25 +84,24 @@ namespace SpringCaching.UnitTest.NET45
 
         public void TestExpression2(TestServiceParam param)
         {
+            new CacheableRequirement("getNames")
+            {
+                KeyGenerator = new SimpleKeyGenerator.StringKeyGenerator(param.Id.ToString() + param.Id + "Name" + "asdasd", "null"),
+                ExpirationPolicy = ExpirationPolicy.Absolute,
+                ExpirationUnit = ExpirationUnit.Minute,
+                ExpirationValue = 1
+            };
+        }
 
-            var s = new ICacheableRequirement[]
-              {
-                      new CacheableRequirement("getNames")
-                      {
-                          KeyGenerator = new SimpleKeyGenerator.StringKeyGenerator(param.Id.ToString() + param.Id + "Name" + "asdasd", "null"),
-                          ExpirationPolicy = ExpirationPolicy.Absolute,
-                          ExpirationUnit = ExpirationUnit.Minute,
-                          ExpirationValue = 1
-                      },
-                      new CacheableRequirement("getName1")
-                      {
-                          KeyGenerator = new SimpleKeyGenerator.StringKeyGenerator("asd", "null"),
-                          ExpirationPolicy = ExpirationPolicy.Absolute,
-                          ExpirationUnit = ExpirationUnit.Minute,
-                          ExpirationValue = 1
-                      }
-              };
-
+        private ICacheableRequirement GetCacheableRequirement_0(TestServiceParam param)
+        {
+            return new CacheableRequirement("getNames")
+            {
+                KeyGenerator = new SimpleKeyGenerator.StringKeyGenerator(param.Id.ToString() + param.Id + "Name" + "asdasd", "null"),
+                ExpirationPolicy = ExpirationPolicy.Absolute,
+                ExpirationUnit = ExpirationUnit.Minute,
+                ExpirationValue = 1
+            };
         }
 
     }

@@ -65,11 +65,10 @@ namespace SpringCaching.Reflection
         }
 
 
-        private void GeneratorCacheableRequirement(ILGenerator iLGenerator, CacheableAttribute attribute, IList<FieldBuilderDescriptor> fieldBuilders)
+        private void GeneratorCacheableRequirement(TypeBuilder typeBuilder, int index, ILGenerator iLGenerator, CacheableAttribute attribute, IList<FieldBuilderDescriptor> fieldBuilders)
         {
             iLGenerator.Emit(OpCodes.Ldstr, attribute.Value);
             iLGenerator.Emit(OpCodes.Newobj, typeof(CacheableRequirement).GetConstructors()[0]);
-            SetDefaultProperty(iLGenerator, attribute, fieldBuilders);
             //ExpirationPolicy
             iLGenerator.EmitSetProperty(typeof(CacheableRequirement).GetProperty("ExpirationPolicy")!, attribute.ExpirationPolicy, true);
             //ExpirationUnit
@@ -81,6 +80,7 @@ namespace SpringCaching.Reflection
             {
                 iLGenerator.EmitSetProperty(typeof(CacheableRequirement).GetProperty("UnlessNull")!, attribute.UnlessNull, true);
             }
+            SetDefaultProperty(typeBuilder, index, iLGenerator, attribute, fieldBuilders);
         }
 
         private List<MethodBuilder> DefineCacheableRequirementMethods(TypeBuilder typeBuilder, IList<CacheableAttribute> cacheableAttributes, IList<FieldBuilderDescriptor> fieldBuilders)
@@ -94,7 +94,7 @@ namespace SpringCaching.Reflection
             {
                 var methodBuilder = typeBuilder.DefineMethod("GetCacheableRequirement_" + index, methodAttributes, typeof(ICacheableRequirement), Type.EmptyTypes);
                 var iLGenerator = methodBuilder.GetILGenerator();
-                GeneratorCacheableRequirement(iLGenerator, cacheableAttribute, fieldBuilders);
+                GeneratorCacheableRequirement(typeBuilder, index, iLGenerator, cacheableAttribute, fieldBuilders);
                 iLGenerator.Emit(OpCodes.Ret);
                 index++;
                 methodBuilders.Add(methodBuilder);

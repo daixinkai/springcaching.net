@@ -14,33 +14,39 @@ namespace SpringCaching.Reflection
     internal static class ExpressionGenerator
 #endif
     {
-        public static bool EmitStringExpression(ILGenerator iLGenerator, string expression, IList<FieldBuilderDescriptor> fieldBuilders)
+        public static LocalBuilder EmitStringExpression(ILGenerator iLGenerator, string expression, IList<FieldBuilderDescriptor> fieldBuilders)
         {
-            return false;
+            return null;
+            iLGenerator.Emit(OpCodes.Dup);
             var tokens = ParseExpressionTokens(expression);
-            iLGenerator.Emit(OpCodes.Ldnull);
             LocalBuilder localBuilder = iLGenerator.DeclareLocal(typeof(string));
+            bool setValue = false;
             foreach (var token in tokens)
             {
-                if (EmitStringExpressionToken(iLGenerator, token, fieldBuilders))
-                {
-                    iLGenerator.Emit(OpCodes.Ldloca_S, localBuilder);
-                }
+                //if (EmitStringExpressionToken(iLGenerator, token, fieldBuilders))
+                //{
+                //    iLGenerator.Emit(OpCodes.Ldloca_S, localBuilder);
+                //}
                 //EmitStringExpressionToken();
             }
-            return true;
+            if (!setValue)
+            {
+                iLGenerator.Emit(OpCodes.Ldnull);
+                iLGenerator.Emit(OpCodes.Stloc, localBuilder);
+            }
+            return localBuilder;
         }
 
-        public static bool EmitBooleanExpression(ILGenerator iLGenerator, string expression, IList<FieldBuilderDescriptor> fieldBuilders)
+        public static LocalBuilder EmitBooleanExpression(ILGenerator iLGenerator, string expression, IList<FieldBuilderDescriptor> fieldBuilders)
         {
-            return false;
+            return null;
             var tokens = ParseExpressionTokens(expression);
             LocalBuilder localBuilder = iLGenerator.DeclareLocal(typeof(bool));
             foreach (var token in tokens)
             {
 
             }
-            return true;
+            return localBuilder;
         }
 
         public static ExpressionToken[] ParseExpressionTokens(string expression)
@@ -109,6 +115,12 @@ namespace SpringCaching.Reflection
                 case ExpressionTokenType.Comma:
                     break;
                 case ExpressionTokenType.Field:
+                    var fieldBuilder = fieldBuilders.FirstOrDefault(s => s.Parameter.Name == token.Value!);
+                    if (fieldBuilder == null)
+                    {
+                        return false;
+                    }
+                    iLGenerator.Emit(OpCodes.Ldfld, fieldBuilder.FieldBuilder);
                     break;
                 case ExpressionTokenType.SingleQuoted:
                     //iLGenerator.Emit(OpCodes);

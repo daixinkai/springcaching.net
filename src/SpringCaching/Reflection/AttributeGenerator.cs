@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.InteropServices;
@@ -19,10 +20,8 @@ namespace SpringCaching.Reflection
         public abstract bool Build(TypeBuilder typeBuilder, Type attributeType, IList<Attribute> attributes, IList<FieldBuilderDescriptor> fieldBuilders);
 
 
-        protected void SetDefaultProperty(ILGenerator iLGenerator, CacheBaseAttribute attribute, IList<FieldBuilderDescriptor> fieldBuilders)
+        protected void SetDefaultProperty(TypeBuilder typeBuilder, int index, ILGenerator iLGenerator, CacheBaseAttribute attribute, IList<FieldBuilderDescriptor> fieldBuilders)
         {
-            SetKeyGeneratorProperty(iLGenerator, attribute.Key, fieldBuilders);
-            SetConditionGeneratorProperty(iLGenerator, attribute.Condition, fieldBuilders);
             //Key
             if (attribute.Key != null)
             {
@@ -33,63 +32,99 @@ namespace SpringCaching.Reflection
             {
                 iLGenerator.EmitSetProperty(typeof(CacheRequirementBase).GetProperty("Condition")!, attribute.Condition, true);
             }
-        }
 
-        protected void SetKeyGeneratorProperty(ILGenerator iLGenerator, string? expression, IList<FieldBuilderDescriptor> fieldBuilders)
-        {
-            if (fieldBuilders.Count == 0)
+            if (fieldBuilders.Count > 0)
             {
-                return;
+                // KeyGenerator
+                iLGenerator.Emit(OpCodes.Dup);
+                EmitKeyGenerator(typeBuilder, index, iLGenerator, attribute, fieldBuilders);
+                iLGenerator.Emit(OpCodes.Callvirt, typeof(CacheRequirementBase).GetProperty("KeyGenerator")!.SetMethod!);
+                iLGenerator.Emit(OpCodes.Nop);
             }
-            iLGenerator.Emit(OpCodes.Dup);
-            EmitKeyGenerator(iLGenerator, expression, fieldBuilders);
-            iLGenerator.Emit(OpCodes.Callvirt, typeof(CacheRequirementBase).GetProperty("KeyGenerator")!.SetMethod!);
-            iLGenerator.Emit(OpCodes.Nop);
-        }
 
-        protected void SetConditionGeneratorProperty(ILGenerator iLGenerator, string? expression, IList<FieldBuilderDescriptor> fieldBuilders)
-        {
-            if (string.IsNullOrWhiteSpace(expression) || fieldBuilders.Count == 0)
+            if (!string.IsNullOrWhiteSpace(attribute.Condition) && fieldBuilders.Count > 0)
             {
-                return;
+                //ConditionGenerator
+                iLGenerator.Emit(OpCodes.Dup);
+                EmitConditionGenerator(typeBuilder, index, iLGenerator, attribute, fieldBuilders);
+                iLGenerator.Emit(OpCodes.Callvirt, typeof(CacheRequirementBase).GetProperty("ConditionGenerator")!.SetMethod!);
+                iLGenerator.Emit(OpCodes.Nop);
             }
-            iLGenerator.Emit(OpCodes.Dup);
-            EmitConditionGenerator(iLGenerator, expression, fieldBuilders);
-            iLGenerator.Emit(OpCodes.Callvirt, typeof(CacheRequirementBase).GetProperty("ConditionGenerator")!.SetMethod!);
-            iLGenerator.Emit(OpCodes.Nop);
+
         }
 
-        private void EmitKeyGenerator(ILGenerator iLGenerator, string? expression, IList<FieldBuilderDescriptor> fieldBuilders)
+        private void EmitKeyGenerator(TypeBuilder typeBuilder, int index, ILGenerator iLGenerator, CacheBaseAttribute attribute, IList<FieldBuilderDescriptor> fieldBuilders)
         {
-            if (string.IsNullOrWhiteSpace(expression))
+            if (string.IsNullOrWhiteSpace(attribute.Key))
             {
                 EmitSimpleKeyGenerator(iLGenerator, fieldBuilders);
                 return;
             }
-            if (!ExpressionGenerator.EmitStringExpression(iLGenerator, expression!, fieldBuilders))
-            {
-                iLGenerator.Emit(OpCodes.Ldnull);
-                return;
-            }
-            //new SimpleKeyGenerator.StringKeyGenerator
-            var keyGeneratorConstructor = typeof(SimpleKeyGenerator.StringKeyGenerator).GetConstructors()[0];
-            iLGenerator.Emit(OpCodes.Ldstr, "null");
-            iLGenerator.Emit(OpCodes.Newobj, keyGeneratorConstructor);
+            var methodBuilder = DefineGetKeyGeneratorMethod(typeBuilder, index, attribute, fieldBuilders);
+            iLGenerator.Emit(OpCodes.Ldarg_0);
+            iLGenerator.Emit(OpCodes.Call, methodBuilder);
         }
 
-        private void EmitConditionGenerator(ILGenerator iLGenerator, string? expression, IList<FieldBuilderDescriptor> fieldBuilders)
+        private MethodBuilder DefineGetKeyGeneratorMethod(TypeBuilder typeBuilder, int index, CacheBaseAttribute attribute, IList<FieldBuilderDescriptor> fieldBuilders)
         {
-            if (string.IsNullOrWhiteSpace(expression))
+            //create method
+            MethodAttributes methodAttributes =
+                MethodAttributes.Private
+                | MethodAttributes.HideBySig;
+            string methodName = "Get" + attribute.GetType().Name.Replace("Attribute", "") + "KeyGenerator_" + index;
+            var methodBuilder = typeBuilder.DefineMethod(methodName, methodAttributes, typeof(IKeyGenerator), Type.EmptyTypes);
+            var iLGenerator = methodBuilder.GetILGenerator();
+            var localBuilder = ExpressionGenerator.EmitStringExpression(iLGenerator, attribute.Key!, fieldBuilders);
+            if (localBuilder == null)
+            {
+                iLGenerator.Emit(OpCodes.Ldnull);
+            }
+            else
+            {
+                //new SimpleKeyGenerator.StringKeyGenerator
+                var keyGeneratorConstructor = typeof(SimpleKeyGenerator.StringKeyGenerator).GetConstructors()[0];
+                iLGenerator.Emit(OpCodes.Ldloc, localBuilder);
+                iLGenerator.Emit(OpCodes.Ldstr, "null");
+                iLGenerator.Emit(OpCodes.Newobj, keyGeneratorConstructor);
+            }
+            iLGenerator.Emit(OpCodes.Ret);
+            return methodBuilder;
+        }
+
+        private void EmitConditionGenerator(TypeBuilder typeBuilder, int index, ILGenerator iLGenerator, CacheBaseAttribute attribute, IList<FieldBuilderDescriptor> fieldBuilders)
+        {
+            if (string.IsNullOrWhiteSpace(attribute.Condition))
             {
                 iLGenerator.Emit(OpCodes.Ldnull);
                 return;
             }
+            var methodBuilder = DefineGetConditionGeneratorMethod(typeBuilder, index, attribute, fieldBuilders);
+            iLGenerator.Emit(OpCodes.Ldarg_0);
+            iLGenerator.Emit(OpCodes.Call, methodBuilder);
+        }
+
+        private MethodBuilder DefineGetConditionGeneratorMethod(TypeBuilder typeBuilder, int index, CacheBaseAttribute attribute, IList<FieldBuilderDescriptor> fieldBuilders)
+        {
+            //create method
+            MethodAttributes methodAttributes =
+                MethodAttributes.Private
+                | MethodAttributes.HideBySig;
+            string methodName = "Get" + attribute.GetType().Name.Replace("Attribute", "") + "ConditionGenerator_" + index;
+            var methodBuilder = typeBuilder.DefineMethod(methodName, methodAttributes, typeof(IPredicateGenerator), Type.EmptyTypes);
+            var iLGenerator = methodBuilder.GetILGenerator();
             var predicateGeneratorConstructor = typeof(PredicateGenerator).GetConstructors()[0];
-            if (!ExpressionGenerator.EmitBooleanExpression(iLGenerator, expression!, fieldBuilders))
+            var localBuilder = ExpressionGenerator.EmitBooleanExpression(iLGenerator, attribute.Condition!, fieldBuilders);
+            if (localBuilder == null)
             {
                 iLGenerator.Emit(OpCodes.Ldc_I4_1);
             }
+            else
+            {
+                iLGenerator.Emit(OpCodes.Ldloc, localBuilder);
+            }
             iLGenerator.Emit(OpCodes.Newobj, predicateGeneratorConstructor);
+            iLGenerator.Emit(OpCodes.Ret);
+            return methodBuilder;
         }
 
         private void EmitSimpleKeyGenerator(ILGenerator iLGenerator, IList<FieldBuilderDescriptor> fieldBuilders)

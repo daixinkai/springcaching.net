@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -53,11 +54,10 @@ namespace SpringCaching.Reflection
             return true;
         }
 
-        private void GeneratorCachePutRequirement(ILGenerator iLGenerator, CachePutAttribute attribute, IList<FieldBuilderDescriptor> fieldBuilders)
+        private void GeneratorCachePutRequirement(TypeBuilder typeBuilder, int index, ILGenerator iLGenerator, CachePutAttribute attribute, IList<FieldBuilderDescriptor> fieldBuilders)
         {
             iLGenerator.Emit(OpCodes.Ldstr, attribute.Value);
             iLGenerator.Emit(OpCodes.Newobj, typeof(CachePutRequirement).GetConstructors()[0]);
-            SetDefaultProperty(iLGenerator, attribute, fieldBuilders);
             //ExpirationPolicy
             iLGenerator.EmitSetProperty(typeof(CachePutRequirement).GetProperty("ExpirationPolicy")!, attribute.ExpirationPolicy, true);
             //ExpirationUnit
@@ -69,6 +69,7 @@ namespace SpringCaching.Reflection
             {
                 iLGenerator.EmitSetProperty(typeof(CachePutRequirement).GetProperty("UnlessNull")!, attribute.UnlessNull, true);
             }
+            SetDefaultProperty(typeBuilder, index, iLGenerator, attribute, fieldBuilders);
         }
 
 
@@ -83,7 +84,7 @@ namespace SpringCaching.Reflection
             {
                 var methodBuilder = typeBuilder.DefineMethod("GetCachePutRequirement_" + index, methodAttributes, typeof(ICacheableRequirement), Type.EmptyTypes);
                 var iLGenerator = methodBuilder.GetILGenerator();
-                GeneratorCachePutRequirement(iLGenerator, cachePutAttribute, fieldBuilders);
+                GeneratorCachePutRequirement(typeBuilder, index, iLGenerator, cachePutAttribute, fieldBuilders);
                 iLGenerator.Emit(OpCodes.Ret);
                 index++;
                 methodBuilders.Add(methodBuilder);

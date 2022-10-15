@@ -60,9 +60,10 @@ namespace SpringCaching.UnitTest.NET45
 
             private ICacheableRequirement GetCacheableRequirement_0()
             {
+                string value = null;
                 return new CacheableRequirement("getAllNameTests")
                 {
-                    KeyGenerator = null,
+                    KeyGenerator = new SimpleKeyGenerator.StringKeyGenerator(value, "null"),
                     Key = "#ids",
                     ExpirationPolicy = ExpirationPolicy.Absolute,
                     ExpirationUnit = ExpirationUnit.Minute,

@@ -90,36 +90,26 @@ namespace SpringCaching.DependencyInjection
         {
             if (_distributedCache is Microsoft.Extensions.Caching.StackExchangeRedis.RedisCache redisCache)
             {
-                // Microsoft.Extensions.Caching.StackExchangeRedis.RedisCache
                 if (key != "*" && !key.EndsWith(":*"))
                 {
                     key += ":*";
                 }
                 redisCache.DeleteKeyByPattern(key);
-                //var keys = redisCache.GetKeys(key);
-                //foreach (var cacheKey in keys!)
-                //{
-                //    _distributedCache.Remove(cacheKey);
-                //}
             }
         }
 
-        public async Task ClearAsync(string key)
+        public Task ClearAsync(string key)
         {
             if (_distributedCache is Microsoft.Extensions.Caching.StackExchangeRedis.RedisCache redisCache)
             {
-                // Microsoft.Extensions.Caching.StackExchangeRedis.RedisCache
                 if (key != "*" && !key.EndsWith(":*"))
                 {
                     key += ":*";
                 }
-                await redisCache.DeleteKeyByPatternAsync(key).ConfigureAwait(false);
-                //string[] keys = redisCache.GetKeys(key);
-                //foreach (var cacheKey in keys!)
-                //{
-                //    await _distributedCache.RemoveAsync(cacheKey).ConfigureAwait(false);
-                //}
+                return redisCache.DeleteKeyByPatternAsync(key);
             }
+
+            return Task.CompletedTask;
         }
 
     }

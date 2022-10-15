@@ -74,7 +74,7 @@ namespace SpringCaching.Tests
             return new Random().Next(1, 1000);
         }
 
-        [CacheEvict("getNames")]
+        [CacheEvict("getNames", Condition = "#id!=0")]
         protected internal virtual Task SetNamesAsync(int id, List<string> names)
         {
             return Task.FromResult(new List<string>());

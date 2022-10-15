@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -56,11 +57,10 @@ namespace SpringCaching.Reflection
         }
 
 
-        private void GeneratorCacheEvictRequirement(ILGenerator iLGenerator, CacheEvictAttribute attribute, IList<FieldBuilderDescriptor> fieldBuilders)
+        private void GeneratorCacheEvictRequirement(TypeBuilder typeBuilder, int index, ILGenerator iLGenerator, CacheEvictAttribute attribute, IList<FieldBuilderDescriptor> fieldBuilders)
         {
             iLGenerator.Emit(OpCodes.Ldstr, attribute.Value);
             iLGenerator.Emit(OpCodes.Newobj, typeof(CacheEvictRequirement).GetConstructors()[0]);
-            SetDefaultProperty(iLGenerator, attribute, fieldBuilders);
             //AllEntries
             if (attribute.AllEntries)
             {
@@ -71,6 +71,7 @@ namespace SpringCaching.Reflection
             {
                 iLGenerator.EmitSetProperty(typeof(CacheEvictRequirement).GetProperty("BeforeInvocation")!, attribute.BeforeInvocation, true);
             }
+            SetDefaultProperty(typeBuilder, index, iLGenerator, attribute, fieldBuilders);
         }
 
 
@@ -85,7 +86,7 @@ namespace SpringCaching.Reflection
             {
                 var methodBuilder = typeBuilder.DefineMethod("GetCacheEvictRequirement_" + index, methodAttributes, typeof(ICacheableRequirement), Type.EmptyTypes);
                 var iLGenerator = methodBuilder.GetILGenerator();
-                GeneratorCacheEvictRequirement(iLGenerator, cacheEvictAttribute, fieldBuilders);
+                GeneratorCacheEvictRequirement(typeBuilder, index, iLGenerator, cacheEvictAttribute, fieldBuilders);
                 iLGenerator.Emit(OpCodes.Ret);
                 index++;
                 methodBuilders.Add(methodBuilder);
