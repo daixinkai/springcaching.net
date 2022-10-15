@@ -1,7 +1,9 @@
-﻿using SpringCaching.Parsing;
+﻿using SpringCaching.Internal;
+using SpringCaching.Parsing;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,20 +16,32 @@ namespace SpringCaching.Reflection
     internal static class ExpressionGenerator
 #endif
     {
+
+        #region string
         public static LocalBuilder EmitStringExpression(ILGenerator iLGenerator, string expression, IList<FieldBuilderDescriptor> fieldBuilders)
         {
             return null;
-            iLGenerator.Emit(OpCodes.Dup);
             var tokens = ParseExpressionTokens(expression);
             LocalBuilder localBuilder = iLGenerator.DeclareLocal(typeof(string));
             bool setValue = false;
             foreach (var token in tokens)
             {
-                //if (EmitStringExpressionToken(iLGenerator, token, fieldBuilders))
-                //{
-                //    iLGenerator.Emit(OpCodes.Ldloca_S, localBuilder);
-                //}
-                //EmitStringExpressionToken();
+                if (EmitStringExpressionToken(iLGenerator, token, fieldBuilders))
+                {
+                    if (!setValue)
+                    {
+                        iLGenerator.Emit(OpCodes.Stloc, localBuilder);
+                        setValue = true;
+                        break;
+                        iLGenerator.Emit(OpCodes.Ldloc, localBuilder);
+                    }
+                    else
+                    {
+                        var concatMethod = typeof(string).GetMethod("Concat", new Type[] { typeof(string), typeof(string) });
+                        iLGenerator.Emit(OpCodes.Call, concatMethod);
+                    }
+                    //iLGenerator.Emit(OpCodes.Ldloca_S, localBuilder);
+                }
             }
             if (!setValue)
             {
@@ -36,18 +50,92 @@ namespace SpringCaching.Reflection
             }
             return localBuilder;
         }
-
-        public static LocalBuilder EmitBooleanExpression(ILGenerator iLGenerator, string expression, IList<FieldBuilderDescriptor> fieldBuilders)
+        private static bool EmitStringExpressionToken(ILGenerator iLGenerator, ExpressionToken token, IList<FieldBuilderDescriptor> fieldBuilders)
         {
-            return null;
-            var tokens = ParseExpressionTokens(expression);
-            LocalBuilder localBuilder = iLGenerator.DeclareLocal(typeof(bool));
-            foreach (var token in tokens)
+            switch (token.TokenType)
             {
-
+                case ExpressionTokenType.Operator:
+                    break;
+                case ExpressionTokenType.Function:
+                    break;
+                case ExpressionTokenType.Comma:
+                    break;
+                case ExpressionTokenType.Field:
+                    if (!EmitStringFieldExpressionToken(iLGenerator, token, fieldBuilders))
+                    {
+                        return false;
+                    }
+                    break;
+                case ExpressionTokenType.SingleQuoted:
+                    //iLGenerator.Emit(OpCodes);
+                    break;
+                case ExpressionTokenType.DoubleQuoted:
+                    iLGenerator.Emit(OpCodes.Ldstr, token.Value!);
+                    break;
+                case ExpressionTokenType.Value:
+                    break;
+                default:
+                    return false;
             }
-            return localBuilder;
+            return true;
         }
+
+        private static bool EmitStringFieldExpressionToken(ILGenerator iLGenerator, ExpressionToken token, IList<FieldBuilderDescriptor> fieldBuilders)
+        {
+            string value = token.Value!;
+            FieldBuilderDescriptor? fieldBuilder;
+            List<string> fieldList;
+            if (value.Contains("."))
+            {
+                fieldList = value.Split(new char[] { '.' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+                fieldBuilder = fieldBuilders.FirstOrDefault(s => s.Parameter.Name == fieldList[0]);
+                fieldList.RemoveAt(0);
+            }
+            else
+            {
+                fieldBuilder = fieldBuilders.FirstOrDefault(s => s.Parameter.Name == value);
+                fieldList = new List<string>();
+            }
+            if (fieldBuilder == null)
+            {
+                return false;
+            }
+            List<PropertyInfo> properties = new List<PropertyInfo>();
+            if (fieldList.Count > 0)
+            {
+                Type propertyType = fieldBuilder.Parameter.ParameterType;
+                //property
+                foreach (var item in fieldList)
+                {
+                    var property = propertyType.GetProperty(item);
+                    if (property == null || !property.CanRead)
+                    {
+                        return false;
+                    }
+                    properties.Add(property);
+                    propertyType = property.PropertyType;
+                }
+            }
+            iLGenerator.Emit(OpCodes.Ldarg_0);
+            iLGenerator.Emit(OpCodes.Ldfld, fieldBuilder.FieldBuilder);
+            foreach (var property in properties)
+            {
+                iLGenerator.Emit(OpCodes.Callvirt, property.GetMethod);
+            }
+            var lastType = properties.Count > 0 ?
+                properties[properties.Count - 1].PropertyType :
+                fieldBuilder.Parameter.ParameterType;
+            if (lastType != typeof(string))
+            {
+                iLGenerator.Emit(OpCodes.Callvirt, typeof(object).GetMethod("ToString"));
+            }
+            return true;
+        }
+
+        #endregion
+
+        #region boolean
+
 
         public static ExpressionToken[] ParseExpressionTokens(string expression)
         {
@@ -104,37 +192,22 @@ namespace SpringCaching.Reflection
         }
 
 
-        private static bool EmitStringExpressionToken(ILGenerator iLGenerator, ExpressionToken token, IList<FieldBuilderDescriptor> fieldBuilders)
+
+        #endregion
+
+        public static LocalBuilder EmitBooleanExpression(ILGenerator iLGenerator, string expression, IList<FieldBuilderDescriptor> fieldBuilders)
         {
-            switch (token.TokenType)
+            return null;
+            var tokens = ParseExpressionTokens(expression);
+            LocalBuilder localBuilder = iLGenerator.DeclareLocal(typeof(bool));
+            foreach (var token in tokens)
             {
-                case ExpressionTokenType.Operator:
-                    break;
-                case ExpressionTokenType.Function:
-                    break;
-                case ExpressionTokenType.Comma:
-                    break;
-                case ExpressionTokenType.Field:
-                    var fieldBuilder = fieldBuilders.FirstOrDefault(s => s.Parameter.Name == token.Value!);
-                    if (fieldBuilder == null)
-                    {
-                        return false;
-                    }
-                    iLGenerator.Emit(OpCodes.Ldfld, fieldBuilder.FieldBuilder);
-                    break;
-                case ExpressionTokenType.SingleQuoted:
-                    //iLGenerator.Emit(OpCodes);
-                    break;
-                case ExpressionTokenType.DoubleQuoted:
-                    iLGenerator.Emit(OpCodes.Ldstr, token.Value!);
-                    break;
-                case ExpressionTokenType.Value:
-                    break;
-                default:
-                    return false;
+
             }
-            return true;
+            return localBuilder;
         }
+
+
 
     }
 }

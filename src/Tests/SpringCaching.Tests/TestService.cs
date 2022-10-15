@@ -19,56 +19,56 @@ namespace SpringCaching.Tests
 
         public SpringCachingOptions Options => throw new NotImplementedException();
 
-        [Cacheable("getAllNames", ExpirationPolicy = ExpirationPolicy.Absolute, ExpirationUnit = ExpirationUnit.Minute, ExpirationValue = 1)]
-        [CachePut("getAllNames_CachePut", ExpirationPolicy = ExpirationPolicy.Absolute, ExpirationUnit = ExpirationUnit.Minute, ExpirationValue = 1)]
+        //[Cacheable("getAllNames", ExpirationPolicy = ExpirationPolicy.Absolute, ExpirationUnit = ExpirationUnit.Minute, ExpirationValue = 1)]
+        //[CachePut("getAllNames_CachePut", ExpirationPolicy = ExpirationPolicy.Absolute, ExpirationUnit = ExpirationUnit.Minute, ExpirationValue = 1)]
         public virtual Task<List<string>> GetAllNames()
         {
             Random random = new Random();
             return GetAllNameTests(new int[random.Next(1, 10)].Select(s => random.Next(1, 10000)).ToArray(), null, 1);
         }
 
-        [Cacheable("getAllNameTests", Key = "#ids", ExpirationPolicy = ExpirationPolicy.Absolute, ExpirationUnit = ExpirationUnit.Minute, ExpirationValue = 1)]
+        //[Cacheable("getAllNameTests", Key = "#ids", ExpirationPolicy = ExpirationPolicy.Absolute, ExpirationUnit = ExpirationUnit.Minute, ExpirationValue = 1)]
         public virtual Task<List<string>> GetAllNameTests(int[] ids, string[] names, int id)
         {
             Random random = new Random();
             return Task.FromResult(new int[random.Next(1, 10)].Select(s => random.Next(1, 10000).ToString()).ToList());
         }
 
-        [Cacheable("getNames", ExpirationPolicy = ExpirationPolicy.Absolute, ExpirationUnit = ExpirationUnit.Minute, ExpirationValue = 1)]
+        //[Cacheable("getNames", ExpirationPolicy = ExpirationPolicy.Absolute, ExpirationUnit = ExpirationUnit.Minute, ExpirationValue = 1)]
         public virtual Task<List<string>> GetNames(int id)
         {
             int count = GetCount(id);
             return Task.FromResult(RandomNames(count));
         }
 
-        [Cacheable("getNames", ExpirationPolicy = ExpirationPolicy.Absolute, ExpirationUnit = ExpirationUnit.Minute, ExpirationValue = 1)]
+        //[Cacheable("getNames", ExpirationPolicy = ExpirationPolicy.Absolute, ExpirationUnit = ExpirationUnit.Minute, ExpirationValue = 1)]
         public virtual Task<List<string>> GetNames(int? id)
         {
             int count = GetCount(id.GetValueOrDefault());
             return Task.FromResult(RandomNames(count));
         }
 
-        [Cacheable("getNames_Param", Key = "#param.Id", ExpirationPolicy = ExpirationPolicy.Absolute, ExpirationUnit = ExpirationUnit.Minute, ExpirationValue = 1)]
+        [Cacheable("getNames_Param", Key = "#param.Id + #param.Name", ExpirationPolicy = ExpirationPolicy.Absolute, ExpirationUnit = ExpirationUnit.Minute, ExpirationValue = 1)]
         public virtual Task<List<string>> GetNames(TestServiceParam param)
         {
             return Task.FromResult(new List<string>() { param.Id.ToString(), param.Name + "_" + Guid.NewGuid().ToString("N") });
         }
 
 
-        [Cacheable("getNames_id", ExpirationPolicy = ExpirationPolicy.Absolute, ExpirationUnit = ExpirationUnit.Minute, ExpirationValue = 1)]
+        //[Cacheable("getNames_id", ExpirationPolicy = ExpirationPolicy.Absolute, ExpirationUnit = ExpirationUnit.Minute, ExpirationValue = 1)]
         public virtual Task<List<string>> GetNames(string id)
         {
             int count = GetCount(0);
             return Task.FromResult(RandomNames(count));
         }
 
-        [Cacheable("getNamesTest", ExpirationPolicy = ExpirationPolicy.Absolute, ExpirationUnit = ExpirationUnit.Minute, ExpirationValue = 1)]
+        //[Cacheable("getNamesTest", ExpirationPolicy = ExpirationPolicy.Absolute, ExpirationUnit = ExpirationUnit.Minute, ExpirationValue = 1)]
         protected internal virtual Task<List<string>> GetNamesTest(int id)
         {
             return Task.FromResult(RandomNames(id));
         }
 
-        [Cacheable("getCount", ExpirationPolicy = ExpirationPolicy.Absolute, ExpirationUnit = ExpirationUnit.Minute, ExpirationValue = 1)]
+        //[Cacheable("getCount", ExpirationPolicy = ExpirationPolicy.Absolute, ExpirationUnit = ExpirationUnit.Minute, ExpirationValue = 1)]
         protected internal virtual int GetCount(int id)
         {
             return new Random().Next(1, 1000);
