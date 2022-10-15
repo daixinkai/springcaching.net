@@ -8,7 +8,11 @@ using System.Threading.Tasks;
 
 namespace SpringCaching.Reflection
 {
+#if DEBUG
+    public class FieldBuilderDescriptor
+#else
     internal class FieldBuilderDescriptor
+#endif
     {
         public FieldBuilderDescriptor(ParameterInfo parameter, FieldBuilder fieldBuilder)
         {

@@ -20,7 +20,11 @@ namespace SpringCaching.Reflection
             }
             var cacheEvictAttributes = attributes.OfType<CacheEvictAttribute>().ToList();
 
+
+
             #region override SpringCachingRequirementProxy.GetCacheEvictRequirements
+
+            var cacheEvictRequirementMethods = DefineCacheEvictRequirementMethods(typeBuilder, cacheEvictAttributes, fieldBuilders);
 
             var method = typeof(SpringCachingRequirementProxy).GetMethod("GetCacheEvictRequirements")!;
             MethodAttributes methodAttributes =
@@ -36,11 +40,12 @@ namespace SpringCaching.Reflection
             iLGenerator.Emit(OpCodes.Ldc_I4, cacheEvictAttributes.Count);
             iLGenerator.Emit(OpCodes.Newarr, typeof(ICacheEvictRequirement));
             int index = 0;
-            foreach (var cacheEvictAttribute in cacheEvictAttributes)
+            foreach (var cacheEvictRequirementMethod in cacheEvictRequirementMethods)
             {
                 iLGenerator.Emit(OpCodes.Dup);
                 iLGenerator.Emit(OpCodes.Ldc_I4, index);
-                GeneratorCacheEvictRequirement(iLGenerator, cacheEvictAttribute, fieldBuilders);
+                iLGenerator.Emit(OpCodes.Ldarg_0);
+                iLGenerator.Emit(OpCodes.Call, cacheEvictRequirementMethod);
                 iLGenerator.Emit(OpCodes.Stelem_Ref);
                 index++;
             }
@@ -66,6 +71,26 @@ namespace SpringCaching.Reflection
             {
                 iLGenerator.EmitSetProperty(typeof(CacheEvictRequirement).GetProperty("BeforeInvocation")!, attribute.BeforeInvocation, true);
             }
+        }
+
+
+        private List<MethodBuilder> DefineCacheEvictRequirementMethods(TypeBuilder typeBuilder, IList<CacheEvictAttribute> cacheEvictAttributes, IList<FieldBuilderDescriptor> fieldBuilders)
+        {
+            MethodAttributes methodAttributes =
+                MethodAttributes.Private
+                | MethodAttributes.HideBySig;
+            List<MethodBuilder> methodBuilders = new List<MethodBuilder>();
+            int index = 0;
+            foreach (var cacheEvictAttribute in cacheEvictAttributes)
+            {
+                var methodBuilder = typeBuilder.DefineMethod("GetCacheEvictRequirement_" + index, methodAttributes, typeof(ICacheableRequirement), Type.EmptyTypes);
+                var iLGenerator = methodBuilder.GetILGenerator();
+                GeneratorCacheEvictRequirement(iLGenerator, cacheEvictAttribute, fieldBuilders);
+                iLGenerator.Emit(OpCodes.Ret);
+                index++;
+                methodBuilders.Add(methodBuilder);
+            }
+            return methodBuilders;
         }
 
     }

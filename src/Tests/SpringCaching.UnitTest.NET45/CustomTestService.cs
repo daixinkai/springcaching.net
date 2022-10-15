@@ -41,16 +41,32 @@ namespace SpringCaching.UnitTest.NET45
 
             IList<ICacheableRequirement> ISpringCachingRequirement.GetCacheableRequirements()
             {
+                //return new ICacheableRequirement[] {
+                //    new CacheableRequirement("getNames"){
+                //    KeyGenerator=new SimpleKeyGenerator.StringKeyGenerator(_idStr,"null")
+                //    },
+                //    new CacheableRequirement("getNames1"){
+                //     KeyGenerator=new SimpleKeyGenerator.StringKeyGenerator(_idStr,"null"),
+                //     Condition="",
+                //      ExpirationUnit= ExpirationUnit.Minute,
+                //       ExpirationPolicy= ExpirationPolicy.None
+                //    }
+                //};
+
                 return new ICacheableRequirement[] {
-                    new CacheableRequirement("getNames"){
-                    KeyGenerator=new SimpleKeyGenerator.StringKeyGenerator(_idStr,"null")
-                    },
-                    new CacheableRequirement("getNames1"){
-                     KeyGenerator=new SimpleKeyGenerator.StringKeyGenerator(_idStr,"null"),
-                     Condition="",
-                      ExpirationUnit= ExpirationUnit.Minute,
-                       ExpirationPolicy= ExpirationPolicy.None
-                    }
+                     GetCacheableRequirement_0()
+                };
+            }
+
+            private ICacheableRequirement GetCacheableRequirement_0()
+            {
+                return new CacheableRequirement("getAllNameTests")
+                {
+                    KeyGenerator = null,
+                    Key = "#ids",
+                    ExpirationPolicy = ExpirationPolicy.Absolute,
+                    ExpirationUnit = ExpirationUnit.Minute,
+                    ExpirationValue = 1
                 };
             }
 

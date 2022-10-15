@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 namespace SpringCaching.Infrastructure
 {
     public abstract class SimpleKeyGenerator : IKeyGenerator
-    {        
+    {
         public class StringKeyGenerator : SimpleKeyGenerator
         {
             public StringKeyGenerator(string? value, string? nullValue)

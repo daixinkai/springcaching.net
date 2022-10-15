@@ -1,28 +1,52 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SpringCaching.Infrastructure;
-using SpringCaching.Parsing;
-using SpringCaching.Reflection;
-using SpringCaching.Requirement;
-using SpringCaching.Tests;
+﻿using SpringCaching.Parsing;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
+using System.Reflection.Emit;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SpringCaching.UnitTest.NET45
+namespace SpringCaching.Reflection
 {
-    [TestClass]
-    public class UnitTest_Parsing
+#if DEBUG
+    public static class ExpressionGenerator
+#else
+    internal static class ExpressionGenerator
+#endif
     {
-        [TestMethod]
-        public void TestTT()
+        public static bool EmitStringExpression(ILGenerator iLGenerator, string expression, IList<FieldBuilderDescriptor> fieldBuilders)
         {
-            //string input = "{param.Id}";
-            string input = "#param.Id.ToString() +  param.Id.ToString() +'Name' + \"asdasd\" ";
+            return false;
+            var tokens = ParseExpressionTokens(expression);
+            iLGenerator.Emit(OpCodes.Ldnull);
+            LocalBuilder localBuilder = iLGenerator.DeclareLocal(typeof(string));
+            foreach (var token in tokens)
+            {
+                if (EmitStringExpressionToken(iLGenerator, token, fieldBuilders))
+                {
+                    iLGenerator.Emit(OpCodes.Ldloca_S, localBuilder);
+                }
+                //EmitStringExpressionToken();
+            }
+            return true;
+        }
+
+        public static bool EmitBooleanExpression(ILGenerator iLGenerator, string expression, IList<FieldBuilderDescriptor> fieldBuilders)
+        {
+            return false;
+            var tokens = ParseExpressionTokens(expression);
+            LocalBuilder localBuilder = iLGenerator.DeclareLocal(typeof(bool));
+            foreach (var token in tokens)
+            {
+
+            }
+            return true;
+        }
+
+        public static ExpressionToken[] ParseExpressionTokens(string expression)
+        {
             InfixTokenizer infixTokenizer = new InfixTokenizer();
-            var tokens = infixTokenizer.Tokenize(input);
+            var tokens = infixTokenizer.Tokenize(expression);
             //process value
             for (int i = 0; i < tokens.Length; i++)
             {
@@ -70,39 +94,34 @@ namespace SpringCaching.UnitTest.NET45
                     tokens[i].Freeze();
                 }
             }
-            Assert.IsNotNull(tokens);
-        }
-
-        public void TestExpression1(TestServiceParam param)
-        {
-            string value = param.Id.ToString();
-            value = value + param.Id;
-            value = value + "Name";
-            value = value + "asdasd";
+            return tokens;
         }
 
 
-        public void TestExpression2(TestServiceParam param)
+        private static bool EmitStringExpressionToken(ILGenerator iLGenerator, ExpressionToken token, IList<FieldBuilderDescriptor> fieldBuilders)
         {
-
-            var s = new ICacheableRequirement[]
-              {
-                      new CacheableRequirement("getNames")
-                      {
-                          KeyGenerator = new SimpleKeyGenerator.StringKeyGenerator(param.Id.ToString() + param.Id + "Name" + "asdasd", "null"),
-                          ExpirationPolicy = ExpirationPolicy.Absolute,
-                          ExpirationUnit = ExpirationUnit.Minute,
-                          ExpirationValue = 1
-                      },
-                      new CacheableRequirement("getName1")
-                      {
-                          KeyGenerator = new SimpleKeyGenerator.StringKeyGenerator("asd", "null"),
-                          ExpirationPolicy = ExpirationPolicy.Absolute,
-                          ExpirationUnit = ExpirationUnit.Minute,
-                          ExpirationValue = 1
-                      }
-              };
-
+            switch (token.TokenType)
+            {
+                case ExpressionTokenType.Operator:
+                    break;
+                case ExpressionTokenType.Function:
+                    break;
+                case ExpressionTokenType.Comma:
+                    break;
+                case ExpressionTokenType.Field:
+                    break;
+                case ExpressionTokenType.SingleQuoted:
+                    //iLGenerator.Emit(OpCodes);
+                    break;
+                case ExpressionTokenType.DoubleQuoted:
+                    iLGenerator.Emit(OpCodes.Ldstr, token.Value!);
+                    break;
+                case ExpressionTokenType.Value:
+                    break;
+                default:
+                    return false;
+            }
+            return true;
         }
 
     }

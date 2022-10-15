@@ -22,6 +22,8 @@ namespace SpringCaching.Reflection
 
             #region override SpringCachingRequirementProxy.GetCacheEvictRequirements
 
+            var cachePutRequirementMethods = DefineCachePutRequirementMethods(typeBuilder, cachePutAttributes, fieldBuilders);
+
             var method = typeof(SpringCachingRequirementProxy).GetMethod("GetCachePutRequirements")!;
             MethodAttributes methodAttributes =
                 MethodAttributes.Public
@@ -36,11 +38,12 @@ namespace SpringCaching.Reflection
             iLGenerator.Emit(OpCodes.Ldc_I4, cachePutAttributes.Count);
             iLGenerator.Emit(OpCodes.Newarr, typeof(ICachePutRequirement));
             int index = 0;
-            foreach (var cachePutAttribute in cachePutAttributes)
+            foreach (var cachePutRequirementMethod in cachePutRequirementMethods)
             {
                 iLGenerator.Emit(OpCodes.Dup);
                 iLGenerator.Emit(OpCodes.Ldc_I4, index);
-                GeneratorCachePutRequirement(iLGenerator, cachePutAttribute, fieldBuilders);
+                iLGenerator.Emit(OpCodes.Ldarg_0);
+                iLGenerator.Emit(OpCodes.Call, cachePutRequirementMethod);
                 iLGenerator.Emit(OpCodes.Stelem_Ref);
                 index++;
             }
@@ -66,6 +69,26 @@ namespace SpringCaching.Reflection
             {
                 iLGenerator.EmitSetProperty(typeof(CachePutRequirement).GetProperty("UnlessNull")!, attribute.UnlessNull, true);
             }
+        }
+
+
+        private List<MethodBuilder> DefineCachePutRequirementMethods(TypeBuilder typeBuilder, IList<CachePutAttribute> cachePutAttributes, IList<FieldBuilderDescriptor> fieldBuilders)
+        {
+            MethodAttributes methodAttributes =
+                MethodAttributes.Private
+                | MethodAttributes.HideBySig;
+            List<MethodBuilder> methodBuilders = new List<MethodBuilder>();
+            int index = 0;
+            foreach (var cachePutAttribute in cachePutAttributes)
+            {
+                var methodBuilder = typeBuilder.DefineMethod("GetCachePutRequirement_" + index, methodAttributes, typeof(ICacheableRequirement), Type.EmptyTypes);
+                var iLGenerator = methodBuilder.GetILGenerator();
+                GeneratorCachePutRequirement(iLGenerator, cachePutAttribute, fieldBuilders);
+                iLGenerator.Emit(OpCodes.Ret);
+                index++;
+                methodBuilders.Add(methodBuilder);
+            }
+            return methodBuilders;
         }
 
     }

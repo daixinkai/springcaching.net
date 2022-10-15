@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -28,7 +29,11 @@ namespace SpringCaching.Reflection
 
             var cacheableAttributes = attributes.OfType<CacheableAttribute>().ToList();
 
+
+
             #region override SpringCachingRequirementProxy.GetCacheableRequirements
+
+            var cacheableRequirementMethods = DefineCacheableRequirementMethods(typeBuilder, cacheableAttributes, fieldBuilders);
 
             var method = typeof(SpringCachingRequirementProxy).GetMethod("GetCacheableRequirements")!;
 
@@ -45,11 +50,12 @@ namespace SpringCaching.Reflection
             iLGenerator.Emit(OpCodes.Ldc_I4, cacheableAttributes.Count);
             iLGenerator.Emit(OpCodes.Newarr, typeof(ICacheableRequirement));
             int index = 0;
-            foreach (var cacheableAttribute in cacheableAttributes)
+            foreach (var cacheableRequirementMethod in cacheableRequirementMethods)
             {
                 iLGenerator.Emit(OpCodes.Dup);
                 iLGenerator.Emit(OpCodes.Ldc_I4, index);
-                GeneratorCacheableRequirement(iLGenerator, cacheableAttribute, fieldBuilders);
+                iLGenerator.Emit(OpCodes.Ldarg_0);
+                iLGenerator.Emit(OpCodes.Call, cacheableRequirementMethod);
                 iLGenerator.Emit(OpCodes.Stelem_Ref);
                 index++;
             }
@@ -75,6 +81,25 @@ namespace SpringCaching.Reflection
             {
                 iLGenerator.EmitSetProperty(typeof(CacheableRequirement).GetProperty("UnlessNull")!, attribute.UnlessNull, true);
             }
+        }
+
+        private List<MethodBuilder> DefineCacheableRequirementMethods(TypeBuilder typeBuilder, IList<CacheableAttribute> cacheableAttributes, IList<FieldBuilderDescriptor> fieldBuilders)
+        {
+            MethodAttributes methodAttributes =
+                MethodAttributes.Private
+                | MethodAttributes.HideBySig;
+            List<MethodBuilder> methodBuilders = new List<MethodBuilder>();
+            int index = 0;
+            foreach (var cacheableAttribute in cacheableAttributes)
+            {
+                var methodBuilder = typeBuilder.DefineMethod("GetCacheableRequirement_" + index, methodAttributes, typeof(ICacheableRequirement), Type.EmptyTypes);
+                var iLGenerator = methodBuilder.GetILGenerator();
+                GeneratorCacheableRequirement(iLGenerator, cacheableAttribute, fieldBuilders);
+                iLGenerator.Emit(OpCodes.Ret);
+                index++;
+                methodBuilders.Add(methodBuilder);
+            }
+            return methodBuilders;
         }
 
     }

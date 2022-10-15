@@ -14,6 +14,9 @@ namespace SpringCaching.UnitTest.NET45
         [TestMethod]
         public async Task TestMethod1()
         {
+
+            //var ss = new SimpleKeyGenerators.StructToStringKeyGenerator<int>(1);
+
             DynamicAssembly dynamicAssembly = SpringCachingServiceProxy.DynamicAssembly;
             dynamicAssembly.DEBUG_MODE = true;
             var testServiceTypeInfo = SpringCachingServiceProxy.GetProxyType(typeof(TestService));
