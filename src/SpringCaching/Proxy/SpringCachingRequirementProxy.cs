@@ -24,5 +24,9 @@ namespace SpringCaching.Proxy
         protected string? ToClassString<T>(T? value) where T : class
              => value?.ToString();
 
+        protected bool IsNull<T>(T? value) where T : class => value == null;
+
+        protected bool IsNull<T>(T? value) where T : struct => !value.HasValue;
+
     }
 }

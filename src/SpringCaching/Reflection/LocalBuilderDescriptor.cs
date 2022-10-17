@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace SpringCaching.Reflection
 {
 #if DEBUG
-    public class LocalBuilderDescriptor : EmitDescriptor
+    public class LocalBuilderDescriptor : EmitValueDescriptor
 #else
     internal class FieldBuilderDescriptor : EmitDescriptor
 #endif
@@ -22,11 +22,13 @@ namespace SpringCaching.Reflection
         public bool CanBeNull { get; }
         public LocalBuilder LocalBuilder { get; }
 
+        public override Type EmitValueType => LocalBuilder.LocalType;
 
-        public void EmitValue(ILGenerator iLGenerator)
+        public override void EmitValue(ILGenerator iLGenerator, bool box)
         {
             //TODO : CanBeNull
             iLGenerator.Emit(OpCodes.Ldloc, LocalBuilder);
+            EmitBox(iLGenerator, box);
         }
 
     }

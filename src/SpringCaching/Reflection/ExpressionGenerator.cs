@@ -76,61 +76,71 @@ namespace SpringCaching.Reflection
         private static LocalBuilderDescriptor? EmitStringFieldExpressionToken(ILGenerator iLGenerator, ExpressionToken token, IList<FieldBuilderDescriptor> descriptors)
         {
             string value = token.Value!;
-            FieldBuilderDescriptor? descriptor;
+            FieldBuilderDescriptor? fieldDescriptor;
             List<string> fieldList;
+            bool checkFieldNull = false;
             if (value.Contains('.'))
             {
                 fieldList = value.Split(new char[] { '.' }, StringSplitOptions.RemoveEmptyEntries).ToList();
-                descriptor = descriptors.FirstOrDefault(s => s.Parameter.Name == fieldList[0]);
+                string fieldName = fieldList[0];
+                checkFieldNull = fieldName.EndsWith("?");
+                if (checkFieldNull)
+                {
+                    fieldName = fieldName.TrimEnd('?');
+                }
+                fieldDescriptor = descriptors.FirstOrDefault(s => s.Parameter.Name == fieldName);
                 fieldList.RemoveAt(0);
             }
             else
             {
-                descriptor = descriptors.FirstOrDefault(s => s.Parameter.Name == value);
+                fieldDescriptor = descriptors.FirstOrDefault(s => s.Parameter.Name == value);
                 fieldList = new List<string>();
             }
-            if (descriptor == null)
+            if (fieldDescriptor == null)
             {
                 return null;
             }
-            var properties = new List<PropertyInfo>();
+            var propertyDescriptors = new List<EmitPropertyDescriptor>();
+            bool hasCheckNull = false;
             if (fieldList.Count > 0)
             {
-                Type propertyType = descriptor.Parameter.ParameterType;
+                bool lastCheckNull = checkFieldNull;
+                Type propertyType = fieldDescriptor.Parameter.ParameterType;
                 //property
                 foreach (var item in fieldList)
                 {
-                    var property = propertyType.GetProperty(item);
+                    string propertyName = item;
+                    bool checkNull = propertyName.EndsWith("?");
+                    if (checkNull)
+                    {
+                        hasCheckNull = true;
+                        propertyName = propertyName.TrimEnd('?');
+                    }
+                    var property = propertyType.GetProperty(propertyName);
                     if (property == null || !property.CanRead)
                     {
                         return null;
                     }
-                    properties.Add(property);
+                    propertyDescriptors.Add(new EmitPropertyDescriptor(property, !lastCheckNull));
                     propertyType = property.PropertyType;
+                    lastCheckNull = checkNull;
                 }
             }
 
-            var lastType = properties.Count > 0 ?
-                properties[properties.Count - 1].PropertyType :
-                descriptor.Parameter.ParameterType;
+            EmitValueDescriptor emitValueDescriptor = propertyDescriptors.Count > 0 ?
+                propertyDescriptors[propertyDescriptors.Count - 1] :
+                fieldDescriptor;
 
-            bool toString = lastType != typeof(string);
-
+            bool toString = emitValueDescriptor.EmitValueType != typeof(string);
             if (toString)
             {
                 iLGenerator.Emit(OpCodes.Ldarg_0);
             }
-
-            iLGenerator.Emit(OpCodes.Ldarg_0);
-            iLGenerator.Emit(OpCodes.Ldfld, descriptor.FieldBuilder);
-            foreach (var property in properties)
-            {
-                iLGenerator.Emit(OpCodes.Callvirt, property.GetMethod!);
-            }
+            EmitPropertyDescriptor.EmitValue(iLGenerator, fieldDescriptor, propertyDescriptors);
             bool canBeNull = true;
             if (toString)
             {
-                EmitToString(iLGenerator, lastType, out canBeNull);
+                EmitToString(iLGenerator, emitValueDescriptor, out canBeNull);
             }
             var localBuilder = iLGenerator.DeclareLocal(typeof(string));
             iLGenerator.Emit(OpCodes.Stloc, localBuilder);
@@ -212,10 +222,11 @@ namespace SpringCaching.Reflection
             return localBuilder;
         }
 
-        private static void EmitToString(ILGenerator iLGenerator, Type type, out bool canBeNull)
+        private static void EmitToString(ILGenerator iLGenerator, EmitValueDescriptor descriptor, out bool canBeNull)
         {
             canBeNull = true;
             MethodInfo method;
+            var type = descriptor.EmitValueType;
             if (type.IsNullableType() && type.GenericTypeArguments[0].IsPrimitive)
             {
                 method = typeof(SpringCachingRequirementProxy).GetMethods(BindingFlags.Instance | BindingFlags.NonPublic).Where(o => o.IsGenericMethod && o.Name == "ToNullableString").FirstOrDefault()!;
@@ -231,54 +242,59 @@ namespace SpringCaching.Reflection
             {
                 method = typeof(SpringCachingRequirementProxy).GetMethods(BindingFlags.Instance | BindingFlags.NonPublic).Where(o => o.IsGenericMethod && o.Name == "ToClassString").FirstOrDefault()!;
             }
+
             if (method.IsGenericMethodDefinition)
             {
                 method = method.MakeGenericMethod(type);
             }
 
+            //if (descriptor is EmitPropertyDescriptor propertyDescriptor && propertyDescriptor.LocalBuilder != null)
+            //{
+            //    Label callLabel = iLGenerator.DefineLabel();
+            //    Label isNullLabel = iLGenerator.DefineLabel();
+            //    iLGenerator.Emit(OpCodes.Dup);
+            //    iLGenerator.Emit(OpCodes.Brtrue_S, isNullLabel);
+            //    iLGenerator.Emit(OpCodes.Pop);
+            //    iLGenerator.Emit(OpCodes.Ldnull);
+            //    iLGenerator.Emit(OpCodes.Br_S, callLabel);
+            //    iLGenerator.MarkLabel(isNullLabel);
+            //    iLGenerator.Emit(OpCodes.Ldloc, propertyDescriptor.LocalBuilder);
+            //    iLGenerator.MarkLabel(callLabel);
+            //    iLGenerator.Emit(OpCodes.Ldnull);
+
+            //}
+
             iLGenerator.Emit(OpCodes.Call, method);
 
-            //var method = type.GetMethod("ToString", Type.EmptyTypes);
-
-            //if (method != null)
-            //{
-            //    iLGenerator.Emit(OpCodes.Call, method);
-            //    return;
-            //}
-            //if (type.IsPrimitive)
-            //{
-
-            //}
-            //iLGenerator.Emit(OpCodes.Callvirt, typeof(object).GetMethod("ToString"));
         }
 
-        private static void EmitConcatString(ILGenerator iLGenerator, IList<LocalBuilderDescriptor> descriptors)
+        private static void EmitConcatString(ILGenerator iLGenerator, IList<LocalBuilderDescriptor> stringDescriptors)
         {
-            if (descriptors.Count == 1)
+            if (stringDescriptors.Count == 1)
             {
-                descriptors[0].EmitValue(iLGenerator);
+                stringDescriptors[0].EmitValue(iLGenerator, false);
                 return;
             }
-            var method = typeof(string).GetMethod("Concat", descriptors.Select(s => typeof(string)).ToArray());
+            var method = typeof(string).GetMethod("Concat", stringDescriptors.Select(s => typeof(string)).ToArray());
             if (method != null)
             {
-                foreach (var descriptor in descriptors)
+                foreach (var descriptor in stringDescriptors)
                 {
-                    descriptor.EmitValue(iLGenerator);
+                    descriptor.EmitValue(iLGenerator, false);
                 }
                 iLGenerator.Emit(OpCodes.Call, method);
                 return;
             }
             method = typeof(string).GetMethod("Concat", new Type[] { typeof(string[]) });
             //new string[]{x,x,x,x,x,}
-            iLGenerator.Emit(OpCodes.Ldc_I4, descriptors.Count);
+            iLGenerator.Emit(OpCodes.Ldc_I4, stringDescriptors.Count);
             iLGenerator.Emit(OpCodes.Newarr, typeof(string));
             int index = 0;
-            foreach (var descriptor in descriptors)
+            foreach (var descriptor in stringDescriptors)
             {
                 iLGenerator.Emit(OpCodes.Dup);
                 iLGenerator.Emit(OpCodes.Ldc_I4, index);
-                descriptor.EmitValue(iLGenerator);
+                descriptor.EmitValue(iLGenerator, false);
                 iLGenerator.Emit(OpCodes.Stelem_Ref);
                 index++;
             }

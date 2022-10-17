@@ -49,7 +49,11 @@ namespace SpringCaching.Tests
         }
 
         [Cacheable("getNames_Param",
-            Key = "#param.Id + #param.Count + #param.Name", 
+            //Key = "#param.Id + #param.Count + #param.Name", 
+            //Key = "#param?.Param?.Param?.Id + #param.Count + #param.Name",
+            //Key = "#param?.Id + #param.Count + #param.Name",
+            //Key = "#param?.Param?.Param?.Param?.Param?.Name",
+            Key = "#param?.Param?.Name",
             ExpirationPolicy = ExpirationPolicy.Absolute, 
             ExpirationUnit = ExpirationUnit.Minute, 
             ExpirationValue = 1)]

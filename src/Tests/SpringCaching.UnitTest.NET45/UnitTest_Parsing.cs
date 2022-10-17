@@ -116,11 +116,22 @@ namespace SpringCaching.UnitTest.NET45
 
         private IKeyGenerator GetCacheableKeyGenerator_00()
         {
-            string num = ToString(this._param.Count);
-            string name = this._param.Name;
-            //string value = num + name;
-            string value = (num ?? "null") + (name ?? "null") + (num ?? "null");
-            return new SimpleKeyGenerator.StringKeyGenerator(value, "null");
+            ////string num = ToString(this._param.Count);
+            ////string name = this._param?.Param?.Name;
+            ////string name = this._param?.Name;
+            ////string name = ToString(this._param?.Param?.Name);
+            ////string value = num + name;
+            ////string value = (num ?? "null") + (name ?? "null") + (num ?? "null");
+            //string name = this._param?.Name;
+            //string value = null;
+            //return new SimpleKeyGenerator.StringKeyGenerator(value, "null");
+            //TestServiceParam testServiceParam = (this._param != null) ? this._param.Param : null;
+            //int? value = (this._param.Param != null) ? this._param.Param.Id : null;
+            //int? value = (this._param != null) ? this._param.Id : default;
+            var value = (this._param != null) ? this._param.Name : default;
+            string text = value;
+            string value2 = text;
+            return new SimpleKeyGenerator.StringKeyGenerator(value2, "null");
         }
 
     }

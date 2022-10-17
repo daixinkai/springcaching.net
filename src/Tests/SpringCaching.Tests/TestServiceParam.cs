@@ -13,5 +13,7 @@ namespace SpringCaching.Tests
         public int Count { get; set; }
 
         public string Name { get; set; }
+
+        public TestServiceParam Param { get; set; }
     }
 }
