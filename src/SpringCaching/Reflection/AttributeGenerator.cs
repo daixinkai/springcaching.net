@@ -17,10 +17,10 @@ namespace SpringCaching.Reflection
 
     internal abstract class AttributeGenerator
     {
-        public abstract bool Build(TypeBuilder typeBuilder, Type attributeType, IList<Attribute> attributes, IList<FieldBuilderDescriptor> fieldBuilders);
+        public abstract bool Build(TypeBuilder typeBuilder, Type attributeType, IList<Attribute> attributes, IList<FieldBuilderDescriptor> descriptors);
 
 
-        protected void SetDefaultProperty(TypeBuilder typeBuilder, int index, ILGenerator iLGenerator, CacheBaseAttribute attribute, IList<FieldBuilderDescriptor> fieldBuilders)
+        protected void SetDefaultProperty(TypeBuilder typeBuilder, int index, ILGenerator iLGenerator, CacheBaseAttribute attribute, IList<FieldBuilderDescriptor> descriptors)
         {
             //Key
             if (attribute.Key != null)
@@ -33,39 +33,39 @@ namespace SpringCaching.Reflection
                 iLGenerator.EmitSetProperty(typeof(CacheRequirementBase).GetProperty("Condition")!, attribute.Condition, true);
             }
 
-            if (fieldBuilders.Count > 0)
+            if (descriptors.Count > 0)
             {
                 // KeyGenerator
                 iLGenerator.Emit(OpCodes.Dup);
-                EmitKeyGenerator(typeBuilder, index, iLGenerator, attribute, fieldBuilders);
+                EmitKeyGenerator(typeBuilder, index, iLGenerator, attribute, descriptors);
                 iLGenerator.Emit(OpCodes.Callvirt, typeof(CacheRequirementBase).GetProperty("KeyGenerator")!.SetMethod!);
                 iLGenerator.Emit(OpCodes.Nop);
             }
 
-            if (!string.IsNullOrWhiteSpace(attribute.Condition) && fieldBuilders.Count > 0)
+            if (!string.IsNullOrWhiteSpace(attribute.Condition) && descriptors.Count > 0)
             {
                 //ConditionGenerator
                 iLGenerator.Emit(OpCodes.Dup);
-                EmitConditionGenerator(typeBuilder, index, iLGenerator, attribute, fieldBuilders);
+                EmitConditionGenerator(typeBuilder, index, iLGenerator, attribute, descriptors);
                 iLGenerator.Emit(OpCodes.Callvirt, typeof(CacheRequirementBase).GetProperty("ConditionGenerator")!.SetMethod!);
                 iLGenerator.Emit(OpCodes.Nop);
             }
 
         }
 
-        private void EmitKeyGenerator(TypeBuilder typeBuilder, int index, ILGenerator iLGenerator, CacheBaseAttribute attribute, IList<FieldBuilderDescriptor> fieldBuilders)
+        private void EmitKeyGenerator(TypeBuilder typeBuilder, int index, ILGenerator iLGenerator, CacheBaseAttribute attribute, IList<FieldBuilderDescriptor> descriptors)
         {
             if (string.IsNullOrWhiteSpace(attribute.Key))
             {
-                EmitSimpleKeyGenerator(iLGenerator, fieldBuilders);
+                EmitSimpleKeyGenerator(iLGenerator, descriptors);
                 return;
             }
-            var methodBuilder = DefineGetKeyGeneratorMethod(typeBuilder, index, attribute, fieldBuilders);
+            var methodBuilder = DefineGetKeyGeneratorMethod(typeBuilder, index, attribute, descriptors);
             iLGenerator.Emit(OpCodes.Ldarg_0);
             iLGenerator.Emit(OpCodes.Call, methodBuilder);
         }
 
-        private MethodBuilder DefineGetKeyGeneratorMethod(TypeBuilder typeBuilder, int index, CacheBaseAttribute attribute, IList<FieldBuilderDescriptor> fieldBuilders)
+        private MethodBuilder DefineGetKeyGeneratorMethod(TypeBuilder typeBuilder, int index, CacheBaseAttribute attribute, IList<FieldBuilderDescriptor> descriptors)
         {
             //create method
             MethodAttributes methodAttributes =
@@ -74,7 +74,7 @@ namespace SpringCaching.Reflection
             string methodName = "Get" + attribute.GetType().Name.Replace("Attribute", "") + "KeyGenerator_" + index;
             var methodBuilder = typeBuilder.DefineMethod(methodName, methodAttributes, typeof(IKeyGenerator), Type.EmptyTypes);
             var iLGenerator = methodBuilder.GetILGenerator();
-            var localBuilder = ExpressionGenerator.EmitStringExpression(iLGenerator, attribute.Key!, fieldBuilders);
+            var localBuilder = ExpressionGenerator.EmitStringExpression(iLGenerator, attribute.Key!, descriptors);
             if (localBuilder == null)
             {
                 iLGenerator.Emit(OpCodes.Ldnull);
@@ -91,19 +91,19 @@ namespace SpringCaching.Reflection
             return methodBuilder;
         }
 
-        private void EmitConditionGenerator(TypeBuilder typeBuilder, int index, ILGenerator iLGenerator, CacheBaseAttribute attribute, IList<FieldBuilderDescriptor> fieldBuilders)
+        private void EmitConditionGenerator(TypeBuilder typeBuilder, int index, ILGenerator iLGenerator, CacheBaseAttribute attribute, IList<FieldBuilderDescriptor> descriptors)
         {
             if (string.IsNullOrWhiteSpace(attribute.Condition))
             {
                 iLGenerator.Emit(OpCodes.Ldnull);
                 return;
             }
-            var methodBuilder = DefineGetConditionGeneratorMethod(typeBuilder, index, attribute, fieldBuilders);
+            var methodBuilder = DefineGetConditionGeneratorMethod(typeBuilder, index, attribute, descriptors);
             iLGenerator.Emit(OpCodes.Ldarg_0);
             iLGenerator.Emit(OpCodes.Call, methodBuilder);
         }
 
-        private MethodBuilder DefineGetConditionGeneratorMethod(TypeBuilder typeBuilder, int index, CacheBaseAttribute attribute, IList<FieldBuilderDescriptor> fieldBuilders)
+        private MethodBuilder DefineGetConditionGeneratorMethod(TypeBuilder typeBuilder, int index, CacheBaseAttribute attribute, IList<FieldBuilderDescriptor> descriptors)
         {
             //create method
             MethodAttributes methodAttributes =
@@ -113,7 +113,7 @@ namespace SpringCaching.Reflection
             var methodBuilder = typeBuilder.DefineMethod(methodName, methodAttributes, typeof(IPredicateGenerator), Type.EmptyTypes);
             var iLGenerator = methodBuilder.GetILGenerator();
             var predicateGeneratorConstructor = typeof(PredicateGenerator).GetConstructors()[0];
-            var localBuilder = ExpressionGenerator.EmitBooleanExpression(iLGenerator, attribute.Condition!, fieldBuilders);
+            var localBuilder = ExpressionGenerator.EmitBooleanExpression(iLGenerator, attribute.Condition!, descriptors);
             if (localBuilder == null)
             {
                 iLGenerator.Emit(OpCodes.Ldc_I4_1);
@@ -127,25 +127,25 @@ namespace SpringCaching.Reflection
             return methodBuilder;
         }
 
-        private void EmitSimpleKeyGenerator(ILGenerator iLGenerator, IList<FieldBuilderDescriptor> fieldBuilders)
+        private void EmitSimpleKeyGenerator(ILGenerator iLGenerator, IList<FieldBuilderDescriptor> descriptors)
         {
-            if (fieldBuilders.Count == 0)
+            if (descriptors.Count == 0)
             {
                 iLGenerator.Emit(OpCodes.Ldnull);
                 return;
             }
 
-            if (fieldBuilders.Count == 1)
+            if (descriptors.Count == 1)
             {
                 // xx.ToString()
-                var fieldBuilder = fieldBuilders[0];
-                var parameterType = fieldBuilder.Parameter.ParameterType;
+                var descriptor = descriptors[0];
+                var parameterType = descriptor.Parameter.ParameterType;
                 if (parameterType == typeof(string))
                 {
                     //new SimpleKeyGenerator.StringKeyGenerator
                     var keyGeneratorConstructor = typeof(SimpleKeyGenerator.StringKeyGenerator).GetConstructors()[0];
                     iLGenerator.Emit(OpCodes.Ldarg_0);
-                    iLGenerator.Emit(OpCodes.Ldfld, fieldBuilder.FieldBuilder);
+                    iLGenerator.Emit(OpCodes.Ldfld, descriptor.FieldBuilder);
                     iLGenerator.Emit(OpCodes.Ldstr, "null");
                     iLGenerator.Emit(OpCodes.Newobj, keyGeneratorConstructor);
                 }
@@ -154,7 +154,7 @@ namespace SpringCaching.Reflection
                     //new SimpleKeyGenerator.NullableToStringKeyGenerator<T>
                     var keyGeneratorConstructor = typeof(SimpleKeyGenerator.NullableToStringKeyGenerator<>).MakeGenericType(parameterType.GenericTypeArguments[0]).GetConstructors()[0];
                     iLGenerator.Emit(OpCodes.Ldarg_0);
-                    iLGenerator.Emit(OpCodes.Ldfld, fieldBuilder.FieldBuilder);
+                    iLGenerator.Emit(OpCodes.Ldfld, descriptor.FieldBuilder);
                     iLGenerator.Emit(OpCodes.Ldstr, "null");
                     iLGenerator.Emit(OpCodes.Newobj, keyGeneratorConstructor);
                 }
@@ -163,7 +163,7 @@ namespace SpringCaching.Reflection
                     //new SimpleKeyGenerator.StructToStringKeyGenerator<T>
                     var keyGeneratorConstructor = typeof(SimpleKeyGenerator.StructToStringKeyGenerator<>).MakeGenericType(parameterType).GetConstructors()[0];
                     iLGenerator.Emit(OpCodes.Ldarg_0);
-                    iLGenerator.Emit(OpCodes.Ldfld, fieldBuilder.FieldBuilder);
+                    iLGenerator.Emit(OpCodes.Ldfld, descriptor.FieldBuilder);
                     iLGenerator.Emit(OpCodes.Newobj, keyGeneratorConstructor);
                 }
                 //else if (typeof(IEnumerable<>).IsAssignableFrom(parameterType))
@@ -179,7 +179,7 @@ namespace SpringCaching.Reflection
                     //new SimpleKeyGenerator.JsonKeyGenerator<>
                     var keyGeneratorConstructor = typeof(SimpleKeyGenerator.JsonKeyGenerator<>).MakeGenericType(parameterType).GetConstructors()[0];
                     iLGenerator.Emit(OpCodes.Ldarg_0);
-                    iLGenerator.Emit(OpCodes.Ldfld, fieldBuilder.FieldBuilder);
+                    iLGenerator.Emit(OpCodes.Ldfld, descriptor.FieldBuilder);
                     iLGenerator.Emit(OpCodes.Ldstr, "null");
                     iLGenerator.Emit(OpCodes.Newobj, keyGeneratorConstructor);
                 }
@@ -187,20 +187,14 @@ namespace SpringCaching.Reflection
             }
 
             //new object[]{x,x,x,x,x,}
-            iLGenerator.Emit(OpCodes.Ldc_I4, fieldBuilders.Count);
+            iLGenerator.Emit(OpCodes.Ldc_I4, descriptors.Count);
             iLGenerator.Emit(OpCodes.Newarr, typeof(object));
             int index = 0;
-            foreach (var fieldBuilder in fieldBuilders)
+            foreach (var descriptor in descriptors)
             {
                 iLGenerator.Emit(OpCodes.Dup);
                 iLGenerator.Emit(OpCodes.Ldc_I4, index);
-                iLGenerator.Emit(OpCodes.Ldarg_0);
-                iLGenerator.Emit(OpCodes.Ldfld, fieldBuilder.FieldBuilder);
-                //box
-                if (fieldBuilder.Parameter.ParameterType.IsValueType)
-                {
-                    iLGenerator.Emit(OpCodes.Box, fieldBuilder.Parameter.ParameterType);
-                }
+                descriptor.EmitValue(iLGenerator, true);
                 iLGenerator.Emit(OpCodes.Stelem_Ref);
                 index++;
             }

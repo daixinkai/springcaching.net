@@ -232,7 +232,7 @@ namespace SpringCaching.Reflection
             constructorIlGenerator.Emit(OpCodes.Call, defaultConstructor);
         }
 
-        private static void AddArgumentsProperty(TypeBuilder typeBuilder, List<FieldBuilderDescriptor> fieldBuilders)
+        private static void AddArgumentsProperty(TypeBuilder typeBuilder, List<FieldBuilderDescriptor> descriptors)
         {
             var property = typeof(SpringCachingRequirementProxy).GetProperty("Arguments")!;
             typeBuilder.OverrideProperty(property, iLGenerator =>
@@ -243,17 +243,12 @@ namespace SpringCaching.Reflection
                 //iLGenerator.Emit(OpCodes.Pop);
                 MethodInfo addMethod = typeof(IDictionary<string, object>).GetMethod("Add", new Type[] { typeof(string), typeof(object) })!;
 
-                for (int i = 0; i < fieldBuilders.Count; i++)
+                for (int i = 0; i < descriptors.Count; i++)
                 {
-                    var fieldBuilder = fieldBuilders[i];
+                    var descriptor = descriptors[i];
                     iLGenerator.Emit(OpCodes.Ldloc, map);
-                    iLGenerator.Emit(OpCodes.Ldstr, fieldBuilder.Parameter.Name!);
-                    iLGenerator.Emit(OpCodes.Ldarg_0);
-                    iLGenerator.Emit(OpCodes.Ldfld, fieldBuilder.FieldBuilder);
-                    if (fieldBuilder.Parameter.ParameterType.IsValueType)
-                    {
-                        iLGenerator.Emit(OpCodes.Box, fieldBuilder.Parameter.ParameterType);
-                    }
+                    iLGenerator.Emit(OpCodes.Ldstr, descriptor.Parameter.Name!);
+                    descriptor.EmitValue(iLGenerator, true);
                     iLGenerator.Emit(OpCodes.Callvirt, addMethod);
                 }
 

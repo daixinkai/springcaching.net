@@ -13,7 +13,7 @@ namespace SpringCaching.Reflection
 {
     internal class CacheEvictAttributeGenerator : AttributeGenerator
     {
-        public override bool Build(TypeBuilder typeBuilder, Type attributeType, IList<Attribute> attributes, IList<FieldBuilderDescriptor> fieldBuilders)
+        public override bool Build(TypeBuilder typeBuilder, Type attributeType, IList<Attribute> attributes, IList<FieldBuilderDescriptor> descriptors)
         {
             if (attributeType != typeof(CacheEvictAttribute))
             {
@@ -25,7 +25,7 @@ namespace SpringCaching.Reflection
 
             #region override SpringCachingRequirementProxy.GetCacheEvictRequirements
 
-            var cacheEvictRequirementMethods = DefineCacheEvictRequirementMethods(typeBuilder, cacheEvictAttributes, fieldBuilders);
+            var cacheEvictRequirementMethods = DefineCacheEvictRequirementMethods(typeBuilder, cacheEvictAttributes, descriptors);
 
             var method = typeof(SpringCachingRequirementProxy).GetMethod("GetCacheEvictRequirements")!;
             MethodAttributes methodAttributes =
@@ -57,7 +57,7 @@ namespace SpringCaching.Reflection
         }
 
 
-        private void GeneratorCacheEvictRequirement(TypeBuilder typeBuilder, int index, ILGenerator iLGenerator, CacheEvictAttribute attribute, IList<FieldBuilderDescriptor> fieldBuilders)
+        private void GeneratorCacheEvictRequirement(TypeBuilder typeBuilder, int index, ILGenerator iLGenerator, CacheEvictAttribute attribute, IList<FieldBuilderDescriptor> descriptors)
         {
             iLGenerator.Emit(OpCodes.Ldstr, attribute.Value);
             iLGenerator.Emit(OpCodes.Newobj, typeof(CacheEvictRequirement).GetConstructors()[0]);
@@ -71,11 +71,11 @@ namespace SpringCaching.Reflection
             {
                 iLGenerator.EmitSetProperty(typeof(CacheEvictRequirement).GetProperty("BeforeInvocation")!, attribute.BeforeInvocation, true);
             }
-            SetDefaultProperty(typeBuilder, index, iLGenerator, attribute, fieldBuilders);
+            SetDefaultProperty(typeBuilder, index, iLGenerator, attribute, descriptors);
         }
 
 
-        private List<MethodBuilder> DefineCacheEvictRequirementMethods(TypeBuilder typeBuilder, IList<CacheEvictAttribute> cacheEvictAttributes, IList<FieldBuilderDescriptor> fieldBuilders)
+        private List<MethodBuilder> DefineCacheEvictRequirementMethods(TypeBuilder typeBuilder, IList<CacheEvictAttribute> cacheEvictAttributes, IList<FieldBuilderDescriptor> descriptors)
         {
             MethodAttributes methodAttributes =
                 MethodAttributes.Private
@@ -86,7 +86,7 @@ namespace SpringCaching.Reflection
             {
                 var methodBuilder = typeBuilder.DefineMethod("GetCacheEvictRequirement_" + index, methodAttributes, typeof(ICacheableRequirement), Type.EmptyTypes);
                 var iLGenerator = methodBuilder.GetILGenerator();
-                GeneratorCacheEvictRequirement(typeBuilder, index, iLGenerator, cacheEvictAttribute, fieldBuilders);
+                GeneratorCacheEvictRequirement(typeBuilder, index, iLGenerator, cacheEvictAttribute, descriptors);
                 iLGenerator.Emit(OpCodes.Ret);
                 index++;
                 methodBuilders.Add(methodBuilder);

@@ -48,7 +48,11 @@ namespace SpringCaching.Tests
             return Task.FromResult(RandomNames(count));
         }
 
-        [Cacheable("getNames_Param", Key = "#param.Id + #param.Name", ExpirationPolicy = ExpirationPolicy.Absolute, ExpirationUnit = ExpirationUnit.Minute, ExpirationValue = 1)]
+        [Cacheable("getNames_Param",
+            Key = "#param.Id + #param.Count + #param.Name", 
+            ExpirationPolicy = ExpirationPolicy.Absolute, 
+            ExpirationUnit = ExpirationUnit.Minute, 
+            ExpirationValue = 1)]
         public virtual Task<List<string>> GetNames(TestServiceParam param)
         {
             return Task.FromResult(new List<string>() { param.Id.ToString(), param.Name + "_" + Guid.NewGuid().ToString("N") });
@@ -74,14 +78,14 @@ namespace SpringCaching.Tests
             return new Random().Next(1, 1000);
         }
 
-        [CacheEvict("getNames", Condition = "#id!=0")]
+        //[CacheEvict("getNames", Condition = "#id!=0")]
         protected internal virtual Task SetNamesAsync(int id, List<string> names)
         {
             return Task.FromResult(new List<string>());
         }
 
         //[CacheEvict("getNames", AllEntries = true)]
-        [CacheEvict("*", AllEntries = true)]
+        //[CacheEvict("*", AllEntries = true)]
         public virtual Task UpdateNames()
         {
             return Task.FromResult(0);

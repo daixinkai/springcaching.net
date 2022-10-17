@@ -119,15 +119,13 @@ namespace SpringCaching.Reflection
 
             foreach (var method in ServiceType.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Where(s => s.IsDefined(typeof(CacheBaseAttribute))))
             {
-                //if (!method.Attributes.HasFlag(MethodAttributes.Virtual))
                 if (!method.IsVirtual || method.IsFinal)
                 {
-                    throw new NotSupportedException($"The method \"{method.DeclaringType.FullName}.{method.Name}({string.Join(",", method.GetParameters().Select(s => s.ParameterType.FullName))})\" must can override");
+                    throw new NotSupportedException($"The method \"{method.DeclaringType!.FullName}.{method.Name}({string.Join(",", method.GetParameters().Select(s => s.ParameterType.FullName))})\" must can override");
                     //continue;
                 }
                 if (method.Attributes.HasFlag(MethodAttributes.Public)
                     || method.Attributes.HasFlag(MethodAttributes.Family)
-                    //|| method.Attributes.HasFlag(MethodAttributes.Assembly)
                     )
                 {
                     BuildMethod(method);
