@@ -130,7 +130,7 @@ namespace SpringCaching.UnitTest.NET45
             //int? value = (this._param != null) ? this._param.Id : default;
             var value = (this._param != null) ? this._param.Name : default;
             string text = value;
-            string value2 = text;
+            string value2 = text ?? "null";
             return new SimpleKeyGenerator.StringKeyGenerator(value2, "null");
         }
 

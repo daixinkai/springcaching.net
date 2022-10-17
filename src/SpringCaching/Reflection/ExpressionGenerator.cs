@@ -24,7 +24,7 @@ namespace SpringCaching.Reflection
         {
             var tokens = ParseExpressionTokens(expression);
 
-            List<LocalBuilderDescriptor> tokenLocalBuilders = new List<LocalBuilderDescriptor>();
+            List<StringLocalBuilderDescriptor> tokenLocalBuilders = new List<StringLocalBuilderDescriptor>();
             foreach (var token in tokens)
             {
                 var tokenLocalBuilder = EmitStringExpressionToken(iLGenerator, token, descriptors);
@@ -47,7 +47,7 @@ namespace SpringCaching.Reflection
             iLGenerator.Emit(OpCodes.Stloc, localBuilder);
             return localBuilder;
         }
-        private static LocalBuilderDescriptor? EmitStringExpressionToken(ILGenerator iLGenerator, ExpressionToken token, IList<FieldBuilderDescriptor> descriptors)
+        private static StringLocalBuilderDescriptor? EmitStringExpressionToken(ILGenerator iLGenerator, ExpressionToken token, IList<FieldBuilderDescriptor> descriptors)
         {
             switch (token.TokenType)
             {
@@ -73,7 +73,7 @@ namespace SpringCaching.Reflection
             return null;
         }
 
-        private static LocalBuilderDescriptor? EmitStringFieldExpressionToken(ILGenerator iLGenerator, ExpressionToken token, IList<FieldBuilderDescriptor> descriptors)
+        private static StringLocalBuilderDescriptor? EmitStringFieldExpressionToken(ILGenerator iLGenerator, ExpressionToken token, IList<FieldBuilderDescriptor> descriptors)
         {
             string value = token.Value!;
             FieldBuilderDescriptor? fieldDescriptor;
@@ -144,7 +144,7 @@ namespace SpringCaching.Reflection
             }
             var localBuilder = iLGenerator.DeclareLocal(typeof(string));
             iLGenerator.Emit(OpCodes.Stloc, localBuilder);
-            return new LocalBuilderDescriptor(localBuilder, canBeNull);
+            return new StringLocalBuilderDescriptor(localBuilder, canBeNull);
         }
 
         #endregion
@@ -268,7 +268,7 @@ namespace SpringCaching.Reflection
 
         }
 
-        private static void EmitConcatString(ILGenerator iLGenerator, IList<LocalBuilderDescriptor> stringDescriptors)
+        private static void EmitConcatString(ILGenerator iLGenerator, IList<StringLocalBuilderDescriptor> stringDescriptors)
         {
             if (stringDescriptors.Count == 1)
             {
