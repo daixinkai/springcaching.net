@@ -144,7 +144,7 @@ namespace SpringCaching.Reflection
             }
             var localBuilder = iLGenerator.DeclareLocal(typeof(string));
             iLGenerator.Emit(OpCodes.Stloc, localBuilder);
-            return new StringLocalBuilderDescriptor(localBuilder, canBeNull);
+            return new StringLocalBuilderDescriptor(localBuilder, canBeNull ? "null" : null);
         }
 
         #endregion
