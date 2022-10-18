@@ -35,16 +35,12 @@ namespace SpringCaching.Reflection
                 }
             }
 
-            LocalBuilder localBuilder = iLGenerator.DeclareLocal(typeof(string));
-
             if (tokenLocalBuilders.Count == 0)
             {
-                iLGenerator.Emit(OpCodes.Ldnull);
+                return null;
             }
-            else
-            {
-                EmitConcatString(iLGenerator, tokenLocalBuilders);
-            }
+            LocalBuilder localBuilder = iLGenerator.DeclareLocal(typeof(string));
+            EmitConcatString(iLGenerator, tokenLocalBuilders);
             iLGenerator.Emit(OpCodes.Stloc, localBuilder);
             return localBuilder;
         }
@@ -161,6 +157,55 @@ namespace SpringCaching.Reflection
 
         #region boolean
 
+        public static LocalBuilder? EmitBooleanExpression(ILGenerator iLGenerator, string expression, IList<FieldBuilderDescriptor> descriptors)
+        {
+            var tokens = ParseExpressionTokens(expression);
+
+            List<LocalBuilderDescriptor> tokenLocalBuilders = new List<LocalBuilderDescriptor>();
+            foreach (var token in tokens)
+            {
+                var tokenLocalBuilder = EmitBooleanExpressionToken(iLGenerator, token, descriptors);
+                if (tokenLocalBuilder != null)
+                {
+                    tokenLocalBuilders.Add(tokenLocalBuilder);
+                }
+            }
+            if (tokenLocalBuilders.Count == 0)
+            {
+                return null;
+            }
+            LocalBuilder localBuilder = iLGenerator.DeclareLocal(typeof(bool));
+            //EmitConcatString(iLGenerator, tokenLocalBuilders);
+            iLGenerator.Emit(OpCodes.Stloc, localBuilder);
+            return localBuilder;
+        }
+
+        private static LocalBuilderDescriptor? EmitBooleanExpressionToken(ILGenerator iLGenerator, ExpressionToken token, IList<FieldBuilderDescriptor> descriptors)
+        {
+            switch (token.TokenType)
+            {
+                case ExpressionTokenType.Operator:
+                    break;
+                case ExpressionTokenType.Function:
+                    break;
+                case ExpressionTokenType.Comma:
+                    break;
+                case ExpressionTokenType.Field:
+                //return EmitStringFieldExpressionToken(iLGenerator, token, descriptors);
+                case ExpressionTokenType.SingleQuoted:
+                case ExpressionTokenType.DoubleQuoted:
+                //return EmitStringConstantExpressionToken(iLGenerator, token);
+                case ExpressionTokenType.Value:
+                    break;
+                default:
+                    return null;
+            }
+            return null;
+        }
+
+
+        #endregion
+
 
         public static ExpressionToken[] ParseExpressionTokens(string expression)
         {
@@ -217,20 +262,6 @@ namespace SpringCaching.Reflection
         }
 
 
-
-        #endregion
-
-        public static LocalBuilder? EmitBooleanExpression(ILGenerator iLGenerator, string expression, IList<FieldBuilderDescriptor> descriptors)
-        {
-            return null;
-            var tokens = ParseExpressionTokens(expression);
-            LocalBuilder localBuilder = iLGenerator.DeclareLocal(typeof(bool));
-            foreach (var token in tokens)
-            {
-
-            }
-            return localBuilder;
-        }
 
         private static void EmitToString(ILGenerator iLGenerator, EmitValueDescriptor descriptor, out bool canBeNull)
         {

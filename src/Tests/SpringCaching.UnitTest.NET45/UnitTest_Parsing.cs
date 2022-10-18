@@ -143,5 +143,11 @@ namespace SpringCaching.UnitTest.NET45
             return new SimpleKeyGenerator.StringKeyGenerator(value2, "null");
         }
 
+        private IPredicateGenerator GetCacheableConditionGenerator_00()
+        {
+            bool value = _param.Id > 0 && _param.Count != 0;
+            return new PredicateGenerator(value);
+        }
+
     }
 }
