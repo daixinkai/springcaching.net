@@ -69,60 +69,12 @@ namespace SpringCaching.Reflection
 
         private static StringLocalBuilderDescriptor? EmitStringFieldExpressionToken(ILGenerator iLGenerator, ExpressionToken token, IList<FieldBuilderDescriptor> descriptors)
         {
-            string value = token.Value!;
-            FieldBuilderDescriptor? fieldDescriptor;
-            List<string> fieldList;
-            bool checkFieldNull = false;
-            if (value.Contains('.'))
-            {
-                fieldList = value.Split(new char[] { '.' }, StringSplitOptions.RemoveEmptyEntries).ToList();
-                string fieldName = fieldList[0];
-                checkFieldNull = fieldName.EndsWith("?");
-                if (checkFieldNull)
-                {
-                    fieldName = fieldName.TrimEnd('?');
-                }
-                fieldDescriptor = descriptors.FirstOrDefault(s => s.Parameter.Name == fieldName);
-                fieldList.RemoveAt(0);
-            }
-            else
-            {
-                fieldDescriptor = descriptors.FirstOrDefault(s => s.Parameter.Name == value);
-                fieldList = new List<string>();
-            }
+
+            var propertyDescriptors = GetEmitPropertyDescriptors(token, descriptors, out var fieldDescriptor);
+
             if (fieldDescriptor == null)
             {
                 return null;
-            }
-            var propertyDescriptors = new List<EmitPropertyDescriptor>();
-
-            if (fieldList.Count > 0)
-            {
-                bool lastCheckNull = checkFieldNull;
-                Type propertyType = fieldDescriptor.Parameter.ParameterType;
-                //property
-                foreach (var item in fieldList)
-                {
-                    string propertyName = item;
-                    bool checkNull = propertyName.EndsWith("?");
-                    if (checkNull)
-                    {
-                        propertyName = propertyName.TrimEnd('?');
-                    }
-                    var property = propertyType.GetProperty(propertyName);
-                    if (property == null || !property.CanRead)
-                    {
-                        return null;
-                    }
-                    propertyDescriptors.Add(new EmitPropertyDescriptor(property, !lastCheckNull));
-                    propertyType = property.PropertyType;
-                    lastCheckNull = checkNull;
-                }
-            }
-
-            if (propertyDescriptors.Count > 0)
-            {
-                propertyDescriptors[propertyDescriptors.Count - 1].IsLast = true;
             }
 
             EmitValueDescriptor emitValueDescriptor = propertyDescriptors.Count > 0 ?
@@ -161,10 +113,12 @@ namespace SpringCaching.Reflection
         {
             var tokens = ParseExpressionTokens(expression);
 
+            var tokenDescriptors = BooleanExpressionTokenDescriptor.FromTokens(tokens);
+
             List<LocalBuilderDescriptor> tokenLocalBuilders = new List<LocalBuilderDescriptor>();
-            foreach (var token in tokens)
+            foreach (var tokenDescriptor in tokenDescriptors)
             {
-                var tokenLocalBuilder = EmitBooleanExpressionToken(iLGenerator, token, descriptors);
+                var tokenLocalBuilder = EmitBooleanExpressionToken(iLGenerator, tokenDescriptor, descriptors);
                 if (tokenLocalBuilder != null)
                 {
                     tokenLocalBuilders.Add(tokenLocalBuilder);
@@ -180,8 +134,46 @@ namespace SpringCaching.Reflection
             return localBuilder;
         }
 
-        private static LocalBuilderDescriptor? EmitBooleanExpressionToken(ILGenerator iLGenerator, ExpressionToken token, IList<FieldBuilderDescriptor> descriptors)
+        private static LocalBuilderDescriptor? EmitBooleanExpressionToken(ILGenerator iLGenerator, BooleanExpressionTokenDescriptor tokenDescriptor, IList<FieldBuilderDescriptor> descriptors)
         {
+            bool isCompare = tokenDescriptor.Type == BooleanExpressionTokenDescriptor.ExpressionType.Compare;
+            if (!EmitBooleanExpressionToken(iLGenerator, tokenDescriptor.Left, descriptors, !isCompare, out var leftLocalBuilder))
+            {
+                if (!isCompare)
+                {
+                    EmitConstantExpressionToken(iLGenerator, "true", typeof(bool), true, out leftLocalBuilder);
+                }
+                return leftLocalBuilder;
+            }
+            if (!isCompare)
+            {
+                return leftLocalBuilder;
+            }
+
+            if (!EmitBooleanExpressionToken(iLGenerator, tokenDescriptor.Right!, descriptors, false, out var rightLocalBuilder))
+            {
+                EmitConstantExpressionToken(iLGenerator, "true", typeof(bool), false, out rightLocalBuilder);
+            }
+            EmitOperatorType(iLGenerator, tokenDescriptor.Compare!.OperatorType);
+
+            var label = iLGenerator.DefineLabel();
+
+            iLGenerator.Emit(OpCodes.Br_S, label);
+            iLGenerator.Emit(OpCodes.Ldc_I4_0);
+
+            iLGenerator.MarkLabel(label);
+
+            //leftLocalBuilder.EmitValue(iLGenerator, false);
+            //rightLocalBuilder!.EmitValue(iLGenerator, false);
+            LocalBuilder? localBuilder = iLGenerator.DeclareLocal(typeof(bool));
+            iLGenerator.Emit(OpCodes.Stloc, localBuilder);
+            //iLGenerator.Emit(OpCodes.Ldloc, localBuilder);
+            return new LocalBuilderDescriptor(localBuilder);
+        }
+
+        private static bool EmitBooleanExpressionToken(ILGenerator iLGenerator, ExpressionToken token, IList<FieldBuilderDescriptor> descriptors, bool declareLocal, out LocalBuilderDescriptor? descriptor)
+        {
+            descriptor = null;
             switch (token.TokenType)
             {
                 case ExpressionTokenType.Operator:
@@ -191,16 +183,45 @@ namespace SpringCaching.Reflection
                 case ExpressionTokenType.Comma:
                     break;
                 case ExpressionTokenType.Field:
-                //return EmitStringFieldExpressionToken(iLGenerator, token, descriptors);
+                    return EmitBooleanFieldExpressionToken(iLGenerator, token, descriptors, declareLocal, out descriptor);
                 case ExpressionTokenType.SingleQuoted:
                 case ExpressionTokenType.DoubleQuoted:
-                //return EmitStringConstantExpressionToken(iLGenerator, token);
+                    return EmitConstantExpressionToken(iLGenerator, token.Value!, typeof(string), declareLocal, out descriptor);
                 case ExpressionTokenType.Value:
-                    break;
+                    return EmitConstantExpressionToken(iLGenerator, token.Value!, typeof(int), declareLocal, out descriptor);
                 default:
-                    return null;
+                    return false;
             }
-            return null;
+            return false;
+        }
+
+        private static bool EmitBooleanFieldExpressionToken(
+            ILGenerator iLGenerator,
+            ExpressionToken token,
+            IList<FieldBuilderDescriptor> descriptors,
+            bool declareLocal,
+            out LocalBuilderDescriptor? descriptor
+            )
+        {
+            descriptor = null;
+            var propertyDescriptors = GetEmitPropertyDescriptors(token, descriptors, out var fieldDescriptor);
+
+            if (fieldDescriptor == null)
+            {
+                return false;
+            }
+
+            EmitValueDescriptor emitValueDescriptor = propertyDescriptors.Count > 0 ?
+                propertyDescriptors[propertyDescriptors.Count - 1] :
+                fieldDescriptor;
+            EmitPropertyDescriptor.EmitValue(iLGenerator, fieldDescriptor, propertyDescriptors);
+            if (declareLocal)
+            {
+                var localBuilder = iLGenerator.DeclareLocal(emitValueDescriptor.EmitValueType);
+                iLGenerator.Emit(OpCodes.Stloc, localBuilder);
+                descriptor = new LocalBuilderDescriptor(localBuilder);
+            }
+            return true;
         }
 
 
@@ -261,6 +282,113 @@ namespace SpringCaching.Reflection
             return tokens;
         }
 
+        private static bool EmitConstantExpressionToken(ILGenerator iLGenerator, string value, Type type, bool declareLocal, out LocalBuilderDescriptor? descriptor)
+        {
+            descriptor = null;
+            if (type == typeof(string))
+            {
+                iLGenerator.Emit(OpCodes.Ldstr, value.ToString());
+            }
+            else if (type == typeof(bool) && bool.TryParse(value, out var boolValue))
+            {
+                if (boolValue)
+                {
+                    iLGenerator.Emit(OpCodes.Ldc_I4_1);
+                }
+                else
+                {
+                    iLGenerator.Emit(OpCodes.Ldc_I4_0);
+                }
+            }
+            else if (type == typeof(int) && int.TryParse(value, out var intValue))
+            {
+                iLGenerator.Emit(OpCodes.Ldc_I4, intValue);
+            }
+            else if (type == typeof(long) && long.TryParse(value, out var longValue))
+            {
+                iLGenerator.Emit(OpCodes.Ldc_I8, longValue);
+            }
+            else
+            {
+                return false;
+            }
+            if (declareLocal)
+            {
+                var localBuilder = iLGenerator.DeclareLocal(type);
+                iLGenerator.Emit(OpCodes.Stloc, localBuilder);
+                descriptor = new LocalBuilderDescriptor(localBuilder);
+            }
+            return true;
+        }
+
+
+
+        private static List<EmitPropertyDescriptor> GetEmitPropertyDescriptors(
+            ExpressionToken token,
+            IList<FieldBuilderDescriptor> descriptors,
+            out FieldBuilderDescriptor? fieldDescriptor
+            )
+        {
+            string value = token.Value!;
+            List<string> fieldList;
+            bool checkFieldNull = false;
+            if (value.Contains('.'))
+            {
+                fieldList = value.Split(new char[] { '.' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+                string fieldName = fieldList[0];
+                checkFieldNull = fieldName.EndsWith("?");
+                if (checkFieldNull)
+                {
+                    fieldName = fieldName.TrimEnd('?');
+                }
+                fieldDescriptor = descriptors.FirstOrDefault(s => s.Parameter.Name == fieldName);
+                fieldList.RemoveAt(0);
+            }
+            else
+            {
+                fieldDescriptor = descriptors.FirstOrDefault(s => s.Parameter.Name == value);
+                fieldList = new List<string>();
+            }
+
+            var propertyDescriptors = new List<EmitPropertyDescriptor>();
+
+            if (fieldDescriptor == null)
+            {
+                return propertyDescriptors;
+            }
+
+
+            if (fieldList.Count > 0)
+            {
+                bool lastCheckNull = checkFieldNull;
+                Type propertyType = fieldDescriptor.Parameter.ParameterType;
+                //property
+                foreach (var item in fieldList)
+                {
+                    string propertyName = item;
+                    bool checkNull = propertyName.EndsWith("?");
+                    if (checkNull)
+                    {
+                        propertyName = propertyName.TrimEnd('?');
+                    }
+                    var property = propertyType.GetProperty(propertyName);
+                    if (property == null || !property.CanRead)
+                    {
+                        return null;
+                    }
+                    propertyDescriptors.Add(new EmitPropertyDescriptor(property, !lastCheckNull));
+                    propertyType = property.PropertyType;
+                    lastCheckNull = checkNull;
+                }
+            }
+
+            if (propertyDescriptors.Count > 0)
+            {
+                propertyDescriptors[propertyDescriptors.Count - 1].IsLast = true;
+            }
+
+            return propertyDescriptors;
+        }
 
 
         private static void EmitToString(ILGenerator iLGenerator, EmitValueDescriptor descriptor, out bool canBeNull)
@@ -342,5 +470,77 @@ namespace SpringCaching.Reflection
             iLGenerator.Emit(OpCodes.Call, method!);
         }
 
+        private static void EmitOperatorType(ILGenerator iLGenerator, OperatorType operatorType)
+        {
+            switch (operatorType)
+            {
+                case OperatorType.None:
+                    break;
+                case OperatorType.PostIncrement:
+                    break;
+                case OperatorType.PostDecrement:
+                    break;
+                case OperatorType.PreIncrement:
+                    break;
+                case OperatorType.PreDecrement:
+                    break;
+                case OperatorType.UnaryPlus:
+                    break;
+                case OperatorType.UnaryMinus:
+                    break;
+                case OperatorType.LogicalNegation:
+                    break;
+                case OperatorType.Multiplication:
+                    break;
+                case OperatorType.Division:
+                    break;
+                case OperatorType.Modulus:
+                    break;
+                case OperatorType.Addition:
+                    break;
+                case OperatorType.Subtraction:
+                    break;
+                case OperatorType.LessThan:
+                    iLGenerator.Emit(OpCodes.Clt);
+                    break;
+                case OperatorType.LessThanOrEqual:
+                    iLGenerator.Emit(OpCodes.Clt_Un);
+                    break;
+                case OperatorType.GreaterThan:
+                    iLGenerator.Emit(OpCodes.Cgt);
+                    break;
+                case OperatorType.GreaterThanOrEqual:
+                    iLGenerator.Emit(OpCodes.Cgt_Un);
+                    break;
+                case OperatorType.Equal:
+                    break;
+                case OperatorType.NotEqual:
+                    break;
+                case OperatorType.BitwiseAnd:
+                    break;
+                case OperatorType.BitwiseOr:
+                    break;
+                case OperatorType.LogicalAnd:
+                    iLGenerator.Emit(OpCodes.And);
+                    break;
+                case OperatorType.LogicalOr:
+                    iLGenerator.Emit(OpCodes.Or);
+                    break;
+                case OperatorType.Assignment:
+                    break;
+                case OperatorType.AdditionAssignment:
+                    break;
+                case OperatorType.SubtractionAssignment:
+                    break;
+                case OperatorType.MultiplicationAssignment:
+                    break;
+                case OperatorType.DivisionAssignment:
+                    break;
+                case OperatorType.ModulusAssignment:
+                    break;
+                default:
+                    break;
+            }
+        }
     }
 }

@@ -102,7 +102,7 @@ namespace SpringCaching.Reflection
         }
 
 
-        public static void EmitValue(ILGenerator iLGenerator, FieldBuilderDescriptor fieldDescriptor, List<EmitPropertyDescriptor> descriptors)
+        public static Type EmitValue(ILGenerator iLGenerator, FieldBuilderDescriptor fieldDescriptor, List<EmitPropertyDescriptor> descriptors)
         {
             fieldDescriptor.EmitValue(iLGenerator, false);
             EmitValueDescriptor parentDescriptor = fieldDescriptor;
@@ -112,6 +112,7 @@ namespace SpringCaching.Reflection
                 descriptor.EmitValue(iLGenerator, false);
                 parentDescriptor = descriptor;
             }
+            return parentDescriptor.EmitValueType;
         }
 
 
