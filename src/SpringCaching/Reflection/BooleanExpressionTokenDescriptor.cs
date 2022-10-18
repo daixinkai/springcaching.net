@@ -57,6 +57,11 @@ namespace SpringCaching.Reflection
                 }
                 else if (token.TokenType == ExpressionTokenType.Operator)
                 {
+                    if ((token.OperatorType == OperatorType.LogicalAnd || token.OperatorType == OperatorType.LogicalOr) && currentDescriptor != null)
+                    {
+                        descriptors.Add(currentDescriptor);
+                        currentDescriptor = null;
+                    }
                     if (currentDescriptor != null && currentDescriptor.Compare == null)
                     {
                         currentDescriptor.Compare = token;

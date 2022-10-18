@@ -55,7 +55,8 @@ namespace SpringCaching.Tests
             //Key = "#param?.Param?.Param?.Param?.Param?.Name",
             //Key = "#param?.Param?.Name+'-'+#param.Name",
             //Key = "#param?.Param?.Count",
-            Condition = "#param.Id>0&&#param.Count!=0",
+            //Condition = "#param?.Id>0&&#param.Count!=0",
+            Condition = "#param.Id.HasValue&&#param.Id.Value>0&&#param.Count!=0",
             ExpirationPolicy = ExpirationPolicy.Absolute,
             ExpirationUnit = ExpirationUnit.Minute,
             ExpirationValue = 1)]

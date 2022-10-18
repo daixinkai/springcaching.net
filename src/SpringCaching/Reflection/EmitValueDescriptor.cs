@@ -22,7 +22,7 @@ namespace SpringCaching.Reflection
         protected void EmitBox(ILGenerator iLGenerator, bool box)
         {
             //box
-            if (box && EmitValueType.IsValueType)
+            if (box && EmitValueType.IsValueTypeEx())
             {
                 iLGenerator.Emit(OpCodes.Box, EmitValueType);
             }

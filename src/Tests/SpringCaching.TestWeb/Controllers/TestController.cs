@@ -25,6 +25,7 @@ namespace SpringCaching.TestWeb.Controllers
             return await testServiceImpl.GetNames(new TestServiceParam
             {
                 Id = param.Id ?? 1,
+                Count = param.Count,
                 Name = param.Name ?? "asd"
             });
         }

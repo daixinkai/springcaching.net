@@ -27,7 +27,7 @@ namespace SpringCaching.Reflection
         {
             get
             {
-                if (Property.PropertyType.IsValueType && IsCheckNull(this))
+                if (Property.PropertyType.IsValueTypeEx() && IsCheckNull(this))
                 {
                     return typeof(Nullable<>).MakeGenericType(Property.PropertyType);
                 }
@@ -88,7 +88,7 @@ namespace SpringCaching.Reflection
                 ParentDescriptor!.EmitValue(iLGenerator, box);
             }
             iLGenerator.Emit(OpCodes.Callvirt, Property.GetMethod!);
-            if (Property.PropertyType.IsValueType && LocalBuilder!.LocalType.IsNullableType())
+            if (Property.PropertyType.IsValueTypeEx() && LocalBuilder!.LocalType.IsNullableType())
             {
                 iLGenerator.Emit(OpCodes.Newobj, LocalBuilder!.LocalType.GetConstructors()[0]);
             }
