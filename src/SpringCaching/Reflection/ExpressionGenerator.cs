@@ -4,6 +4,7 @@ using SpringCaching.Proxy;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.InteropServices;
@@ -60,11 +61,8 @@ namespace SpringCaching.Reflection
                 case ExpressionTokenType.Field:
                     return EmitStringFieldExpressionToken(iLGenerator, token, descriptors);
                 case ExpressionTokenType.SingleQuoted:
-                    //iLGenerator.Emit(OpCodes);
-                    break;
                 case ExpressionTokenType.DoubleQuoted:
-                    iLGenerator.Emit(OpCodes.Ldstr, token.Value!);
-                    break;
+                    return EmitStringConstantExpressionToken(iLGenerator, token);
                 case ExpressionTokenType.Value:
                     break;
                 default:
@@ -101,7 +99,7 @@ namespace SpringCaching.Reflection
                 return null;
             }
             var propertyDescriptors = new List<EmitPropertyDescriptor>();
-            bool hasCheckNull = false;
+
             if (fieldList.Count > 0)
             {
                 bool lastCheckNull = checkFieldNull;
@@ -113,7 +111,6 @@ namespace SpringCaching.Reflection
                     bool checkNull = propertyName.EndsWith("?");
                     if (checkNull)
                     {
-                        hasCheckNull = true;
                         propertyName = propertyName.TrimEnd('?');
                     }
                     var property = propertyType.GetProperty(propertyName);
@@ -125,6 +122,11 @@ namespace SpringCaching.Reflection
                     propertyType = property.PropertyType;
                     lastCheckNull = checkNull;
                 }
+            }
+
+            if (propertyDescriptors.Count > 0)
+            {
+                propertyDescriptors[propertyDescriptors.Count - 1].IsLast = true;
             }
 
             EmitValueDescriptor emitValueDescriptor = propertyDescriptors.Count > 0 ?
@@ -146,6 +148,14 @@ namespace SpringCaching.Reflection
             iLGenerator.Emit(OpCodes.Stloc, localBuilder);
             return new StringLocalBuilderDescriptor(localBuilder, canBeNull ? "null" : null);
         }
+        private static StringLocalBuilderDescriptor? EmitStringConstantExpressionToken(ILGenerator iLGenerator, ExpressionToken token)
+        {
+            iLGenerator.Emit(OpCodes.Ldstr, token.Value!);
+            var localBuilder = iLGenerator.DeclareLocal(typeof(string));
+            iLGenerator.Emit(OpCodes.Stloc, localBuilder);
+            return new StringLocalBuilderDescriptor(localBuilder, "null");
+        }
+
 
         #endregion
 

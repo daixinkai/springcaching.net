@@ -128,9 +128,18 @@ namespace SpringCaching.UnitTest.NET45
             //TestServiceParam testServiceParam = (this._param != null) ? this._param.Param : null;
             //int? value = (this._param.Param != null) ? this._param.Param.Id : null;
             //int? value = (this._param != null) ? this._param.Id : default;
-            var value = (this._param != null) ? this._param.Name : default;
-            string text = value;
-            string value2 = text ?? "null";
+            //var value = (this._param != null) ? this._param.Name : default;
+            //string text = value;
+            //string value2 = text ?? "null";
+            //string value2 = _param?.Param?.Name + "-" + _param.Name;
+            //string value2 = ToString(_param?.Param?.Id);
+            //int? num = _param?.Id;
+            //string value2 = ToString(num);
+            TestServiceParam testServiceParam = (this._param != null) ? this._param.Param : null;
+            TestServiceParam testServiceParam2 = testServiceParam;
+            int? value = (testServiceParam2 != null) ? (int?)testServiceParam2.Count : null;
+            string text = ToString(value);
+            string value2 = text;
             return new SimpleKeyGenerator.StringKeyGenerator(value2, "null");
         }
 

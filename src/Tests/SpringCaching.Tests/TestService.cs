@@ -53,7 +53,8 @@ namespace SpringCaching.Tests
             //Key = "#param?.Param?.Param?.Id + #param.Count + #param.Name",
             //Key = "#param?.Id + #param.Count + #param.Name",
             //Key = "#param?.Param?.Param?.Param?.Param?.Name",
-            Key = "#param?.Param?.Name",
+            //Key = "#param?.Param?.Name+'-'+#param.Name",
+            Key = "#param?.Param?.Count",
             ExpirationPolicy = ExpirationPolicy.Absolute, 
             ExpirationUnit = ExpirationUnit.Minute, 
             ExpirationValue = 1)]
