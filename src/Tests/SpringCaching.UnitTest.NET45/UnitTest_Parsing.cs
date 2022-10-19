@@ -149,8 +149,9 @@ namespace SpringCaching.UnitTest.NET45
             //bool value = _param.Id.HasValue;
             //bool value = _param.Count != 0;
             //bool value = _param.Count != 0;
-            bool value = _param.Name != "asd";
+            //bool value = _param.Name != "asd";
             //bool value = _param.Count != 0 ;
+            bool value = _param.Param != null;
             return new PredicateGenerator(value);
         }
 

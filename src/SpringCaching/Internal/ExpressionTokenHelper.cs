@@ -65,7 +65,7 @@ namespace SpringCaching.Internal
             return tokens;
         }
 
-        public static List<EmitPropertyDescriptor> GetEmitPropertyDescriptors(
+        private static List<EmitPropertyDescriptor> GetEmitPropertyDescriptors(
             ExpressionToken token,
             IList<FieldBuilderDescriptor> descriptors,
             out FieldBuilderDescriptor? fieldDescriptor
@@ -130,6 +130,16 @@ namespace SpringCaching.Internal
             }
 
             return propertyDescriptors;
+        }
+
+        public static CallPropertyDescriptor? GetCallPropertyDescriptor(ExpressionToken token, IList<FieldBuilderDescriptor> descriptors)
+        {
+            var propertyDescriptors = GetEmitPropertyDescriptors(token, descriptors, out var fieldDescriptor);
+            if (fieldDescriptor == null)
+            {
+                return null;
+            }
+            return new CallPropertyDescriptor(fieldDescriptor, propertyDescriptors);
         }
 
         public static void EmitOperatorType(ILGenerator iLGenerator, OperatorType operatorType)

@@ -8,11 +8,7 @@ using System.Threading.Tasks;
 
 namespace SpringCaching.Reflection
 {
-#if DEBUG
-    public class FieldBuilderDescriptor : EmitValueDescriptor
-#else
-    internal class FieldBuilderDescriptor : EmitDescriptor
-#endif
+    internal class FieldBuilderDescriptor : EmitValueDescriptor
     {
         public FieldBuilderDescriptor(ParameterInfo parameter, FieldBuilder fieldBuilder)
         {
@@ -24,11 +20,10 @@ namespace SpringCaching.Reflection
 
         public override Type EmitValueType => Parameter.ParameterType;
 
-        public override void EmitValue(ILGenerator iLGenerator, bool box)
+        public override void EmitValue(ILGenerator iLGenerator)
         {
             iLGenerator.Emit(OpCodes.Ldarg_0);
             iLGenerator.Emit(OpCodes.Ldfld, FieldBuilder);
-            EmitBox(iLGenerator, box);
         }
 
     }

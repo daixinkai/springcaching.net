@@ -8,11 +8,7 @@ using System.Threading.Tasks;
 
 namespace SpringCaching.Reflection
 {
-#if DEBUG
-    public class LocalBuilderDescriptor : EmitValueDescriptor
-#else
-    internal class LocalBuilderDescriptor : EmitDescriptor
-#endif
+    internal class LocalBuilderDescriptor : EmitValueDescriptor
     {
         public LocalBuilderDescriptor(LocalBuilder localBuilder)
         {
@@ -22,10 +18,9 @@ namespace SpringCaching.Reflection
 
         public override Type EmitValueType => LocalBuilder.LocalType;
 
-        public override void EmitValue(ILGenerator iLGenerator, bool box)
+        public override void EmitValue(ILGenerator iLGenerator)
         {
             iLGenerator.Emit(OpCodes.Ldloc, LocalBuilder);
-            EmitBox(iLGenerator, box);
         }
 
     }

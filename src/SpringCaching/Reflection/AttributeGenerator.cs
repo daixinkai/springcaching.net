@@ -74,13 +74,14 @@ namespace SpringCaching.Reflection
             string methodName = "Get" + attribute.GetType().Name.Replace("Attribute", "") + "KeyGenerator_" + index;
             var methodBuilder = typeBuilder.DefineMethod(methodName, methodAttributes, typeof(IKeyGenerator), Type.EmptyTypes);
             var iLGenerator = methodBuilder.GetILGenerator();
-            if (StringExpressionGenerator.EmitExpression(iLGenerator, attribute.Key!, descriptors, out var localBuilder))
+            var emitExpressionResult = StringExpressionGenerator.EmitExpression(iLGenerator, attribute.Key!, descriptors);
+            if (emitExpressionResult.Succeed)
             {
                 //new SimpleKeyGenerator.StringKeyGenerator
                 var keyGeneratorConstructor = typeof(SimpleKeyGenerator.StringKeyGenerator).GetConstructors()[0];
-                if (localBuilder != null)
+                if (emitExpressionResult.LocalBuilder != null)
                 {
-                    iLGenerator.Emit(OpCodes.Ldloc, localBuilder);
+                    iLGenerator.Emit(OpCodes.Ldloc, emitExpressionResult.LocalBuilder);
                 }
                 iLGenerator.Emit(OpCodes.Ldstr, "null");
                 iLGenerator.Emit(OpCodes.Newobj, keyGeneratorConstructor);
@@ -115,11 +116,12 @@ namespace SpringCaching.Reflection
             var methodBuilder = typeBuilder.DefineMethod(methodName, methodAttributes, typeof(IPredicateGenerator), Type.EmptyTypes);
             var iLGenerator = methodBuilder.GetILGenerator();
             var predicateGeneratorConstructor = typeof(PredicateGenerator).GetConstructors()[0];
-            if (BooleanExpressionGenerator.EmitExpression(iLGenerator, attribute.Condition!, descriptors, out var localBuilder))
+            var emitExpressionResult = BooleanExpressionGenerator.EmitExpression(iLGenerator, attribute.Condition!, descriptors);
+            if (emitExpressionResult.Succeed)
             {
-                if (localBuilder != null)
+                if (emitExpressionResult.LocalBuilder != null)
                 {
-                    iLGenerator.Emit(OpCodes.Ldloc, localBuilder);
+                    iLGenerator.Emit(OpCodes.Ldloc, emitExpressionResult.LocalBuilder);
                 }
             }
             else
@@ -198,7 +200,8 @@ namespace SpringCaching.Reflection
             {
                 iLGenerator.Emit(OpCodes.Dup);
                 iLGenerator.Emit(OpCodes.Ldc_I4, index);
-                descriptor.EmitValue(iLGenerator, true);
+                descriptor.EmitValue(iLGenerator);
+                descriptor.EmitBox(iLGenerator);
                 iLGenerator.Emit(OpCodes.Stelem_Ref);
                 index++;
             }

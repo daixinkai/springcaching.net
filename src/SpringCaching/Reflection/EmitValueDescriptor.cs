@@ -7,22 +7,20 @@ using System.Threading.Tasks;
 
 namespace SpringCaching.Reflection
 {
-#if DEBUG
-    public abstract class EmitValueDescriptor
-#else
-    internal abstract class EmitDescriptor
-#endif
+    internal abstract class EmitValueDescriptor
 
     {
         public abstract Type EmitValueType { get; }
 
 
-        public abstract void EmitValue(ILGenerator iLGenerator, bool box);
+        //public abstract void EmitValue(ILGenerator iLGenerator, bool box);
 
-        protected void EmitBox(ILGenerator iLGenerator, bool box)
+        public abstract void EmitValue(ILGenerator iLGenerator);
+
+        public void EmitBox(ILGenerator iLGenerator)
         {
             //box
-            if (box && EmitValueType.IsValueTypeEx())
+            if (EmitValueType.IsValueTypeEx())
             {
                 iLGenerator.Emit(OpCodes.Box, EmitValueType);
             }

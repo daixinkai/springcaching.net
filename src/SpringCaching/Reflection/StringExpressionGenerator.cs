@@ -13,16 +13,11 @@ using System.Threading.Tasks;
 
 namespace SpringCaching.Reflection
 {
-#if DEBUG
-    public static class StringExpressionGenerator
-#else
     internal static class StringExpressionGenerator
-#endif
     {
 
-        public static bool EmitExpression(ILGenerator iLGenerator, string expression, IList<FieldBuilderDescriptor> descriptors, out LocalBuilder? localBuilder)
+        public static EmitExpressionResult EmitExpression(ILGenerator iLGenerator, string expression, IList<FieldBuilderDescriptor> descriptors)
         {
-            localBuilder = null;
             var tokens = ExpressionTokenHelper.ParseExpressionTokens(expression);
 
             List<StringLocalBuilderDescriptor> tokenLocalBuilders = new List<StringLocalBuilderDescriptor>();
@@ -37,17 +32,16 @@ namespace SpringCaching.Reflection
 
             if (tokenLocalBuilders.Count == 0)
             {
-                return false;
+                return EmitExpressionResult.Fail();
             }
             if (tokenLocalBuilders.Count == 1)
             {
-                localBuilder = tokenLocalBuilders[0].LocalBuilder;
-                return true;
+                return EmitExpressionResult.Success(tokenLocalBuilders[0].LocalBuilder);
             }
             //localBuilder = iLGenerator.DeclareLocal(typeof(string));
             EmitConcatString(iLGenerator, tokenLocalBuilders);
             //iLGenerator.Emit(OpCodes.Stloc, localBuilder);
-            return true;
+            return EmitExpressionResult.Success(null);
         }
         private static StringLocalBuilderDescriptor? EmitStringExpressionToken(ILGenerator iLGenerator, ExpressionToken token, IList<FieldBuilderDescriptor> descriptors)
         {
@@ -75,27 +69,22 @@ namespace SpringCaching.Reflection
         private static StringLocalBuilderDescriptor? EmitStringFieldExpressionToken(ILGenerator iLGenerator, ExpressionToken token, IList<FieldBuilderDescriptor> descriptors)
         {
 
-            var propertyDescriptors = ExpressionTokenHelper.GetEmitPropertyDescriptors(token, descriptors, out var fieldDescriptor);
-
-            if (fieldDescriptor == null)
+            var callPropertyDescriptor = ExpressionTokenHelper.GetCallPropertyDescriptor(token, descriptors);
+            if (callPropertyDescriptor == null)
             {
                 return null;
             }
 
-            EmitValueDescriptor emitValueDescriptor = propertyDescriptors.Count > 0 ?
-                propertyDescriptors[propertyDescriptors.Count - 1] :
-                fieldDescriptor;
-
-            bool toString = emitValueDescriptor.EmitValueType != typeof(string);
+            bool toString = callPropertyDescriptor.EmitValueType != typeof(string);
             if (toString)
             {
                 iLGenerator.Emit(OpCodes.Ldarg_0);
             }
-            EmitPropertyDescriptor.EmitValue(iLGenerator, fieldDescriptor, propertyDescriptors);
+            callPropertyDescriptor.EmitValue(iLGenerator);
             bool canBeNull = true;
             if (toString)
             {
-                EmitToString(iLGenerator, emitValueDescriptor, out canBeNull);
+                EmitToString(iLGenerator, callPropertyDescriptor.EmitValueDescriptor, out canBeNull);
             }
             var localBuilder = iLGenerator.DeclareLocal(typeof(string));
             iLGenerator.Emit(OpCodes.Stloc, localBuilder);
@@ -160,7 +149,7 @@ namespace SpringCaching.Reflection
         {
             if (stringDescriptors.Count == 1)
             {
-                stringDescriptors[0].EmitValue(iLGenerator, false);
+                stringDescriptors[0].EmitValue(iLGenerator);
                 return;
             }
             var method = typeof(string).GetMethod("Concat", stringDescriptors.Select(s => typeof(string)).ToArray());
@@ -168,7 +157,7 @@ namespace SpringCaching.Reflection
             {
                 foreach (var descriptor in stringDescriptors)
                 {
-                    descriptor.EmitValue(iLGenerator, false);
+                    descriptor.EmitValue(iLGenerator);
                 }
                 iLGenerator.Emit(OpCodes.Call, method);
                 return;
@@ -182,7 +171,7 @@ namespace SpringCaching.Reflection
             {
                 iLGenerator.Emit(OpCodes.Dup);
                 iLGenerator.Emit(OpCodes.Ldc_I4, index);
-                descriptor.EmitValue(iLGenerator, false);
+                descriptor.EmitValue(iLGenerator);
                 iLGenerator.Emit(OpCodes.Stelem_Ref);
                 index++;
             }

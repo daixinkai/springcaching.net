@@ -19,7 +19,7 @@ namespace SpringCaching.Reflection
         //                OperatorType.NotEqual
         //            };
 
-        public BooleanExpressionTokenDescriptor(ExpressionToken left)
+        public BooleanExpressionTokenDescriptor(ExpressionTokenDescriptor left)
         {
             Left = left;
         }
@@ -30,17 +30,17 @@ namespace SpringCaching.Reflection
             Compare
         }
 
-        public ExpressionToken Left { get; }
+        public ExpressionTokenDescriptor Left { get; }
 
         public ExpressionType Type => Compare == null ? ExpressionType.Value : ExpressionType.Compare;
 
         public ExpressionToken? Compare { get; set; }
-        public ExpressionToken? Right { get; set; }
+        public ExpressionTokenDescriptor? Right { get; set; }
 
 
         public bool IsCompleted => Compare == null && Right == null || Compare != null && Right != null;
 
-        public static List<BooleanExpressionTokenDescriptor> FromTokens(IList<ExpressionToken> tokens)
+        public static List<BooleanExpressionTokenDescriptor> FromTokens(IList<ExpressionToken> tokens, IList<FieldBuilderDescriptor>? fieldBuilderDescriptors)
         {
             List<BooleanExpressionTokenDescriptor> descriptors = new List<BooleanExpressionTokenDescriptor>();
 
@@ -56,11 +56,11 @@ namespace SpringCaching.Reflection
                 {
                     if (currentDescriptor == null || currentDescriptor.Compare == null)
                     {
-                        currentDescriptor = new BooleanExpressionTokenDescriptor(token);
+                        currentDescriptor = new BooleanExpressionTokenDescriptor(new ExpressionTokenDescriptor(token, fieldBuilderDescriptors));
                     }
                     else
                     {
-                        currentDescriptor.Right = token;
+                        currentDescriptor.Right = new ExpressionTokenDescriptor(token, fieldBuilderDescriptors);
                         descriptors.Add(currentDescriptor);
                         currentDescriptor = null;
                     }
@@ -107,28 +107,46 @@ namespace SpringCaching.Reflection
 
             var compareMethod = GetCompareMethod(leftType, Compare!.OperatorType);
 
-            if (compareMethod == null)
+            bool compareNull = Right!.Token.TokenType == ExpressionTokenType.Value && Right!.Token.Value == "null";
+            if (compareNull)
             {
-                ExpressionTokenHelper.EmitOperatorType(iLGenerator, Compare!.OperatorType);
+                compareMethod = null;
+                iLGenerator.Emit(OpCodes.Ldnull);
+                if (Compare!.OperatorType == OperatorType.NotEqual)
+                {
+                    iLGenerator.Emit(OpCodes.Cgt_Un);
+                }
+                else
+                {
+                    iLGenerator.Emit(OpCodes.Ceq);
+                }
+            }
+            else
+            {
+                if (compareMethod == null)
+                {
+                    ExpressionTokenHelper.EmitOperatorType(iLGenerator, Compare!.OperatorType);
+                }
+                var rightType = EmitExpressionToken(iLGenerator, Right!, descriptors, false, out var rightLocalBuilder);
+                if (rightType == null)
+                {
+                    EmitConstantExpressionToken(iLGenerator, "true", typeof(bool), false, out rightLocalBuilder);
+                }
             }
 
-            var rightType = EmitExpressionToken(iLGenerator, Right!, descriptors, false, out var rightLocalBuilder);
-            if (rightType == null)
-            {
-                EmitConstantExpressionToken(iLGenerator, "true", typeof(bool), false, out rightLocalBuilder);
-            }
 
             if (compareMethod != null)
             {
                 iLGenerator.Emit(OpCodes.Call, compareMethod);
             }
+            else if (!compareNull)
+            {
+                var label = iLGenerator.DefineLabel();
+                iLGenerator.Emit(OpCodes.Br_S, label);
+                iLGenerator.Emit(OpCodes.Ldc_I4_0);
+                iLGenerator.MarkLabel(label);
+            }
 
-            var label = iLGenerator.DefineLabel();
-
-            iLGenerator.Emit(OpCodes.Br_S, label);
-            iLGenerator.Emit(OpCodes.Ldc_I4_0);
-
-            iLGenerator.MarkLabel(label);
 
             //leftLocalBuilder.EmitValue(iLGenerator, false);
             //rightLocalBuilder!.EmitValue(iLGenerator, false);
@@ -136,19 +154,6 @@ namespace SpringCaching.Reflection
             iLGenerator.Emit(OpCodes.Stloc, localBuilder);
             //iLGenerator.Emit(OpCodes.Ldloc, localBuilder);
             return new LocalBuilderDescriptor(localBuilder);
-        }
-
-        private bool EmitCompare(ILGenerator iLGenerator, Type type, OperatorType operatorType)
-        {
-
-            if (type == typeof(string))
-            {
-
-            }
-
-            ExpressionTokenHelper.EmitOperatorType(iLGenerator, operatorType);
-
-            return true;
         }
 
         private MethodInfo? GetCompareMethod(Type type, OperatorType operatorType)
@@ -170,10 +175,10 @@ namespace SpringCaching.Reflection
 
         #region private
 
-        private static Type? EmitExpressionToken(ILGenerator iLGenerator, ExpressionToken token, IList<FieldBuilderDescriptor> descriptors, bool declareLocal, out LocalBuilderDescriptor? descriptor)
+        private static Type? EmitExpressionToken(ILGenerator iLGenerator, ExpressionTokenDescriptor tokenDescriptor, IList<FieldBuilderDescriptor> descriptors, bool declareLocal, out LocalBuilderDescriptor? descriptor)
         {
             descriptor = null;
-            switch (token.TokenType)
+            switch (tokenDescriptor.TokenType)
             {
                 case ExpressionTokenType.Operator:
                     break;
@@ -182,12 +187,12 @@ namespace SpringCaching.Reflection
                 case ExpressionTokenType.Comma:
                     break;
                 case ExpressionTokenType.Field:
-                    return EmitFieldExpressionToken(iLGenerator, token, descriptors, declareLocal, out descriptor);
+                    return EmitFieldExpressionToken(iLGenerator, tokenDescriptor, descriptors, declareLocal, out descriptor);
                 case ExpressionTokenType.SingleQuoted:
                 case ExpressionTokenType.DoubleQuoted:
-                    return EmitConstantExpressionToken(iLGenerator, token.Value!, typeof(string), declareLocal, out descriptor);
+                    return EmitConstantExpressionToken(iLGenerator, tokenDescriptor.Token.Value!, typeof(string), declareLocal, out descriptor);
                 case ExpressionTokenType.Value:
-                    return EmitConstantExpressionToken(iLGenerator, token.Value!, typeof(int), declareLocal, out descriptor);
+                    return EmitConstantExpressionToken(iLGenerator, tokenDescriptor.Token.Value!, typeof(int), declareLocal, out descriptor);
                 default:
                     return null;
             }
@@ -196,27 +201,24 @@ namespace SpringCaching.Reflection
 
         private static Type? EmitFieldExpressionToken(
             ILGenerator iLGenerator,
-            ExpressionToken token,
+            ExpressionTokenDescriptor tokenDescriptor,
             IList<FieldBuilderDescriptor> descriptors,
             bool declareLocal,
             out LocalBuilderDescriptor? descriptor
             )
         {
             descriptor = null;
-            var propertyDescriptors = ExpressionTokenHelper.GetEmitPropertyDescriptors(token, descriptors, out var fieldDescriptor);
 
-            if (fieldDescriptor == null)
+            var callPropertyDescriptor = tokenDescriptor.CallPropertyDescriptor ?? ExpressionTokenHelper.GetCallPropertyDescriptor(tokenDescriptor.Token, descriptors);
+            if (callPropertyDescriptor == null)
             {
                 return null;
             }
 
-            EmitValueDescriptor emitValueDescriptor = propertyDescriptors.Count > 0 ?
-                propertyDescriptors[propertyDescriptors.Count - 1] :
-                fieldDescriptor;
-            var lastDescriptor = EmitPropertyDescriptor.EmitValue(iLGenerator, fieldDescriptor, propertyDescriptors);
+            var lastDescriptor = callPropertyDescriptor.EmitValue(iLGenerator);
             if (declareLocal)
             {
-                var localBuilder = iLGenerator.DeclareLocal(emitValueDescriptor.EmitValueType);
+                var localBuilder = iLGenerator.DeclareLocal(callPropertyDescriptor.EmitValueType);
                 iLGenerator.Emit(OpCodes.Stloc, localBuilder);
                 descriptor = new LocalBuilderDescriptor(localBuilder);
             }
@@ -261,21 +263,6 @@ namespace SpringCaching.Reflection
                 descriptor = new LocalBuilderDescriptor(localBuilder);
             }
             return type;
-        }
-
-
-
-
-        private static void EmitStringEqual(ILGenerator iLGenerator)
-        {
-            var method = typeof(string).GetMethod("op_Equality");
-            iLGenerator.Emit(OpCodes.Call, method);
-        }
-
-        private static void EmitStringNotEqual(ILGenerator iLGenerator)
-        {
-            var method = typeof(string).GetMethod("op_Inequality");
-            iLGenerator.Emit(OpCodes.Call, method);
         }
 
 

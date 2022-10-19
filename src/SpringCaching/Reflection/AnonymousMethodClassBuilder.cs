@@ -248,7 +248,8 @@ namespace SpringCaching.Reflection
                     var descriptor = descriptors[i];
                     iLGenerator.Emit(OpCodes.Ldloc, map);
                     iLGenerator.Emit(OpCodes.Ldstr, descriptor.Parameter.Name!);
-                    descriptor.EmitValue(iLGenerator, true);
+                    descriptor.EmitValue(iLGenerator);
+                    descriptor.EmitBox(iLGenerator);
                     iLGenerator.Emit(OpCodes.Callvirt, addMethod);
                 }
 

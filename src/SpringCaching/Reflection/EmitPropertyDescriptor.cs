@@ -9,11 +9,7 @@ using System.Threading.Tasks;
 
 namespace SpringCaching.Reflection
 {
-#if DEBUG
-    public class EmitPropertyDescriptor : EmitValueDescriptor
-#else
-    internal class PropertyEmitDescriptor : EmitDescriptor
-#endif
+    internal class EmitPropertyDescriptor : EmitValueDescriptor
     {
         public EmitPropertyDescriptor(PropertyInfo property, bool ignoreNull)
         {
@@ -41,21 +37,19 @@ namespace SpringCaching.Reflection
 
         public bool IsLast { get; set; }
 
-        public override void EmitValue(ILGenerator iLGenerator, bool box)
+        public override void EmitValue(ILGenerator iLGenerator)
         {
             if (IgnoreNull)
             {
                 //if (ParentDescriptor != null && !ParentDescriptor.EmitValueType.IsNullableType())
                 //{
-                EmitValue(iLGenerator);
-                EmitBox(iLGenerator, box);
+                EmitValueInternal(iLGenerator);
                 return;
                 //}
             }
             if (LocalBuilder != null)
             {
                 iLGenerator.Emit(OpCodes.Ldloc, LocalBuilder);
-                EmitBox(iLGenerator, box);
                 return;
             }
             LocalBuilder = iLGenerator.DeclareLocal(EmitValueType);
@@ -88,23 +82,23 @@ namespace SpringCaching.Reflection
             }
             else
             {
-                ParentDescriptor!.EmitValue(iLGenerator, box);
+                ParentDescriptor!.EmitValue(iLGenerator);
             }
-            EmitValue(iLGenerator);
+            EmitValueInternal(iLGenerator);
             if (Property.PropertyType.IsValueTypeEx() && LocalBuilder!.LocalType.IsNullableType())
             {
                 iLGenerator.Emit(OpCodes.Newobj, LocalBuilder!.LocalType.GetConstructors()[0]);
             }
             if (IsLast)
             {
-                EmitBox(iLGenerator, box);
+                EmitBox(iLGenerator);
             }
             iLGenerator.MarkLabel(falseLabel);
             iLGenerator.Emit(OpCodes.Stloc, LocalBuilder);
             iLGenerator.Emit(OpCodes.Ldloc, LocalBuilder);
         }
 
-        private void EmitValue(ILGenerator iLGenerator)
+        private void EmitValueInternal(ILGenerator iLGenerator)
         {
             if (Property.DeclaringType.IsNullableType())
             {
@@ -124,19 +118,6 @@ namespace SpringCaching.Reflection
             iLGenerator.Emit(OpCodes.Ldloca, localBuilder);
             //}
             iLGenerator.Emit(OpCodes.Call, Property.GetMethod!);
-        }
-
-        public static EmitValueDescriptor EmitValue(ILGenerator iLGenerator, FieldBuilderDescriptor fieldDescriptor, List<EmitPropertyDescriptor> descriptors)
-        {
-            fieldDescriptor.EmitValue(iLGenerator, false);
-            EmitValueDescriptor parentDescriptor = fieldDescriptor;
-            foreach (var descriptor in descriptors)
-            {
-                descriptor.ParentDescriptor = parentDescriptor;
-                descriptor.EmitValue(iLGenerator, false);
-                parentDescriptor = descriptor;
-            }
-            return parentDescriptor;
         }
 
 

@@ -21,12 +21,24 @@ namespace SpringCaching.TestWeb.Controllers
                 await testServiceImpl.UpdateNames();
                 return "ok";
             }
-            var result1 = await testServiceImpl.GetNames(param.Id);
+            //var result1 = await testServiceImpl.GetNames(param.Id);
+            //return await testServiceImpl.GetNames(new TestServiceParam
+            //{
+            //    Id = param.Id ?? 1,
+            //    Count = param.Count,
+            //    Name = param.Name ?? "asd"
+            //});
             return await testServiceImpl.GetNames(new TestServiceParam
             {
-                Id = param.Id ?? 1,
+                Id = param.Id,
                 Count = param.Count,
-                Name = param.Name ?? "asd"
+                Name = param.Name,
+                Param = param.Id.HasValue ? new TestServiceParam
+                {
+                    Id = param.Id,
+                    Count = param.Count,
+                    Name = param.Name,
+                } : null
             });
         }
     }
