@@ -11,7 +11,7 @@ namespace SpringCaching.Reflection
 #if DEBUG
     public class StringLocalBuilderDescriptor : EmitValueDescriptor
 #else
-    internal class StringLocalBuilderDescriptor : EmitDescriptor
+    internal class StringLocalBuilderDescriptor : EmitValueDescriptor
 #endif
     {
         public StringLocalBuilderDescriptor(LocalBuilder localBuilder, string? defaultValue)

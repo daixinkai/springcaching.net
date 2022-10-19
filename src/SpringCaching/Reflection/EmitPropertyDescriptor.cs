@@ -45,9 +45,12 @@ namespace SpringCaching.Reflection
         {
             if (IgnoreNull)
             {
+                //if (ParentDescriptor != null && !ParentDescriptor.EmitValueType.IsNullableType())
+                //{
                 EmitValue(iLGenerator);
                 EmitBox(iLGenerator, box);
                 return;
+                //}
             }
             if (LocalBuilder != null)
             {
@@ -113,17 +116,17 @@ namespace SpringCaching.Reflection
 
         private void EmitNullablePropertyValue(ILGenerator iLGenerator)
         {
-            LocalBuilder? localBuilder = null;
-            if (Property.Name == "HasValue")
-            {
-                localBuilder = iLGenerator.DeclareLocal(Property.DeclaringType);
-                iLGenerator.Emit(OpCodes.Stloc, localBuilder);
-                iLGenerator.Emit(OpCodes.Ldloca, localBuilder);
-            }
+            LocalBuilder? localBuilder;
+            //if (Property.Name == "HasValue")
+            //{
+            localBuilder = iLGenerator.DeclareLocal(Property.DeclaringType);
+            iLGenerator.Emit(OpCodes.Stloc, localBuilder);
+            iLGenerator.Emit(OpCodes.Ldloca, localBuilder);
+            //}
             iLGenerator.Emit(OpCodes.Call, Property.GetMethod!);
         }
 
-        public static Type EmitValue(ILGenerator iLGenerator, FieldBuilderDescriptor fieldDescriptor, List<EmitPropertyDescriptor> descriptors)
+        public static EmitValueDescriptor EmitValue(ILGenerator iLGenerator, FieldBuilderDescriptor fieldDescriptor, List<EmitPropertyDescriptor> descriptors)
         {
             fieldDescriptor.EmitValue(iLGenerator, false);
             EmitValueDescriptor parentDescriptor = fieldDescriptor;
@@ -133,7 +136,7 @@ namespace SpringCaching.Reflection
                 descriptor.EmitValue(iLGenerator, false);
                 parentDescriptor = descriptor;
             }
-            return parentDescriptor.EmitValueType;
+            return parentDescriptor;
         }
 
 

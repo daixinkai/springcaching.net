@@ -74,7 +74,7 @@ namespace SpringCaching.Reflection
             string methodName = "Get" + attribute.GetType().Name.Replace("Attribute", "") + "KeyGenerator_" + index;
             var methodBuilder = typeBuilder.DefineMethod(methodName, methodAttributes, typeof(IKeyGenerator), Type.EmptyTypes);
             var iLGenerator = methodBuilder.GetILGenerator();
-            if (ExpressionGenerator.EmitStringExpression(iLGenerator, attribute.Key!, descriptors, out var localBuilder))
+            if (StringExpressionGenerator.EmitExpression(iLGenerator, attribute.Key!, descriptors, out var localBuilder))
             {
                 //new SimpleKeyGenerator.StringKeyGenerator
                 var keyGeneratorConstructor = typeof(SimpleKeyGenerator.StringKeyGenerator).GetConstructors()[0];
@@ -115,7 +115,7 @@ namespace SpringCaching.Reflection
             var methodBuilder = typeBuilder.DefineMethod(methodName, methodAttributes, typeof(IPredicateGenerator), Type.EmptyTypes);
             var iLGenerator = methodBuilder.GetILGenerator();
             var predicateGeneratorConstructor = typeof(PredicateGenerator).GetConstructors()[0];
-            if (ExpressionGenerator.EmitBooleanExpression(iLGenerator, attribute.Condition!, descriptors, out var localBuilder))
+            if (BooleanExpressionGenerator.EmitExpression(iLGenerator, attribute.Condition!, descriptors, out var localBuilder))
             {
                 if (localBuilder != null)
                 {
