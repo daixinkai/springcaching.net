@@ -145,7 +145,10 @@ namespace SpringCaching.UnitTest.NET45
 
         private IPredicateGenerator GetCacheableConditionGenerator_00()
         {
-            bool value = _param.Count >= 0 && _param.Count != 0;
+            //bool value = _param.Count >= 0 && _param.Count != 0;
+            //bool value = _param.Id.HasValue;
+            //bool value = _param.Count != 0;
+            bool value = _param.Count != 0;
             return new PredicateGenerator(value);
         }
 

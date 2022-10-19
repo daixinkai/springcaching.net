@@ -21,8 +21,9 @@ namespace SpringCaching.Reflection
     {
 
         #region string
-        public static LocalBuilder? EmitStringExpression(ILGenerator iLGenerator, string expression, IList<FieldBuilderDescriptor> descriptors)
+        public static bool EmitStringExpression(ILGenerator iLGenerator, string expression, IList<FieldBuilderDescriptor> descriptors, out LocalBuilder? localBuilder)
         {
+            localBuilder = null;
             var tokens = ParseExpressionTokens(expression);
 
             List<StringLocalBuilderDescriptor> tokenLocalBuilders = new List<StringLocalBuilderDescriptor>();
@@ -37,12 +38,17 @@ namespace SpringCaching.Reflection
 
             if (tokenLocalBuilders.Count == 0)
             {
-                return null;
+                return false;
             }
-            LocalBuilder localBuilder = iLGenerator.DeclareLocal(typeof(string));
+            if (tokenLocalBuilders.Count == 1)
+            {
+                localBuilder = tokenLocalBuilders[0].LocalBuilder;
+                return true;
+            }
+            //localBuilder = iLGenerator.DeclareLocal(typeof(string));
             EmitConcatString(iLGenerator, tokenLocalBuilders);
-            iLGenerator.Emit(OpCodes.Stloc, localBuilder);
-            return localBuilder;
+            //iLGenerator.Emit(OpCodes.Stloc, localBuilder);
+            return true;
         }
         private static StringLocalBuilderDescriptor? EmitStringExpressionToken(ILGenerator iLGenerator, ExpressionToken token, IList<FieldBuilderDescriptor> descriptors)
         {
@@ -109,8 +115,9 @@ namespace SpringCaching.Reflection
 
         #region boolean
 
-        public static LocalBuilder? EmitBooleanExpression(ILGenerator iLGenerator, string expression, IList<FieldBuilderDescriptor> descriptors)
+        public static bool EmitBooleanExpression(ILGenerator iLGenerator, string expression, IList<FieldBuilderDescriptor> descriptors, out LocalBuilder? localBuilder)
         {
+            localBuilder = null;
             var tokens = ParseExpressionTokens(expression);
 
             var tokenDescriptors = BooleanExpressionTokenDescriptor.FromTokens(tokens);
@@ -126,12 +133,17 @@ namespace SpringCaching.Reflection
             }
             if (tokenLocalBuilders.Count == 0)
             {
-                return null;
+                return false;
             }
-            LocalBuilder localBuilder = iLGenerator.DeclareLocal(typeof(bool));
-            //EmitConcatString(iLGenerator, tokenLocalBuilders);
-            iLGenerator.Emit(OpCodes.Stloc, localBuilder);
-            return localBuilder;
+            if (tokenLocalBuilders.Count == 1)
+            {
+                localBuilder = tokenLocalBuilders[0].LocalBuilder;
+                return true;
+            }
+            //localBuilder = iLGenerator.DeclareLocal(typeof(bool));
+            EmitBooleanPredicate(iLGenerator, tokenLocalBuilders);
+            //iLGenerator.Emit(OpCodes.Stloc, localBuilder);
+            return true;
         }
 
         private static LocalBuilderDescriptor? EmitBooleanExpressionToken(ILGenerator iLGenerator, BooleanExpressionTokenDescriptor tokenDescriptor, IList<FieldBuilderDescriptor> descriptors)
@@ -224,6 +236,20 @@ namespace SpringCaching.Reflection
             return true;
         }
 
+
+        private static void EmitBooleanPredicate(ILGenerator iLGenerator, IList<LocalBuilderDescriptor> descriptors)
+        {
+            if (descriptors.Count == 1)
+            {
+                descriptors[0].EmitValue(iLGenerator, false);
+                return;
+            }
+            ////iLGenerator.Emit(OpCodes.Ldloc, tokenLocalBuilders[0].LocalBuilder);
+            //localBuilder = iLGenerator.DeclareLocal(typeof(bool));
+            ////EmitConcatString(iLGenerator, tokenLocalBuilders);
+            //iLGenerator.Emit(OpCodes.Stloc, localBuilder);
+            iLGenerator.Emit(OpCodes.Ldloc, descriptors[0].LocalBuilder);
+        }
 
         #endregion
 
@@ -513,8 +539,10 @@ namespace SpringCaching.Reflection
                     iLGenerator.Emit(OpCodes.Cgt_Un);
                     break;
                 case OperatorType.Equal:
+                    iLGenerator.Emit(OpCodes.Ceq);
                     break;
                 case OperatorType.NotEqual:
+                    iLGenerator.Emit(OpCodes.Cgt_Un);
                     break;
                 case OperatorType.BitwiseAnd:
                     break;

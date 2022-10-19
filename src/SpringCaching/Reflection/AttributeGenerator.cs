@@ -74,18 +74,20 @@ namespace SpringCaching.Reflection
             string methodName = "Get" + attribute.GetType().Name.Replace("Attribute", "") + "KeyGenerator_" + index;
             var methodBuilder = typeBuilder.DefineMethod(methodName, methodAttributes, typeof(IKeyGenerator), Type.EmptyTypes);
             var iLGenerator = methodBuilder.GetILGenerator();
-            var localBuilder = ExpressionGenerator.EmitStringExpression(iLGenerator, attribute.Key!, descriptors);
-            if (localBuilder == null)
-            {
-                iLGenerator.Emit(OpCodes.Ldnull);
-            }
-            else
+            if (ExpressionGenerator.EmitStringExpression(iLGenerator, attribute.Key!, descriptors, out var localBuilder))
             {
                 //new SimpleKeyGenerator.StringKeyGenerator
                 var keyGeneratorConstructor = typeof(SimpleKeyGenerator.StringKeyGenerator).GetConstructors()[0];
-                iLGenerator.Emit(OpCodes.Ldloc, localBuilder);
+                if (localBuilder != null)
+                {
+                    iLGenerator.Emit(OpCodes.Ldloc, localBuilder);
+                }
                 iLGenerator.Emit(OpCodes.Ldstr, "null");
                 iLGenerator.Emit(OpCodes.Newobj, keyGeneratorConstructor);
+            }
+            else
+            {
+                iLGenerator.Emit(OpCodes.Ldnull);
             }
             iLGenerator.Emit(OpCodes.Ret);
             return methodBuilder;
@@ -113,14 +115,16 @@ namespace SpringCaching.Reflection
             var methodBuilder = typeBuilder.DefineMethod(methodName, methodAttributes, typeof(IPredicateGenerator), Type.EmptyTypes);
             var iLGenerator = methodBuilder.GetILGenerator();
             var predicateGeneratorConstructor = typeof(PredicateGenerator).GetConstructors()[0];
-            var localBuilder = ExpressionGenerator.EmitBooleanExpression(iLGenerator, attribute.Condition!, descriptors);
-            if (localBuilder == null)
+            if (ExpressionGenerator.EmitBooleanExpression(iLGenerator, attribute.Condition!, descriptors, out var localBuilder))
             {
-                iLGenerator.Emit(OpCodes.Ldc_I4_1);
+                if (localBuilder != null)
+                {
+                    iLGenerator.Emit(OpCodes.Ldloc, localBuilder);
+                }
             }
             else
             {
-                iLGenerator.Emit(OpCodes.Ldloc, localBuilder);
+                iLGenerator.Emit(OpCodes.Ldc_I4_1);
             }
             iLGenerator.Emit(OpCodes.Newobj, predicateGeneratorConstructor);
             iLGenerator.Emit(OpCodes.Ret);
