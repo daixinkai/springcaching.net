@@ -216,29 +216,26 @@ namespace SpringCaching
         }
 
         public static LocalBuilder? EmitNullablePropertyValue(this ILGenerator iLGenerator, PropertyInfo property)
-        {
-            LocalBuilder? localBuilder;
-            //if (Property.Name == "HasValue")
-            //{
-            localBuilder = iLGenerator.DeclareLocal(property.DeclaringType!);
-            iLGenerator.Emit(OpCodes.Stloc, localBuilder);
-            iLGenerator.Emit(OpCodes.Ldloca, localBuilder);
-            //}
-            iLGenerator.Emit(OpCodes.Call, property.GetMethod!);
-            return localBuilder;
-        }
+            => EmitNullableMethod(iLGenerator, property!.GetMethod!);
+
+        public static void EmitNullablePropertyValue(this ILGenerator iLGenerator, PropertyInfo property, ref LocalBuilder? localBuilder)
+             => EmitNullableMethod(iLGenerator, property!.GetMethod!, ref localBuilder);
 
         public static LocalBuilder? EmitNullableMethod(this ILGenerator iLGenerator, MethodInfo method)
         {
-            LocalBuilder? localBuilder;
-            //if (Property.Name == "HasValue")
-            //{
-            localBuilder = iLGenerator.DeclareLocal(method.DeclaringType!);
-            iLGenerator.Emit(OpCodes.Stloc, localBuilder);
-            iLGenerator.Emit(OpCodes.Ldloca, localBuilder);
-            //}
-            iLGenerator.Emit(OpCodes.Call, method);
+            LocalBuilder? localBuilder = null;
+            EmitNullableMethod(iLGenerator, method, ref localBuilder);
             return localBuilder;
+        }
+        public static void EmitNullableMethod(this ILGenerator iLGenerator, MethodInfo method, ref LocalBuilder? localBuilder)
+        {
+            if (localBuilder == null)
+            {
+                localBuilder = iLGenerator.DeclareLocal(method.DeclaringType!);
+                iLGenerator.Emit(OpCodes.Stloc, localBuilder);
+            }
+            iLGenerator.Emit(OpCodes.Ldloca, localBuilder);
+            iLGenerator.Emit(OpCodes.Call, method);
         }
 
         public static void OverrideProperty(this TypeBuilder typeBuilder, PropertyInfo property, Action<ILGenerator>? getterInvoker, Action<ILGenerator>? setterInvoker)

@@ -159,11 +159,13 @@ namespace SpringCaching.UnitTest.NET45
             //bool value = !_param.Id.HasValue;
             //return value;
             //return !_param.Id.HasValue;
-            //return _param.Id.GetValueOrDefault() > 0;
+            return _param.Id > 0;
+            //int? id = _param.Id;
+            //return id.HasValue && id.Value > 0;
             //return _param.Count > 0;
-            TestServiceParam param = this._param.Param;
-            string a = (param != null) ? param.Name : null;
-            return a != "asd";
+            //TestServiceParam param = this._param.Param;
+            //string a = (param != null) ? param.Name : null;
+            //return a != "asd";
         }
 
     }
