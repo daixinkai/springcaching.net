@@ -14,21 +14,15 @@ namespace SpringCaching.Infrastructure
     {
         public class StringKeyGenerator : SimpleKeyGenerator
         {
-            public StringKeyGenerator(string? value, string? nullValue)
+            public StringKeyGenerator(string? value)
             {
                 _value = value;
-                _nullValue = nullValue;
             }
 
             private readonly string? _value;
-            private readonly string? _nullValue;
 
             protected override string? GetKey()
             {
-                if (_value == null)
-                {
-                    return _nullValue;
-                }
                 return _value;
             }
         }
@@ -49,19 +43,17 @@ namespace SpringCaching.Infrastructure
 
         public class NullableToStringKeyGenerator<T> : SimpleKeyGenerator where T : struct
         {
-            public NullableToStringKeyGenerator(T? value, string? nullValue)
+            public NullableToStringKeyGenerator(T? value)
             {
                 _value = value;
-                _nullValue = nullValue;
             }
 
             private readonly T? _value;
-            private readonly string? _nullValue;
             protected override string? GetKey()
             {
                 if (!_value.HasValue)
                 {
-                    return _nullValue;
+                    return null;
                 }
                 return _value.Value.ToString();
             }
@@ -69,14 +61,12 @@ namespace SpringCaching.Infrastructure
 
         public class JsonKeyGenerator<T> : SimpleKeyGenerator
         {
-            public JsonKeyGenerator(T? value, string? nullValue)
+            public JsonKeyGenerator(T? value)
             {
                 _value = value;
-                _nullValue = nullValue;
             }
 
             private readonly T? _value;
-            private readonly string? _nullValue;
 
             public bool IncludePrefix { get; set; }
 
@@ -84,7 +74,7 @@ namespace SpringCaching.Infrastructure
             {
                 if (_value == null)
                 {
-                    return IncludePrefix ? GetPrefix() + _nullValue : _nullValue;
+                    return IncludePrefix ? GetPrefix() + "null" : null;
                 }
 #if NET45 || NETSTANDARD2_0
                 string json = Encoding.UTF8.GetString(NewtonsoftJsonCacheSerializer.JsonCacheSerializer.SerializeObject(_value));

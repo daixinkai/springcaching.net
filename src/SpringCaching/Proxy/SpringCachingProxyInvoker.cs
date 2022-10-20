@@ -92,9 +92,8 @@ namespace SpringCaching.Proxy
         public static TResult? Invoke<TResult>(ISpringCachingProxyContext context, Func<TResult?> invoker)
         {
             var funcInvoker = new FuncInvoker<TResult>(invoker);
+
             var cacheEvictRequirements = context.Requirement.GetCacheEvictRequirements();
-            var cacheableRequirements = context.Requirement.GetCacheableRequirements();
-            var cachePutRequirements = context.Requirement.GetCachePutRequirements();
 
             if (cacheEvictRequirements != null)
             {
@@ -104,10 +103,14 @@ namespace SpringCaching.Proxy
                 }
             }
 
+            var cachePutRequirements = context.Requirement.GetCachePutRequirements();
+
             if (cachePutRequirements != null)
             {
                 InvokeCachePut(context, cachePutRequirements, funcInvoker);
             }
+
+            var cacheableRequirements = context.Requirement.GetCacheableRequirements();
 
             var invokeValue = cacheableRequirements == null ?
              funcInvoker.GetResult()
@@ -138,8 +141,6 @@ namespace SpringCaching.Proxy
         {
             var funcInvoker = new AsyncFuncInvoker<TResult>(invoker);
             var cacheEvictRequirements = context.Requirement.GetCacheEvictRequirements();
-            var cacheableRequirements = context.Requirement.GetCacheableRequirements();
-            var cachePutRequirements = context.Requirement.GetCachePutRequirements();
 
             if (cacheEvictRequirements != null)
             {
@@ -149,10 +150,14 @@ namespace SpringCaching.Proxy
                 }
             }
 
+            var cachePutRequirements = context.Requirement.GetCachePutRequirements();
+
             if (cachePutRequirements != null)
             {
                 await InvokeCachePutAsync(context, cachePutRequirements, funcInvoker).ConfigureAwait(false);
             }
+
+            var cacheableRequirements = context.Requirement.GetCacheableRequirements();
 
             var invokeValue = cacheableRequirements == null ?
              await funcInvoker.GetResultAsync().ConfigureAwait(false)
@@ -214,15 +219,22 @@ namespace SpringCaching.Proxy
 
         private static string GetCacheKey(ICacheRequirement cacheRequirement, ISpringCachingProxy proxy, ISpringCachingRequirement requirement)
         {
-            var keyGenerator = cacheRequirement.KeyGenerator ?? DefaultKeyGenerator.Instance;
-            return GetCacheKey(cacheRequirement.Value, keyGenerator.GetKey(cacheRequirement.Key, proxy.Options.KeyExpressionParser, requirement));
+            if (cacheRequirement.KeyGenerator != null)
+            {
+                return GetCacheKey(cacheRequirement.Value, cacheRequirement.KeyGenerator.GetKey(cacheRequirement.Key, proxy.Options.KeyExpressionParser, requirement));
+            }
+            if (cacheRequirement.Key == null)
+            {
+                return cacheRequirement.Value;
+            }
+            return GetCacheKey(cacheRequirement.Value, DefaultKeyGenerator.Instance.GetKey(cacheRequirement.Key, proxy.Options.KeyExpressionParser, requirement));
         }
 
         private static string GetCacheKey(string cacheableValue, string? cacheableKey)
         {
             if (string.IsNullOrWhiteSpace(cacheableKey))
             {
-                return cacheableValue;
+                return cacheableValue + ":null";
             }
             return $"{cacheableValue}:{cacheableKey}";
         }

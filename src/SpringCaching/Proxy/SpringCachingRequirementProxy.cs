@@ -16,7 +16,18 @@ namespace SpringCaching.Proxy
         protected string? ToString<T>(T? value) => value?.ToString();
 
         protected string? ToNullableString<T>(T? value) where T : struct
-            => value?.ToString();
+        {
+            //return value.ToString();
+            if (value.HasValue)
+            {
+                return value.Value.ToString();
+            }
+            //if (!defaultNullValue)
+            //{
+            //    return null;
+            //}
+            return "null";
+        }
 
         protected string? ToStructString<T>(T value) where T : struct
              => value.ToString();

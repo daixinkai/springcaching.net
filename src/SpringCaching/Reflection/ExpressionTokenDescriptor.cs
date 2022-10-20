@@ -1,5 +1,6 @@
 ﻿using SpringCaching.Internal;
 using SpringCaching.Parsing;
+using SpringCaching.Reflection.Emit;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,7 +12,7 @@ namespace SpringCaching.Reflection
 {
     internal class ExpressionTokenDescriptor
     {
-        public ExpressionTokenDescriptor(ExpressionToken token, IList<FieldBuilderDescriptor>? descriptors)
+        public ExpressionTokenDescriptor(ExpressionToken token, IList<EmitFieldBuilderDescriptor>? descriptors)
         {
             Token = token;
             if (descriptors != null)
@@ -26,9 +27,9 @@ namespace SpringCaching.Reflection
 
         public Type? TokenValueType { get; private set; }
 
-        public CallPropertyDescriptor? CallPropertyDescriptor { get; private set; }
+        public EmitCallPropertyDescriptor? EmitCallPropertyDescriptor { get; private set; }
 
-        public void TrySetTokenValueType(IList<FieldBuilderDescriptor> descriptors)
+        public void TrySetTokenValueType(IList<EmitFieldBuilderDescriptor> descriptors)
         {
 
             var simpleType = TokenType switch
@@ -47,12 +48,12 @@ namespace SpringCaching.Reflection
 
             if (TokenType == ExpressionTokenType.Field)
             {
-                CallPropertyDescriptor = ExpressionTokenHelper.GetCallPropertyDescriptor(Token, descriptors);
-                if (CallPropertyDescriptor == null)
+                EmitCallPropertyDescriptor = ExpressionTokenHelper.GetEmitCallPropertyDescriptor(Token, descriptors);
+                if (EmitCallPropertyDescriptor == null)
                 {
                     return;
                 }
-                TokenValueType = CallPropertyDescriptor.EmitValueType;
+                TokenValueType = EmitCallPropertyDescriptor.EmitValueType;
             }
             else if (TokenType == ExpressionTokenType.Value)
             {

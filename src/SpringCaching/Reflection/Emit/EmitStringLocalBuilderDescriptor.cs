@@ -6,11 +6,11 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SpringCaching.Reflection
+namespace SpringCaching.Reflection.Emit
 {
-    internal class StringLocalBuilderDescriptor : EmitValueDescriptor
+    internal class EmitStringLocalBuilderDescriptor : EmitValueDescriptor
     {
-        public StringLocalBuilderDescriptor(LocalBuilder localBuilder, string? defaultValue)
+        public EmitStringLocalBuilderDescriptor(LocalBuilder localBuilder, string? defaultValue)
         {
             LocalBuilder = localBuilder;
             DefaultValue = defaultValue;

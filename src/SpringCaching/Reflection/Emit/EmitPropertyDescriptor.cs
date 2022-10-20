@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SpringCaching.Reflection
+namespace SpringCaching.Reflection.Emit
 {
     internal class EmitPropertyDescriptor : EmitValueDescriptor
     {
@@ -87,7 +87,7 @@ namespace SpringCaching.Reflection
             EmitValueInternal(iLGenerator);
             if (Property.PropertyType.IsValueTypeEx() && LocalBuilder!.LocalType.IsNullableType())
             {
-                iLGenerator.Emit(OpCodes.Newobj, LocalBuilder!.LocalType.GetConstructors()[0]);
+                iLGenerator.Emit(OpCodes.Newobj, LocalBuilder!.LocalType.GetConstructorEx());
             }
             if (IsLast)
             {
@@ -100,26 +100,13 @@ namespace SpringCaching.Reflection
 
         private void EmitValueInternal(ILGenerator iLGenerator)
         {
-            if (Property.DeclaringType.IsNullableType())
+            if (Property.DeclaringType!.IsNullableType())
             {
-                EmitNullablePropertyValue(iLGenerator);
+                iLGenerator.EmitNullablePropertyValue(Property);
                 return;
             }
             iLGenerator.Emit(OpCodes.Callvirt, Property.GetMethod!);
         }
-
-        private void EmitNullablePropertyValue(ILGenerator iLGenerator)
-        {
-            LocalBuilder? localBuilder;
-            //if (Property.Name == "HasValue")
-            //{
-            localBuilder = iLGenerator.DeclareLocal(Property.DeclaringType);
-            iLGenerator.Emit(OpCodes.Stloc, localBuilder);
-            iLGenerator.Emit(OpCodes.Ldloca, localBuilder);
-            //}
-            iLGenerator.Emit(OpCodes.Call, Property.GetMethod!);
-        }
-
 
         private static bool IsCheckNull(EmitValueDescriptor? descriptor)
         {

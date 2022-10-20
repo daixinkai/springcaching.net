@@ -21,24 +21,24 @@
             // method must be virtual
             return Task.FromResult(new List<string>());
         }
-        [Cacheable("getNames_Param", Key = "#param.Id", ExpirationPolicy = ExpirationPolicy.Absolute, ExpirationUnit = ExpirationUnit.Minute, ExpirationValue = 1)]
+        [Cacheable("getNames_Param", Key = "#param.Id", Condition = "#param.Id>0", ExpirationPolicy = ExpirationPolicy.Absolute, ExpirationUnit = ExpirationUnit.Minute, ExpirationValue = 1)]
         public virtual Task<List<string>> GetNames(TestServiceParam param)
         {
             return Task.FromResult(new List<string>() { param.Id.ToString(), param.Name });
         }
-        [Cacheable("getTest", ExpirationPolicy = ExpirationPolicy.Absolute, ExpirationUnit = ExpirationUnit.Minute, ExpirationValue = 1)]
+        [Cacheable("getTest", Condition = "#id>0", ExpirationPolicy = ExpirationPolicy.Absolute, ExpirationUnit = ExpirationUnit.Minute, ExpirationValue = 1)]
         [CachePut("getTest_CachePut", ExpirationPolicy = ExpirationPolicy.Absolute, ExpirationUnit = ExpirationUnit.Minute, ExpirationValue = 1)]
         protected virtual Task<List<string>> Get(int id)
         {
             // support protected method
             return Task.FromResult(new List<string>());
         }
-        [CacheEvict("getAllTest")]
+        [CacheEvict("getAllTest", AllEntries = true)]
         protected virtual Task Update()
         {
             return Task.CompletedTask;
         }     
-        [CacheEvict("getTest")]
+        [CacheEvict("getTest", Condition = "#id>0")]
         public virtual Task Update(int id)
         {
             return Task.CompletedTask;

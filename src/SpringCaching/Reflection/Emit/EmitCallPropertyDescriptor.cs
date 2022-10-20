@@ -5,11 +5,11 @@ using System.Reflection.Emit;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SpringCaching.Reflection
+namespace SpringCaching.Reflection.Emit
 {
-    internal class CallPropertyDescriptor
+    internal class EmitCallPropertyDescriptor
     {
-        public CallPropertyDescriptor(FieldBuilderDescriptor fieldDescriptor, List<EmitPropertyDescriptor> propertyDescriptors)
+        public EmitCallPropertyDescriptor(EmitFieldBuilderDescriptor fieldDescriptor, List<EmitPropertyDescriptor> propertyDescriptors)
         {
             FieldDescriptor = fieldDescriptor;
             PropertyDescriptors = propertyDescriptors;
@@ -19,7 +19,7 @@ namespace SpringCaching.Reflection
                fieldDescriptor;
 
         }
-        public FieldBuilderDescriptor FieldDescriptor { get; }
+        public EmitFieldBuilderDescriptor FieldDescriptor { get; }
         public List<EmitPropertyDescriptor> PropertyDescriptors { get; }
 
         public EmitValueDescriptor EmitValueDescriptor { get; }

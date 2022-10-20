@@ -86,7 +86,7 @@ namespace SpringCaching.UnitTest.NET45
         {
             new CacheableRequirement("getNames")
             {
-                KeyGenerator = new SimpleKeyGenerator.StringKeyGenerator(param.Id.ToString() + param.Id + "Name" + "asdasd", "null"),
+                KeyGenerator = new SimpleKeyGenerator.StringKeyGenerator(param.Id.ToString() + param.Id + "Name" + "asdasd"),
                 ExpirationPolicy = ExpirationPolicy.Absolute,
                 ExpirationUnit = ExpirationUnit.Minute,
                 ExpirationValue = 1
@@ -98,6 +98,7 @@ namespace SpringCaching.UnitTest.NET45
             return new CacheableRequirement("getNames")
             {
                 KeyGenerator = GetCacheableKeyGenerator_0(param),
+                ConditionGenerator = new FuncPredicateGenerator(GetCacheableCondition_00),
                 ExpirationPolicy = ExpirationPolicy.Absolute,
                 ExpirationUnit = ExpirationUnit.Minute,
                 ExpirationValue = 1
@@ -107,7 +108,7 @@ namespace SpringCaching.UnitTest.NET45
         private IKeyGenerator GetCacheableKeyGenerator_0(TestServiceParam param)
         {
             string value = param.Id.ToString() + param.Id + "Name" + "asdasd";
-            return new SimpleKeyGenerator.StringKeyGenerator(value, "null");
+            return new SimpleKeyGenerator.StringKeyGenerator(value);
         }
 
         private TestServiceParam _param;
@@ -140,10 +141,10 @@ namespace SpringCaching.UnitTest.NET45
             int? value = (testServiceParam2 != null) ? (int?)testServiceParam2.Count : null;
             string text = ToString(value);
             string value2 = text;
-            return new SimpleKeyGenerator.StringKeyGenerator(value2, "null");
+            return new SimpleKeyGenerator.StringKeyGenerator(value2);
         }
 
-        private IPredicateGenerator GetCacheableConditionGenerator_00()
+        private bool GetCacheableCondition_00()
         {
             //bool value = _param.Count >= 0 && _param.Count != 0;
             //bool value = _param.Id.HasValue;
@@ -151,8 +152,13 @@ namespace SpringCaching.UnitTest.NET45
             //bool value = _param.Count != 0;
             //bool value = _param.Name != "asd";
             //bool value = _param.Count != 0 ;
-            bool value = _param.Param != null;
-            return new PredicateGenerator(value);
+            //bool value = _param.Param != null;
+            //bool value = _param.Id > 0;
+            //bool value = _param.Id > 0;
+            //bool value = _param.Id !=null;
+            //bool value = !_param.Id.HasValue;
+            //return value;
+            return !_param.Id.HasValue;
         }
 
     }

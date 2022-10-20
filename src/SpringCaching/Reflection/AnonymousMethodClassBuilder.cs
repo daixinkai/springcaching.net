@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Text;
 using SpringCaching.Proxy;
 using System.Runtime.InteropServices;
+using SpringCaching.Reflection.Emit;
 
 namespace SpringCaching.Reflection
 {
@@ -114,11 +115,11 @@ namespace SpringCaching.Reflection
                 }
                 fieldBuilders.Add(CreateField(typeBuilder, "_this_Service", method.DeclaringType));
             }
-            var fieldBuilderDescribes = new List<FieldBuilderDescriptor>();
+            var fieldBuilderDescribes = new List<EmitFieldBuilderDescriptor>();
             for (int i = 0; i < parameters.Length; i++)
             {
                 var parameter = parameters[i];
-                var fieldBuilderDescribe = new FieldBuilderDescriptor(
+                var fieldBuilderDescribe = new EmitFieldBuilderDescriptor(
                    parameter,
                     CreateField(typeBuilder, "_" + parameter.Name, parameter.ParameterType)
                     );
@@ -223,7 +224,7 @@ namespace SpringCaching.Reflection
 
         private static void CallBaseTypeDefaultConstructor(ILGenerator constructorIlGenerator, Type baseType)
         {
-            var defaultConstructor = baseType.GetConstructors().Where(s => s.GetParameters().Length == 0).FirstOrDefault();
+            var defaultConstructor = baseType.GetConstructorEx(Type.EmptyTypes);
             if (defaultConstructor == null)
             {
                 throw new ArgumentException("The default constructor not found . Type : " + baseType.FullName);
@@ -232,7 +233,7 @@ namespace SpringCaching.Reflection
             constructorIlGenerator.Emit(OpCodes.Call, defaultConstructor);
         }
 
-        private static void AddArgumentsProperty(TypeBuilder typeBuilder, List<FieldBuilderDescriptor> descriptors)
+        private static void AddArgumentsProperty(TypeBuilder typeBuilder, List<EmitFieldBuilderDescriptor> descriptors)
         {
             var property = typeof(SpringCachingRequirementProxy).GetProperty("Arguments")!;
             typeBuilder.OverrideProperty(property, iLGenerator =>

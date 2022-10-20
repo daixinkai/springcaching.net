@@ -48,7 +48,7 @@ namespace SpringCaching.Reflection
             {
                 throw new ArgumentException($"ServiceType : {ServiceType.FullName} has multiple  constructors!");
             }
-            var serviceTypeConstructor = ServiceType.GetConstructors()[0];
+            var serviceTypeConstructor = ServiceType.GetConstructorEx();
             var serviceTypeConstructorParameters = serviceTypeConstructor.GetParameters();
 
             var constructorParameterTypes = _implementProxy ?
@@ -181,7 +181,7 @@ namespace SpringCaching.Reflection
             // new SpringCachingProxyContext(proxy,requirement)
             iLGenerator.Emit(OpCodes.Ldarg_0);  //this
             iLGenerator.Emit(OpCodes.Ldloc, invokeDelegate.Item1);
-            iLGenerator.Emit(OpCodes.Newobj, typeof(SpringCachingProxyContext).GetConstructors()[0]);
+            iLGenerator.Emit(OpCodes.Newobj, typeof(SpringCachingProxyContext).GetConstructorEx());
             iLGenerator.Emit(OpCodes.Ldloc, invokeDelegate.Item2);
             iLGenerator.Emit(OpCodes.Call, invokeMethod);
             iLGenerator.Emit(OpCodes.Ret);
@@ -212,12 +212,14 @@ namespace SpringCaching.Reflection
                 delegateType = typeof(Func<>).MakeGenericType(method.ReturnType);
             }
 
-            int bindingFlagsValue = 0;
-            foreach (BindingFlags item in Enum.GetValues(typeof(BindingFlags)))
-            {
-                bindingFlagsValue += item.GetHashCode();
-            }
-            var delegateConstructor = delegateType.GetConstructors((BindingFlags)bindingFlagsValue)[0];
+            //int bindingFlagsValue = 0;
+            //foreach (BindingFlags item in Enum.GetValues(typeof(BindingFlags)))
+            //{
+            //    bindingFlagsValue += item.GetHashCode();
+            //}
+            //var delegateConstructor = delegateType.GetConstructors((BindingFlags)bindingFlagsValue)[0];
+
+            var delegateConstructor = delegateType.GetConstructorEx();
 
             LocalBuilder anonymousMethodClass;
 

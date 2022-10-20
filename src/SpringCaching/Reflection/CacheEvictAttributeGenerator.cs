@@ -1,4 +1,5 @@
 ﻿using SpringCaching.Proxy;
+using SpringCaching.Reflection.Emit;
 using SpringCaching.Requirement;
 using System;
 using System.Collections.Generic;
@@ -13,7 +14,7 @@ namespace SpringCaching.Reflection
 {
     internal class CacheEvictAttributeGenerator : AttributeGenerator
     {
-        public override bool Build(TypeBuilder typeBuilder, Type attributeType, IList<Attribute> attributes, IList<FieldBuilderDescriptor> descriptors)
+        public override bool Build(TypeBuilder typeBuilder, Type attributeType, IList<Attribute> attributes, IList<EmitFieldBuilderDescriptor> descriptors)
         {
             if (attributeType != typeof(CacheEvictAttribute))
             {
@@ -57,10 +58,10 @@ namespace SpringCaching.Reflection
         }
 
 
-        private void GeneratorCacheEvictRequirement(TypeBuilder typeBuilder, int index, ILGenerator iLGenerator, CacheEvictAttribute attribute, IList<FieldBuilderDescriptor> descriptors)
+        private void GeneratorCacheEvictRequirement(TypeBuilder typeBuilder, int index, ILGenerator iLGenerator, CacheEvictAttribute attribute, IList<EmitFieldBuilderDescriptor> descriptors)
         {
             iLGenerator.Emit(OpCodes.Ldstr, attribute.Value);
-            iLGenerator.Emit(OpCodes.Newobj, typeof(CacheEvictRequirement).GetConstructors()[0]);
+            iLGenerator.Emit(OpCodes.Newobj, typeof(CacheEvictRequirement).GetConstructorEx());
             //AllEntries
             if (attribute.AllEntries)
             {
@@ -75,7 +76,7 @@ namespace SpringCaching.Reflection
         }
 
 
-        private List<MethodBuilder> DefineCacheEvictRequirementMethods(TypeBuilder typeBuilder, IList<CacheEvictAttribute> cacheEvictAttributes, IList<FieldBuilderDescriptor> descriptors)
+        private List<MethodBuilder> DefineCacheEvictRequirementMethods(TypeBuilder typeBuilder, IList<CacheEvictAttribute> cacheEvictAttributes, IList<EmitFieldBuilderDescriptor> descriptors)
         {
             MethodAttributes methodAttributes =
                 MethodAttributes.Private

@@ -1,5 +1,6 @@
 ﻿using SpringCaching.Parsing;
 using SpringCaching.Reflection;
+using SpringCaching.Reflection.Emit;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -67,8 +68,8 @@ namespace SpringCaching.Internal
 
         private static List<EmitPropertyDescriptor> GetEmitPropertyDescriptors(
             ExpressionToken token,
-            IList<FieldBuilderDescriptor> descriptors,
-            out FieldBuilderDescriptor? fieldDescriptor
+            IList<EmitFieldBuilderDescriptor> descriptors,
+            out EmitFieldBuilderDescriptor? fieldDescriptor
             )
         {
             string value = token.Value!;
@@ -132,14 +133,14 @@ namespace SpringCaching.Internal
             return propertyDescriptors;
         }
 
-        public static CallPropertyDescriptor? GetCallPropertyDescriptor(ExpressionToken token, IList<FieldBuilderDescriptor> descriptors)
+        public static EmitCallPropertyDescriptor? GetEmitCallPropertyDescriptor(ExpressionToken token, IList<EmitFieldBuilderDescriptor> descriptors)
         {
             var propertyDescriptors = GetEmitPropertyDescriptors(token, descriptors, out var fieldDescriptor);
             if (fieldDescriptor == null)
             {
                 return null;
             }
-            return new CallPropertyDescriptor(fieldDescriptor, propertyDescriptors);
+            return new EmitCallPropertyDescriptor(fieldDescriptor, propertyDescriptors);
         }
 
         public static void EmitOperatorType(ILGenerator iLGenerator, OperatorType operatorType)

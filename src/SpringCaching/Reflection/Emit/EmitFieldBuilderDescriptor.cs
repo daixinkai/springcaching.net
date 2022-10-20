@@ -6,11 +6,11 @@ using System.Reflection.Emit;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SpringCaching.Reflection
+namespace SpringCaching.Reflection.Emit
 {
-    internal class FieldBuilderDescriptor : EmitValueDescriptor
+    internal class EmitFieldBuilderDescriptor : EmitValueDescriptor
     {
-        public FieldBuilderDescriptor(ParameterInfo parameter, FieldBuilder fieldBuilder)
+        public EmitFieldBuilderDescriptor(ParameterInfo parameter, FieldBuilder fieldBuilder)
         {
             Parameter = parameter;
             FieldBuilder = fieldBuilder;

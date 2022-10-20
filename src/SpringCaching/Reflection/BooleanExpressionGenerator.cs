@@ -1,5 +1,6 @@
 ﻿using SpringCaching.Internal;
 using SpringCaching.Parsing;
+using SpringCaching.Reflection.Emit;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,13 +13,13 @@ namespace SpringCaching.Reflection
     internal static class BooleanExpressionGenerator
     {
 
-        public static EmitExpressionResult EmitExpression(ILGenerator iLGenerator, string expression, IList<FieldBuilderDescriptor> descriptors)
+        public static EmitExpressionResult EmitExpression(ILGenerator iLGenerator, string expression, IList<EmitFieldBuilderDescriptor> descriptors)
         {
             var tokens = ExpressionTokenHelper.ParseExpressionTokens(expression);
 
             var tokenDescriptors = BooleanExpressionTokenDescriptor.FromTokens(tokens, descriptors);
 
-            List<LocalBuilderDescriptor> tokenLocalBuilders = new List<LocalBuilderDescriptor>();
+            List<EmitLocalBuilderDescriptor> tokenLocalBuilders = new List<EmitLocalBuilderDescriptor>();
             foreach (var tokenDescriptor in tokenDescriptors)
             {
                 var tokenLocalBuilder = tokenDescriptor.EmitValue(iLGenerator, descriptors);
@@ -42,7 +43,7 @@ namespace SpringCaching.Reflection
         }
 
 
-        private static void EmitBooleanPredicate(ILGenerator iLGenerator, IList<LocalBuilderDescriptor> descriptors)
+        private static void EmitBooleanPredicate(ILGenerator iLGenerator, IList<EmitLocalBuilderDescriptor> descriptors)
         {
             if (descriptors.Count == 1)
             {

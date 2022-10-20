@@ -27,7 +27,6 @@ namespace SpringCaching
         /// Spring Expression Language (SpEL) expression used for making the method caching conditional.
         /// Default is "", meaning the method result is always cached.
         /// </summary>
-        [Obsolete("not support now")]
         public string? Condition { get; set; }
 
     }

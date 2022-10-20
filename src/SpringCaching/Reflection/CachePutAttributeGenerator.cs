@@ -1,4 +1,5 @@
 ﻿using SpringCaching.Proxy;
+using SpringCaching.Reflection.Emit;
 using SpringCaching.Requirement;
 using System;
 using System.Collections.Generic;
@@ -13,7 +14,7 @@ namespace SpringCaching.Reflection
 {
     internal class CachePutAttributeGenerator : AttributeGenerator
     {
-        public override bool Build(TypeBuilder typeBuilder, Type attributeType, IList<Attribute> attributes, IList<FieldBuilderDescriptor> descriptors)
+        public override bool Build(TypeBuilder typeBuilder, Type attributeType, IList<Attribute> attributes, IList<EmitFieldBuilderDescriptor> descriptors)
         {
             if (attributeType != typeof(CachePutAttribute))
             {
@@ -54,10 +55,10 @@ namespace SpringCaching.Reflection
             return true;
         }
 
-        private void GeneratorCachePutRequirement(TypeBuilder typeBuilder, int index, ILGenerator iLGenerator, CachePutAttribute attribute, IList<FieldBuilderDescriptor> descriptors)
+        private void GeneratorCachePutRequirement(TypeBuilder typeBuilder, int index, ILGenerator iLGenerator, CachePutAttribute attribute, IList<EmitFieldBuilderDescriptor> descriptors)
         {
             iLGenerator.Emit(OpCodes.Ldstr, attribute.Value);
-            iLGenerator.Emit(OpCodes.Newobj, typeof(CachePutRequirement).GetConstructors()[0]);
+            iLGenerator.Emit(OpCodes.Newobj, typeof(CachePutRequirement).GetConstructorEx());
             //ExpirationPolicy
             iLGenerator.EmitSetProperty(typeof(CachePutRequirement).GetProperty("ExpirationPolicy")!, attribute.ExpirationPolicy, true);
             //ExpirationUnit
@@ -73,7 +74,7 @@ namespace SpringCaching.Reflection
         }
 
 
-        private List<MethodBuilder> DefineCachePutRequirementMethods(TypeBuilder typeBuilder, IList<CachePutAttribute> cachePutAttributes, IList<FieldBuilderDescriptor> descriptors)
+        private List<MethodBuilder> DefineCachePutRequirementMethods(TypeBuilder typeBuilder, IList<CachePutAttribute> cachePutAttributes, IList<EmitFieldBuilderDescriptor> descriptors)
         {
             MethodAttributes methodAttributes =
                 MethodAttributes.Private

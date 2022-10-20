@@ -1,4 +1,5 @@
 ﻿using SpringCaching.Proxy;
+using SpringCaching.Reflection.Emit;
 using SpringCaching.Requirement;
 using System;
 using System.Collections.Generic;
@@ -14,7 +15,7 @@ namespace SpringCaching.Reflection
 
     internal class CacheableAttributeGenerator : AttributeGenerator
     {
-        public override bool Build(TypeBuilder typeBuilder, Type attributeType, IList<Attribute> attributes, IList<FieldBuilderDescriptor> descriptors)
+        public override bool Build(TypeBuilder typeBuilder, Type attributeType, IList<Attribute> attributes, IList<EmitFieldBuilderDescriptor> descriptors)
         {
             if (attributeType != typeof(CacheableAttribute))
             {
@@ -65,10 +66,10 @@ namespace SpringCaching.Reflection
         }
 
 
-        private void GeneratorCacheableRequirement(TypeBuilder typeBuilder, int index, ILGenerator iLGenerator, CacheableAttribute attribute, IList<FieldBuilderDescriptor> descriptors)
+        private void GeneratorCacheableRequirement(TypeBuilder typeBuilder, int index, ILGenerator iLGenerator, CacheableAttribute attribute, IList<EmitFieldBuilderDescriptor> descriptors)
         {
             iLGenerator.Emit(OpCodes.Ldstr, attribute.Value);
-            iLGenerator.Emit(OpCodes.Newobj, typeof(CacheableRequirement).GetConstructors()[0]);
+            iLGenerator.Emit(OpCodes.Newobj, typeof(CacheableRequirement).GetConstructorEx());
             //ExpirationPolicy
             iLGenerator.EmitSetProperty(typeof(CacheableRequirement).GetProperty("ExpirationPolicy")!, attribute.ExpirationPolicy, true);
             //ExpirationUnit
@@ -83,7 +84,7 @@ namespace SpringCaching.Reflection
             SetDefaultProperty(typeBuilder, index, iLGenerator, attribute, descriptors);
         }
 
-        private List<MethodBuilder> DefineCacheableRequirementMethods(TypeBuilder typeBuilder, IList<CacheableAttribute> cacheableAttributes, IList<FieldBuilderDescriptor> descriptors)
+        private List<MethodBuilder> DefineCacheableRequirementMethods(TypeBuilder typeBuilder, IList<CacheableAttribute> cacheableAttributes, IList<EmitFieldBuilderDescriptor> descriptors)
         {
             MethodAttributes methodAttributes =
                 MethodAttributes.Private

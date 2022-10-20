@@ -1,6 +1,7 @@
 ﻿using SpringCaching.Internal;
 using SpringCaching.Parsing;
 using SpringCaching.Proxy;
+using SpringCaching.Reflection.Emit;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,11 +17,11 @@ namespace SpringCaching.Reflection
     internal static class StringExpressionGenerator
     {
 
-        public static EmitExpressionResult EmitExpression(ILGenerator iLGenerator, string expression, IList<FieldBuilderDescriptor> descriptors)
+        public static EmitExpressionResult EmitExpression(ILGenerator iLGenerator, string expression, IList<EmitFieldBuilderDescriptor> descriptors)
         {
             var tokens = ExpressionTokenHelper.ParseExpressionTokens(expression);
 
-            List<StringLocalBuilderDescriptor> tokenLocalBuilders = new List<StringLocalBuilderDescriptor>();
+            List<EmitStringLocalBuilderDescriptor> tokenLocalBuilders = new List<EmitStringLocalBuilderDescriptor>();
             foreach (var token in tokens)
             {
                 var tokenLocalBuilder = EmitStringExpressionToken(iLGenerator, token, descriptors);
@@ -43,7 +44,7 @@ namespace SpringCaching.Reflection
             //iLGenerator.Emit(OpCodes.Stloc, localBuilder);
             return EmitExpressionResult.Success(null);
         }
-        private static StringLocalBuilderDescriptor? EmitStringExpressionToken(ILGenerator iLGenerator, ExpressionToken token, IList<FieldBuilderDescriptor> descriptors)
+        private static EmitStringLocalBuilderDescriptor? EmitStringExpressionToken(ILGenerator iLGenerator, ExpressionToken token, IList<EmitFieldBuilderDescriptor> descriptors)
         {
             switch (token.TokenType)
             {
@@ -66,36 +67,37 @@ namespace SpringCaching.Reflection
             return null;
         }
 
-        private static StringLocalBuilderDescriptor? EmitStringFieldExpressionToken(ILGenerator iLGenerator, ExpressionToken token, IList<FieldBuilderDescriptor> descriptors)
+        private static EmitStringLocalBuilderDescriptor? EmitStringFieldExpressionToken(ILGenerator iLGenerator, ExpressionToken token, IList<EmitFieldBuilderDescriptor> descriptors)
         {
 
-            var callPropertyDescriptor = ExpressionTokenHelper.GetCallPropertyDescriptor(token, descriptors);
-            if (callPropertyDescriptor == null)
+            var emitCallPropertyDescriptor = ExpressionTokenHelper.GetEmitCallPropertyDescriptor(token, descriptors);
+            if (emitCallPropertyDescriptor == null)
             {
                 return null;
             }
 
-            bool toString = callPropertyDescriptor.EmitValueType != typeof(string);
+            bool toString = emitCallPropertyDescriptor.EmitValueType != typeof(string);
             if (toString)
             {
                 iLGenerator.Emit(OpCodes.Ldarg_0);
             }
-            callPropertyDescriptor.EmitValue(iLGenerator);
+            emitCallPropertyDescriptor.EmitValue(iLGenerator);
             bool canBeNull = true;
             if (toString)
             {
-                EmitToString(iLGenerator, callPropertyDescriptor.EmitValueDescriptor, out canBeNull);
+                EmitToString(iLGenerator, emitCallPropertyDescriptor.EmitValueDescriptor, out canBeNull);
             }
             var localBuilder = iLGenerator.DeclareLocal(typeof(string));
             iLGenerator.Emit(OpCodes.Stloc, localBuilder);
-            return new StringLocalBuilderDescriptor(localBuilder, canBeNull ? "null" : null);
+            //return new StringLocalBuilderDescriptor(localBuilder, canBeNull ? "null" : null);
+            return new EmitStringLocalBuilderDescriptor(localBuilder, canBeNull ? "null" : null);
         }
-        private static StringLocalBuilderDescriptor? EmitStringConstantExpressionToken(ILGenerator iLGenerator, ExpressionToken token)
+        private static EmitStringLocalBuilderDescriptor? EmitStringConstantExpressionToken(ILGenerator iLGenerator, ExpressionToken token)
         {
             iLGenerator.Emit(OpCodes.Ldstr, token.Value!);
             var localBuilder = iLGenerator.DeclareLocal(typeof(string));
             iLGenerator.Emit(OpCodes.Stloc, localBuilder);
-            return new StringLocalBuilderDescriptor(localBuilder, "null");
+            return new EmitStringLocalBuilderDescriptor(localBuilder, "null");
         }
 
 
@@ -108,7 +110,7 @@ namespace SpringCaching.Reflection
             {
                 method = typeof(SpringCachingRequirementProxy).GetMethods(BindingFlags.Instance | BindingFlags.NonPublic).Where(o => o.IsGenericMethod && o.Name == "ToNullableString").FirstOrDefault()!;
                 method = method.MakeGenericMethod(type.GenericTypeArguments[0]);
-                canBeNull = false;
+                canBeNull = true;
             }
             else if (type.IsPrimitive || type.IsValueType)
             {
@@ -145,7 +147,7 @@ namespace SpringCaching.Reflection
 
         }
 
-        private static void EmitConcatString(ILGenerator iLGenerator, IList<StringLocalBuilderDescriptor> stringDescriptors)
+        private static void EmitConcatString(ILGenerator iLGenerator, IList<EmitStringLocalBuilderDescriptor> stringDescriptors)
         {
             if (stringDescriptors.Count == 1)
             {
