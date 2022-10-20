@@ -35,6 +35,8 @@ namespace SpringCaching.Reflection.Emit
 
         public EmitValueDescriptor? ParentDescriptor { get; set; }
 
+        public EmitValueDescriptor? NextDescriptor { get; set; }
+
         public bool IsLast { get; set; }
 
         public override void EmitValue(ILGenerator iLGenerator)
@@ -76,9 +78,20 @@ namespace SpringCaching.Reflection.Emit
             }
             iLGenerator.Emit(OpCodes.Br_S, falseLabel);
             iLGenerator.MarkLabel(trueLabel);
-            if (ParentDescriptor is EmitPropertyDescriptor emitPropertyDescriptor && emitPropertyDescriptor.LocalBuilder != null)
+            if (ParentDescriptor is EmitPropertyDescriptor emitPropertyDescriptor)
             {
-                //skip                
+                if (emitPropertyDescriptor.LocalBuilder != null)
+                {
+                    //skip        
+                }
+                else if (emitPropertyDescriptor.IgnoreNull)
+                {
+                    //skip        
+                }
+                else
+                {
+                    ParentDescriptor!.EmitValue(iLGenerator);
+                }
             }
             else
             {

@@ -1,4 +1,5 @@
-﻿using SpringCaching.Parsing;
+﻿using SpringCaching.Internal;
+using SpringCaching.Parsing;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,9 +13,31 @@ namespace SpringCaching.Reflection.Emit
     internal abstract class EmitOperatorDescriptor
     {
 
-        public abstract void EmitOperator(ILGenerator iLGenerator);
+        public class DefaultOperatorDescriptor : EmitOperatorDescriptor
+        {
+            public DefaultOperatorDescriptor(OperatorType operatorType)
+            {
+                _operatorType = operatorType;
+            }
 
-        public static EmitOperatorDescriptor? TryCreate(Type leftType, OperatorType operatorType, ExpressionTokenDescriptor right)
+            private readonly OperatorType _operatorType;
+
+            public override void PreEmitOperator(ILGenerator iLGenerator)
+            {
+
+            }
+
+            public override void PostEmitOperator(ILGenerator iLGenerator)
+            {
+                ExpressionTokenHelper.EmitOperatorType(iLGenerator, _operatorType);
+            }
+        }
+
+        public abstract void PreEmitOperator(ILGenerator iLGenerator);
+
+        public abstract void PostEmitOperator(ILGenerator iLGenerator);
+
+        public static EmitOperatorDescriptor Create(Type leftType, OperatorType operatorType, ExpressionTokenDescriptor right)
         {
 
             if (right!.Token.TokenType == ExpressionTokenType.Value && right!.Token.Value == "null")
@@ -24,9 +47,14 @@ namespace SpringCaching.Reflection.Emit
                     new EmitEqualNullDescriptor(leftType);
             }
 
+
             if (leftType.IsNullableType())
             {
-                return TryCreateNullable(leftType, operatorType);
+                var nullableOperatorDescriptor = TryCreateNullable(leftType, operatorType);
+                if (nullableOperatorDescriptor != null)
+                {
+                    return nullableOperatorDescriptor;
+                }
             }
 
             string? methodName = operatorType switch
@@ -35,19 +63,16 @@ namespace SpringCaching.Reflection.Emit
                 OperatorType.NotEqual => "op_Inequality",
                 _ => null
             };
-            if (!string.IsNullOrWhiteSpace(methodName))
-            {
-                return null;
-            }
-            var method = leftType.GetMethod(methodName);
+
+            var method = string.IsNullOrWhiteSpace(methodName) ? null : leftType.GetMethod(methodName);
             if (method == null)
             {
-                return null;
+                return new DefaultOperatorDescriptor(operatorType);
             }
             return new EmitOperatorMethodDescriptor(leftType, method);
         }
 
-        private static EmitOperatorDescriptor? TryCreateNullable(Type type, OperatorType operatorType)
+        private static EmitNullableOperatorDescriptor? TryCreateNullable(Type type, OperatorType operatorType)
         {
             if (operatorType == OperatorType.Equal ||
                 operatorType == OperatorType.NotEqual ||

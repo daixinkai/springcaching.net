@@ -117,7 +117,7 @@ namespace SpringCaching.Internal
                     var property = propertyType.GetProperty(propertyName);
                     if (property == null || !property.CanRead)
                     {
-                        return null;
+                        return propertyDescriptors;
                     }
                     propertyDescriptors.Add(new EmitPropertyDescriptor(property, !lastCheckNull));
                     propertyType = property.PropertyType;

@@ -107,21 +107,17 @@ namespace SpringCaching.Reflection
                 return leftLocalBuilder;
             }
 
-            var emitOperator = EmitOperatorDescriptor.TryCreate(leftType, Compare!.OperatorType, Right!);
-            if (emitOperator == null)
-            {
-                ExpressionTokenHelper.EmitOperatorType(iLGenerator, Compare!.OperatorType);
-            }
+            var emitOperator = EmitOperatorDescriptor.Create(leftType, Compare!.OperatorType, Right!);
+
+            emitOperator!.PreEmitOperator(iLGenerator);
+
             var rightType = EmitExpressionToken(iLGenerator, Right!, descriptors, false, out var rightLocalBuilder);
             if (rightType == null && emitOperator == null)
             {
                 EmitConstantExpressionToken(iLGenerator, "true", typeof(bool), false, out rightLocalBuilder);
             }
-            if (emitOperator != null)
-            {
-                emitOperator.EmitOperator(iLGenerator);
-            }
 
+            emitOperator!.PostEmitOperator(iLGenerator);
 
             //leftLocalBuilder.EmitValue(iLGenerator, false);
             //rightLocalBuilder!.EmitValue(iLGenerator, false);
@@ -131,71 +127,71 @@ namespace SpringCaching.Reflection
             return new EmitLocalBuilderDescriptor(localBuilder);
         }
 
-        public EmitLocalBuilderDescriptor? EmitValueOld(ILGenerator iLGenerator, IList<EmitFieldBuilderDescriptor> descriptors)
-        {
-            bool isCompare = Type == ExpressionType.Compare;
-            var leftType = EmitExpressionToken(iLGenerator, Left, descriptors, !isCompare, out var leftLocalBuilder);
-            if (leftType == null)
-            {
-                if (!isCompare)
-                {
-                    EmitConstantExpressionToken(iLGenerator, "true", typeof(bool), true, out leftLocalBuilder);
-                }
-                return leftLocalBuilder;
-            }
-            if (!isCompare)
-            {
-                return leftLocalBuilder;
-            }
+        //public EmitLocalBuilderDescriptor? EmitValueOld(ILGenerator iLGenerator, IList<EmitFieldBuilderDescriptor> descriptors)
+        //{
+        //    bool isCompare = Type == ExpressionType.Compare;
+        //    var leftType = EmitExpressionToken(iLGenerator, Left, descriptors, !isCompare, out var leftLocalBuilder);
+        //    if (leftType == null)
+        //    {
+        //        if (!isCompare)
+        //        {
+        //            EmitConstantExpressionToken(iLGenerator, "true", typeof(bool), true, out leftLocalBuilder);
+        //        }
+        //        return leftLocalBuilder;
+        //    }
+        //    if (!isCompare)
+        //    {
+        //        return leftLocalBuilder;
+        //    }
 
-            var emitOperator = EmitOperatorDescriptor.TryCreate(leftType, Compare!.OperatorType, Right!);
-            bool compareNull = Right!.Token.TokenType == ExpressionTokenType.Value && Right!.Token.Value == "null";
-            if (compareNull)
-            {
-                emitOperator = null;
-                iLGenerator.Emit(OpCodes.Ldnull);
-                if (Compare!.OperatorType == OperatorType.NotEqual)
-                {
-                    iLGenerator.Emit(OpCodes.Cgt_Un);
-                }
-                else
-                {
-                    iLGenerator.Emit(OpCodes.Ceq);
-                }
-            }
-            else
-            {
-                if (emitOperator == null)
-                {
-                    ExpressionTokenHelper.EmitOperatorType(iLGenerator, Compare!.OperatorType);
-                }
-                var rightType = EmitExpressionToken(iLGenerator, Right!, descriptors, false, out var rightLocalBuilder);
-                if (rightType == null)
-                {
-                    EmitConstantExpressionToken(iLGenerator, "true", typeof(bool), false, out rightLocalBuilder);
-                }
-            }
+        //    var emitOperator = EmitOperatorDescriptor.TryCreate(leftType, Compare!.OperatorType, Right!);
+        //    bool compareNull = Right!.Token.TokenType == ExpressionTokenType.Value && Right!.Token.Value == "null";
+        //    if (compareNull)
+        //    {
+        //        emitOperator = null;
+        //        iLGenerator.Emit(OpCodes.Ldnull);
+        //        if (Compare!.OperatorType == OperatorType.NotEqual)
+        //        {
+        //            iLGenerator.Emit(OpCodes.Cgt_Un);
+        //        }
+        //        else
+        //        {
+        //            iLGenerator.Emit(OpCodes.Ceq);
+        //        }
+        //    }
+        //    else
+        //    {
+        //        if (emitOperator == null)
+        //        {
+        //            ExpressionTokenHelper.EmitOperatorType(iLGenerator, Compare!.OperatorType);
+        //        }
+        //        var rightType = EmitExpressionToken(iLGenerator, Right!, descriptors, false, out var rightLocalBuilder);
+        //        if (rightType == null)
+        //        {
+        //            EmitConstantExpressionToken(iLGenerator, "true", typeof(bool), false, out rightLocalBuilder);
+        //        }
+        //    }
 
-            if (emitOperator != null)
-            {
-                emitOperator.EmitOperator(iLGenerator);
-            }
-            else if (!compareNull)
-            {
-                var label = iLGenerator.DefineLabel();
-                iLGenerator.Emit(OpCodes.Br_S, label);
-                iLGenerator.Emit(OpCodes.Ldc_I4_0);
-                iLGenerator.MarkLabel(label);
-            }
+        //    if (emitOperator != null)
+        //    {
+        //        emitOperator.EmitOperator(iLGenerator);
+        //    }
+        //    else if (!compareNull)
+        //    {
+        //        var label = iLGenerator.DefineLabel();
+        //        iLGenerator.Emit(OpCodes.Br_S, label);
+        //        iLGenerator.Emit(OpCodes.Ldc_I4_0);
+        //        iLGenerator.MarkLabel(label);
+        //    }
 
 
-            //leftLocalBuilder.EmitValue(iLGenerator, false);
-            //rightLocalBuilder!.EmitValue(iLGenerator, false);
-            LocalBuilder? localBuilder = iLGenerator.DeclareLocal(typeof(bool));
-            iLGenerator.Emit(OpCodes.Stloc, localBuilder);
-            //iLGenerator.Emit(OpCodes.Ldloc, localBuilder);
-            return new EmitLocalBuilderDescriptor(localBuilder);
-        }
+        //    //leftLocalBuilder.EmitValue(iLGenerator, false);
+        //    //rightLocalBuilder!.EmitValue(iLGenerator, false);
+        //    LocalBuilder? localBuilder = iLGenerator.DeclareLocal(typeof(bool));
+        //    iLGenerator.Emit(OpCodes.Stloc, localBuilder);
+        //    //iLGenerator.Emit(OpCodes.Ldloc, localBuilder);
+        //    return new EmitLocalBuilderDescriptor(localBuilder);
+        //}
 
         #region private
 

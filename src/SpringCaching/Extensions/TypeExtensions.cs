@@ -22,7 +22,7 @@ namespace SpringCaching
             return type.GetConstructors()[0];
         }
 
-        public static ConstructorInfo GetConstructorEx(this Type type, Type[] types)
+        public static ConstructorInfo? GetConstructorEx(this Type type, Type[] types)
         {
             return type.GetConstructors().Where(s => Equals(s.GetParameters(), types)).FirstOrDefault();
         }

@@ -16,7 +16,12 @@ namespace SpringCaching.Reflection.Emit
 
         private Type _type;
 
-        public override void EmitOperator(ILGenerator iLGenerator)
+        public override void PreEmitOperator(ILGenerator iLGenerator)
+        {
+            
+        }
+
+        public override void PostEmitOperator(ILGenerator iLGenerator)
         {
             if (_type.IsNullableType())
             {

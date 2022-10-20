@@ -19,7 +19,12 @@ namespace SpringCaching.Reflection.Emit
         private readonly Type _type;
         private readonly MethodInfo _methodInfo;
 
-        public override void EmitOperator(ILGenerator iLGenerator)
+        public override void PreEmitOperator(ILGenerator iLGenerator)
+        {
+
+        }
+
+        public override void PostEmitOperator(ILGenerator iLGenerator)
         {
             if (_methodInfo.DeclaringType != _type)
             {

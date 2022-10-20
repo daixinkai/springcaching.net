@@ -228,6 +228,19 @@ namespace SpringCaching
             return localBuilder;
         }
 
+        public static LocalBuilder? EmitNullableMethod(this ILGenerator iLGenerator, MethodInfo method)
+        {
+            LocalBuilder? localBuilder;
+            //if (Property.Name == "HasValue")
+            //{
+            localBuilder = iLGenerator.DeclareLocal(method.DeclaringType!);
+            iLGenerator.Emit(OpCodes.Stloc, localBuilder);
+            iLGenerator.Emit(OpCodes.Ldloca, localBuilder);
+            //}
+            iLGenerator.Emit(OpCodes.Call, method);
+            return localBuilder;
+        }
+
         public static void OverrideProperty(this TypeBuilder typeBuilder, PropertyInfo property, Action<ILGenerator>? getterInvoker, Action<ILGenerator>? setterInvoker)
         {
             MethodAttributes methodAttributes =
