@@ -9,31 +9,46 @@ namespace SpringCaching.Proxy
 {
     public class SpringCachingRequirementProxy : ISpringCachingRequirement
     {
+
+        public virtual bool DefaultNullValue => true;
+
+        private const string NullValue = "null";
+
         public virtual IList<ICacheableRequirement>? GetCacheableRequirements() => null;
         public virtual IList<ICacheEvictRequirement>? GetCacheEvictRequirements() => null;
         public virtual IList<ICachePutRequirement>? GetCachePutRequirements() => null;
         public virtual IDictionary<string, object>? Arguments => null;
+
         protected string? ToString<T>(T? value) => value?.ToString();
 
-        protected string? ToNullableString<T>(T? value) where T : struct
+
+        protected string? ToStringFromString(string? value)
         {
-            //return value.ToString();
+            if (!DefaultNullValue)
+            {
+                return value;
+            }
+            return value ?? NullValue;
+        }
+
+        protected string? ToStringFromNullable<T>(T? value) where T : struct
+        {
             if (value.HasValue)
             {
                 return value.Value.ToString();
             }
-            //if (!defaultNullValue)
-            //{
-            //    return null;
-            //}
-            return "null";
+            if (DefaultNullValue)
+            {
+                return NullValue;
+            }
+            return null;
         }
 
-        protected string? ToStructString<T>(T value) where T : struct
+        protected string? ToStringFromStruct<T>(T value) where T : struct
              => value.ToString();
 
-        protected string? ToClassString<T>(T? value) where T : class
-             => value?.ToString();
+        protected string? ToStringFromClass<T>(T? value) where T : class
+             => value?.ToString() ?? NullValue;
 
         protected bool IsNull<T>(T? value) where T : class => value == null;
 

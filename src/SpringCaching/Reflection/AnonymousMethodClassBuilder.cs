@@ -134,6 +134,13 @@ namespace SpringCaching.Reflection
 
             AddArgumentsProperty(typeBuilder, fieldBuilderDescribes);
 
+            ////DefaultNullValue
+            //typeBuilder.OverrideProperty(typeof(SpringCachingRequirementProxy).GetProperty("DefaultNullValue")!, iLGenerator =>
+            //{
+            //    iLGenerator.EmitObjectValue(true);
+            //    iLGenerator.Emit(OpCodes.Ret);
+            //}, null);
+
             //attributes
 
             if (attributes != null && attributes.Length > 0)

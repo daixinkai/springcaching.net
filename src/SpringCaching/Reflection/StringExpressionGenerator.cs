@@ -76,21 +76,12 @@ namespace SpringCaching.Reflection
                 return null;
             }
 
-            bool toString = emitCallPropertyDescriptor.EmitValueType != typeof(string);
-            if (toString)
-            {
-                iLGenerator.Emit(OpCodes.Ldarg_0);
-            }
+            iLGenerator.Emit(OpCodes.Ldarg_0);
             emitCallPropertyDescriptor.EmitValue(iLGenerator);
-            bool canBeNull = true;
-            if (toString)
-            {
-                EmitToString(iLGenerator, emitCallPropertyDescriptor.EmitValueDescriptor, out canBeNull);
-            }
+            EmitToString(iLGenerator, emitCallPropertyDescriptor.EmitValueDescriptor);
             var localBuilder = iLGenerator.DeclareLocal(typeof(string));
             iLGenerator.Emit(OpCodes.Stloc, localBuilder);
-            //return new StringLocalBuilderDescriptor(localBuilder, canBeNull ? "null" : null);
-            return new EmitStringLocalBuilderDescriptor(localBuilder, canBeNull ? "null" : null);
+            return new EmitStringLocalBuilderDescriptor(localBuilder, null);
         }
         private static EmitStringLocalBuilderDescriptor? EmitStringConstantExpressionToken(ILGenerator iLGenerator, ExpressionToken token)
         {
@@ -100,26 +91,26 @@ namespace SpringCaching.Reflection
             return new EmitStringLocalBuilderDescriptor(localBuilder, "null");
         }
 
-
-        private static void EmitToString(ILGenerator iLGenerator, EmitValueDescriptor descriptor, out bool canBeNull)
+        private static void EmitToString(ILGenerator iLGenerator, EmitValueDescriptor descriptor)
         {
-            canBeNull = true;
             MethodInfo method;
             var type = descriptor.EmitValueType;
-            if (type.IsNullableType() && type.GenericTypeArguments[0].IsPrimitive)
+            if (type == typeof(string))
             {
-                method = typeof(SpringCachingRequirementProxy).GetMethods(BindingFlags.Instance | BindingFlags.NonPublic).Where(o => o.IsGenericMethod && o.Name == "ToNullableString").FirstOrDefault()!;
+                method = typeof(SpringCachingRequirementProxy).GetMethods(BindingFlags.Instance | BindingFlags.NonPublic).Where(o => !o.IsGenericMethod && o.Name == "ToStringFromString").FirstOrDefault()!;
+            }
+            else if (type.IsNullableType() && type.GenericTypeArguments[0].IsPrimitive)
+            {
+                method = typeof(SpringCachingRequirementProxy).GetMethods(BindingFlags.Instance | BindingFlags.NonPublic).Where(o => o.IsGenericMethod && o.Name == "ToStringFromNullable").FirstOrDefault()!;
                 method = method.MakeGenericMethod(type.GenericTypeArguments[0]);
-                canBeNull = true;
             }
             else if (type.IsPrimitive || type.IsValueType)
             {
-                method = typeof(SpringCachingRequirementProxy).GetMethods(BindingFlags.Instance | BindingFlags.NonPublic).Where(o => o.IsGenericMethod && o.Name == "ToStructString").FirstOrDefault()!;
-                canBeNull = false;
+                method = typeof(SpringCachingRequirementProxy).GetMethods(BindingFlags.Instance | BindingFlags.NonPublic).Where(o => o.IsGenericMethod && o.Name == "ToStringFromStruct").FirstOrDefault()!;
             }
             else
             {
-                method = typeof(SpringCachingRequirementProxy).GetMethods(BindingFlags.Instance | BindingFlags.NonPublic).Where(o => o.IsGenericMethod && o.Name == "ToClassString").FirstOrDefault()!;
+                method = typeof(SpringCachingRequirementProxy).GetMethods(BindingFlags.Instance | BindingFlags.NonPublic).Where(o => o.IsGenericMethod && o.Name == "ToStringFromClass").FirstOrDefault()!;
             }
 
             if (method.IsGenericMethodDefinition)
@@ -127,24 +118,7 @@ namespace SpringCaching.Reflection
                 method = method.MakeGenericMethod(type);
             }
 
-            //if (descriptor is EmitPropertyDescriptor propertyDescriptor && propertyDescriptor.LocalBuilder != null)
-            //{
-            //    Label callLabel = iLGenerator.DefineLabel();
-            //    Label isNullLabel = iLGenerator.DefineLabel();
-            //    iLGenerator.Emit(OpCodes.Dup);
-            //    iLGenerator.Emit(OpCodes.Brtrue_S, isNullLabel);
-            //    iLGenerator.Emit(OpCodes.Pop);
-            //    iLGenerator.Emit(OpCodes.Ldnull);
-            //    iLGenerator.Emit(OpCodes.Br_S, callLabel);
-            //    iLGenerator.MarkLabel(isNullLabel);
-            //    iLGenerator.Emit(OpCodes.Ldloc, propertyDescriptor.LocalBuilder);
-            //    iLGenerator.MarkLabel(callLabel);
-            //    iLGenerator.Emit(OpCodes.Ldnull);
-
-            //}
-
             iLGenerator.Emit(OpCodes.Call, method);
-
         }
 
         private static void EmitConcatString(ILGenerator iLGenerator, IList<EmitStringLocalBuilderDescriptor> stringDescriptors)
