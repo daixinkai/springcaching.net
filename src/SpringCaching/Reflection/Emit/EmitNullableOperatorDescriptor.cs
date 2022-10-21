@@ -25,32 +25,41 @@ namespace SpringCaching.Reflection.Emit
         private LocalBuilder? _localBuilder;
 
 
-        //public override void PreEmitOperator(ILGenerator iLGenerator)
-        //{
-        //    var method = _type.GetMethod("GetValueOrDefault", Type.EmptyTypes);
-        //    _localBuilder = iLGenerator.EmitNullableMethod(method!);
-        //}
-
-        //public override void PostEmitOperator(ILGenerator iLGenerator)
-        //{
-        //    ExpressionTokenHelper.EmitOperatorType(iLGenerator, _operatorType);
-        //    iLGenerator.EmitNullablePropertyValue(_type.GetProperty("HasValue")!, ref _localBuilder);
-        //    iLGenerator.Emit(OpCodes.And);
-
-        //}
-
         public override void PreEmitOperator(ILGenerator iLGenerator)
         {
-            _localBuilder = iLGenerator.EmitNullablePropertyValue(_type.GetProperty("HasValue")!);
-            iLGenerator.EmitNullablePropertyValue(_type.GetProperty("Value")!, ref _localBuilder);
+            var method = _type.GetMethod("GetValueOrDefault", Type.EmptyTypes);
+            _localBuilder = iLGenerator.EmitNullableMethod(method!);
         }
 
         public override void PostEmitOperator(ILGenerator iLGenerator)
         {
             ExpressionTokenHelper.EmitOperatorType(iLGenerator, _operatorType);
+            iLGenerator.EmitNullablePropertyValue(_type.GetProperty("HasValue")!, ref _localBuilder);
             iLGenerator.Emit(OpCodes.And);
-
         }
+
+
+        /*
+         * 
+         * 
+   	        int? id = this._param.Id;
+	        int num = 0;
+	        return id.GetValueOrDefault() > num & id != null;
+         * 
+         * 
+         */
+
+        //public override void PreEmitOperator(ILGenerator iLGenerator)
+        //{
+        //    _localBuilder = iLGenerator.EmitNullablePropertyValue(_type.GetProperty("HasValue")!);
+        //    iLGenerator.EmitNullablePropertyValue(_type.GetProperty("Value")!, ref _localBuilder);
+        //}
+
+        //public override void PostEmitOperator(ILGenerator iLGenerator)
+        //{
+        //    ExpressionTokenHelper.EmitOperatorType(iLGenerator, _operatorType);
+        //    iLGenerator.Emit(OpCodes.And);
+        //}
 
     }
 }

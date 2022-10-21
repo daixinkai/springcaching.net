@@ -44,10 +44,26 @@ namespace SpringCaching.Reflection
 
         public ExpressionTokenDescriptor? Left { get; private set; }
 
-        public ExpressionType Type => Compare == null ? ExpressionType.Value : ExpressionType.Compare;
+        public ExpressionType Type
+        {
+            get
+            {
+                if (Compare == null)
+                {
+                    return ExpressionType.Value;
+                }
+                //if (Compare.OperatorType == OperatorType.LogicalNegation)
+                //{
+                //    return ExpressionType.LogicalNegation;
+                //}
+                return ExpressionType.Compare;
+            }
+        }
 
         public ExpressionToken? Compare { get; set; }
         public ExpressionTokenDescriptor? Right { get; set; }
+
+        public bool IsLogicalNegation { get; set; }
 
         public string Debug
         {
@@ -58,6 +74,11 @@ namespace SpringCaching.Reflection
                 //{
                 //    stringBuilder.Append("(");
                 //}
+
+                if (IsLogicalNegation)
+                {
+                    stringBuilder.Append("!");
+                }
 
                 stringBuilder.Append(Left!.Token.Value!);
 
@@ -79,7 +100,20 @@ namespace SpringCaching.Reflection
             }
         }
 
-        public bool IsCompleted => Left != null && (Compare == null && Right == null || Compare != null && Right != null);
+        public bool IsCompleted
+        {
+            get
+            {
+                //Left != null && (Compare == null && Right == null || Compare != null && Right != null);
+                return Type switch
+                {
+                    ExpressionType.Value => Left != null && Right == null,
+                    ExpressionType.Compare => Left != null && Right != null,
+                    //ExpressionType.LogicalNegation => Left != null && Right == null,
+                    _ => false
+                };
+            }
+        }
 
         public static List<BooleanExpressionTokenDescriptor> FromTokens(IList<ExpressionToken> tokens, IList<EmitFieldBuilderDescriptor>? fieldBuilderDescriptors)
         {
@@ -134,9 +168,10 @@ namespace SpringCaching.Reflection
                 else if (token.TokenType == ExpressionTokenType.Operator)
                 {
                     //if (currentDescriptor != null && s_supportOperatorTypes.Contains(token.OperatorType))
-                    if (token.OperatorType == OperatorType.LogicalAnd
-                        || token.OperatorType == OperatorType.LogicalOr
-                        || token.OperatorType == OperatorType.LogicalNegation)
+                    if (
+                        token.OperatorType == OperatorType.LogicalAnd ||
+                        token.OperatorType == OperatorType.LogicalOr
+                        )
                     {
                         if (currentDescriptor.IsCompleted)
                         {
@@ -144,6 +179,15 @@ namespace SpringCaching.Reflection
                         }
                         currentDescriptor = new BooleanExpressionTokenDescriptor();
                         currentDescriptor!.ConnectOperatorToken = token;
+                    }
+                    else if (token.OperatorType == OperatorType.LogicalNegation)
+                    {
+                        currentDescriptor.IsLogicalNegation = true;
+                        //if (currentDescriptor.IsCompleted)
+                        //{
+                        //    descriptors.Add(currentDescriptor);
+                        //}
+                        //currentDescriptor = new BooleanExpressionTokenDescriptor();
                     }
                     if (currentDescriptor!.Left != null && currentDescriptor.Compare == null)
                     {
@@ -207,21 +251,23 @@ namespace SpringCaching.Reflection
         public EmitLocalBuilderDescriptor? EmitValue(ILGenerator iLGenerator, IList<EmitFieldBuilderDescriptor> descriptors)
         {
             bool isCompare = Type == ExpressionType.Compare;
-            var leftType = EmitExpressionToken(iLGenerator, Left!, descriptors, !isCompare, out var leftLocalBuilder);
-            if (leftType == null)
+            var leftType = EmitExpressionToken(iLGenerator, Left!, descriptors, !isCompare && !IsLogicalNegation, out var leftLocalBuilder);
+            if (leftType == null && !isCompare)
             {
-                if (!isCompare)
-                {
-                    EmitConstantExpressionToken(iLGenerator, "true", typeof(bool), true, out leftLocalBuilder);
-                }
-                return leftLocalBuilder;
+                EmitConstantExpressionToken(iLGenerator, "true", typeof(bool), !IsLogicalNegation, out leftLocalBuilder);
             }
             if (!isCompare)
             {
+                if (IsLogicalNegation)
+                {
+                    leftLocalBuilder = new EmitLocalBuilderDescriptor(iLGenerator.DeclareLocal(typeof(bool)));
+                    ExpressionTokenHelper.EmitOperatorType(iLGenerator, OperatorType.LogicalNegation);
+                    iLGenerator.Emit(OpCodes.Stloc, leftLocalBuilder.LocalBuilder);
+                }
                 return leftLocalBuilder;
             }
 
-            var emitOperator = EmitOperatorDescriptor.Create(leftType, Compare!.OperatorType, Right!);
+            var emitOperator = EmitOperatorDescriptor.Create(leftType!, Compare!.OperatorType, Right!);
 
             emitOperator!.PreEmitOperator(iLGenerator);
 

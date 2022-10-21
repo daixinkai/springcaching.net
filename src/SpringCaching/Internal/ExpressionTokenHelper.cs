@@ -162,6 +162,8 @@ namespace SpringCaching.Internal
                 case OperatorType.UnaryMinus:
                     break;
                 case OperatorType.LogicalNegation:
+                    iLGenerator.Emit(OpCodes.Ldc_I4_0);
+                    iLGenerator.Emit(OpCodes.Ceq);
                     break;
                 case OperatorType.Multiplication:
                     break;
@@ -177,7 +179,6 @@ namespace SpringCaching.Internal
                     iLGenerator.Emit(OpCodes.Clt);
                     break;
                 case OperatorType.LessThanOrEqual:
-                    //iLGenerator.Emit(OpCodes.Clt_Un);
                     iLGenerator.Emit(OpCodes.Cgt);
                     iLGenerator.Emit(OpCodes.Ldc_I4_0);
                     iLGenerator.Emit(OpCodes.Ceq);
@@ -186,7 +187,6 @@ namespace SpringCaching.Internal
                     iLGenerator.Emit(OpCodes.Cgt);
                     break;
                 case OperatorType.GreaterThanOrEqual:
-                    //iLGenerator.Emit(OpCodes.Cgt_Un);
                     iLGenerator.Emit(OpCodes.Clt);
                     iLGenerator.Emit(OpCodes.Ldc_I4_0);
                     iLGenerator.Emit(OpCodes.Ceq);
