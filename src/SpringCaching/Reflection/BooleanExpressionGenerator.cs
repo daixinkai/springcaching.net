@@ -17,6 +17,8 @@ namespace SpringCaching.Reflection
         {
             var tokens = ExpressionTokenHelper.ParseExpressionTokens(expression);
 
+            var tokenDescriptor11s = LogicalBooleanExpressionTokenDescriptor.FromTokens(tokens, descriptors);
+
             var tokenDescriptors = BooleanExpressionTokenDescriptor.FromTokens(tokens, descriptors);
 
             List<EmitLocalBuilderDescriptor> tokenLocalBuilders = new List<EmitLocalBuilderDescriptor>();

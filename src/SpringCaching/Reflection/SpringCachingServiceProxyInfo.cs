@@ -34,7 +34,7 @@ namespace SpringCaching.Reflection
             {
                 return;
             }
-            string typeFullName = ServiceType.FullName + /*"_SpringCaching_" +*/ Suffix; ;
+            string typeFullName = ServiceType.FullName + "_" + Suffix; ;
             _typeBuilder = CreateTypeBuilder(typeFullName, ServiceType);
 
             if (!typeof(ISpringCachingProxy).IsAssignableFrom(ServiceType))

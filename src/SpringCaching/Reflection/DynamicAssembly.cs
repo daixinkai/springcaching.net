@@ -13,11 +13,14 @@ namespace SpringCaching.Reflection
     {
         private AssemblyBuilder? _assemblyBuilder;
         private ModuleBuilder? _moduleBuilder;
-        private string _guid = Guid.NewGuid().ToString("N").ToUpper();
+
 
 #if DEBUG&&NET45
         public bool DEBUG_MODE = false;
         public string AssemblyName = "SpringCaching.Debug.dll";
+        private string _guid = "F6158F93CBD8445892DC10127BF8A9D8";
+#else
+        private string _guid = Guid.NewGuid().ToString("N").ToUpper();
 #endif
 
         public AssemblyBuilder AssemblyBuilder

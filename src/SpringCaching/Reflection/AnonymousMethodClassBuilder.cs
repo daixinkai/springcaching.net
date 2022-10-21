@@ -7,6 +7,7 @@ using System.Text;
 using SpringCaching.Proxy;
 using System.Runtime.InteropServices;
 using SpringCaching.Reflection.Emit;
+using System.Linq;
 
 namespace SpringCaching.Reflection
 {
@@ -23,8 +24,13 @@ namespace SpringCaching.Reflection
 
         public static Tuple<TypeBuilder, ConstructorInfo, MethodInfo> BuildType(ModuleBuilder moduleBuilder, MethodInfo method, ParameterInfo[] parameters, CacheBaseAttribute[] attributes)
         {
+#if DEBUG && NET45
+            string _suffix = method.Name + "_" + string.Join("_", parameters.Select(s => s.ParameterType.Name));
+#else
+            string _suffix = Guid.NewGuid().ToString("N").ToUpper();
+#endif
             string typeName = method.DeclaringType!.Name;
-            typeName += "_" + Guid.NewGuid().ToString("N").ToUpper();
+            typeName += "_" + _suffix;
             string nameSpace = method.DeclaringType.Namespace + ".Anonymous";
             string fullName = nameSpace + "." + typeName;
             if (fullName.StartsWith("."))
@@ -38,7 +44,12 @@ namespace SpringCaching.Reflection
 
         public static Tuple<TypeBuilder, ConstructorInfo, MethodInfo> BuildType(TypeBuilder nestedForTypeBuilder, MethodInfo method, ParameterInfo[] parameters, CacheBaseAttribute[] attributes)
         {
-            string fullName = nestedForTypeBuilder.BaseType!.Name + "_" + Guid.NewGuid().ToString("N").ToUpper();
+#if DEBUG && NET45
+            string _suffix = method.Name + "_" + string.Join("_", parameters.Select(s => s.ParameterType.Name));
+#else
+            string _suffix = Guid.NewGuid().ToString("N").ToUpper();
+#endif
+            string fullName = nestedForTypeBuilder.BaseType!.Name + "_" + _suffix;
             TypeBuilder typeBuilder = CreateTypeBuilder(nestedForTypeBuilder, fullName, typeof(SpringCachingRequirementProxy));
             return FillType(typeBuilder, method, parameters, attributes);
         }

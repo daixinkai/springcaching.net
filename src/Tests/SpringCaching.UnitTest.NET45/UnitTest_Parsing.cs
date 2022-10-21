@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection.Emit;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -159,13 +160,15 @@ namespace SpringCaching.UnitTest.NET45
             //bool value = !_param.Id.HasValue;
             //return value;
             //return !_param.Id.HasValue;
-            return _param.Id > 0;
+            //return _param.Count >= 0 && _param.Name != null;
             //int? id = _param.Id;
             //return id.HasValue && id.Value > 0;
             //return _param.Count > 0;
             //TestServiceParam param = this._param.Param;
             //string a = (param != null) ? param.Name : null;
             //return a != "asd";
+            //return _param.Count > 100 && _param.Name != null;
+            return _param.Id > 0;
         }
 
     }

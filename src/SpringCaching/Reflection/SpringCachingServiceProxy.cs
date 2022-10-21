@@ -13,10 +13,13 @@ namespace SpringCaching.Reflection
     {
         //private static readonly IDictionary<Type, SpringCachingServiceProxyInfo> s_serviceProxyMap = new Dictionary<Type, SpringCachingServiceProxyInfo>();
         private static readonly DynamicAssembly s_dynamicAssembly = new();
-        private static readonly string s_suffix = Guid.NewGuid().ToString("N").ToUpper();
+
 
 #if DEBUG && NET45
+        private static readonly string s_suffix = "BB93BE8338034C5FBC946FB266372676";
         public static DynamicAssembly DynamicAssembly => s_dynamicAssembly;
+#else   
+        private static readonly string s_suffix = Guid.NewGuid().ToString("N").ToUpper();
 #endif
 
         public static TypeInfo? GetProxyType(Type serviceType)

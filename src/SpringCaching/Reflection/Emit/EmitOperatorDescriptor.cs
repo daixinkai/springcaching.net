@@ -31,6 +31,7 @@ namespace SpringCaching.Reflection.Emit
             {
                 ExpressionTokenHelper.EmitOperatorType(iLGenerator, _operatorType);
             }
+
         }
 
         public abstract void PreEmitOperator(ILGenerator iLGenerator);
