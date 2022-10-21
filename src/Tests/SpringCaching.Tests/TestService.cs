@@ -60,7 +60,7 @@ namespace SpringCaching.Tests
             //Condition = "#param.Param?.Name!='asd'",
             //Condition = "#param.Id.HasValue",
             //Condition = "#param.Id>0&&#param.Count!=0||#param.Id>0",
-            Condition = "#param.Count>=0&&#param.Name!=null",
+            Condition = "#param.Id>=0&&#param.Name!=null",
             //Condition = "#param.Id!=null&&#param.Name!=null",
             //Condition = "#param.Id.HasValue&&#param.Id.Value>0&&#param?.Param?.Name!=null&&#param.Count>0",
             //Condition = "#param.Id.HasValue&&#param.Id.Value>0&&#param?.Param?.Name!=null&&#param.Count>0",
