@@ -17,14 +17,15 @@ namespace SpringCaching.Reflection
         {
             var tokens = ExpressionTokenHelper.ParseExpressionTokens(expression);
 
-            var tokenDescriptor11s = LogicalBooleanExpressionTokenDescriptor.FromTokens(tokens, descriptors);
+            var tokenDescriptors = LogicalBooleanExpressionTokenDescriptor.FromTokens(tokens, descriptors);
 
-            var tokenDescriptors = BooleanExpressionTokenDescriptor.FromTokens(tokens, descriptors);
+            //var tokenDescriptors = BooleanExpressionTokenDescriptor.FromTokens(tokens, descriptors);
 
             List<EmitLocalBuilderDescriptor> tokenLocalBuilders = new List<EmitLocalBuilderDescriptor>();
+            LocalBuilder? localBuilder = null;
             foreach (var tokenDescriptor in tokenDescriptors)
             {
-                var tokenLocalBuilder = tokenDescriptor.EmitValue(iLGenerator, descriptors);
+                var tokenLocalBuilder = tokenDescriptor.EmitValue(iLGenerator, descriptors, ref localBuilder);
                 if (tokenLocalBuilder != null)
                 {
                     tokenLocalBuilders.Add(tokenLocalBuilder);
@@ -36,31 +37,10 @@ namespace SpringCaching.Reflection
             }
             if (tokenLocalBuilders.Count == 1)
             {
-                return EmitExpressionResult.Success(tokenLocalBuilders[0].LocalBuilder);
+                return EmitExpressionResult.Success(localBuilder);
             }
-            //localBuilder = iLGenerator.DeclareLocal(typeof(bool));
-            EmitBooleanPredicate(iLGenerator, tokenLocalBuilders);
-            //iLGenerator.Emit(OpCodes.Stloc, localBuilder);
             return EmitExpressionResult.Success(null);
         }
-
-
-        private static void EmitBooleanPredicate(ILGenerator iLGenerator, IList<EmitLocalBuilderDescriptor> descriptors)
-        {
-            if (descriptors.Count == 1)
-            {
-                descriptors[0].EmitValue(iLGenerator);
-                return;
-            }
-            ////iLGenerator.Emit(OpCodes.Ldloc, tokenLocalBuilders[0].LocalBuilder);
-            //localBuilder = iLGenerator.DeclareLocal(typeof(bool));
-            ////EmitConcatString(iLGenerator, tokenLocalBuilders);
-            //iLGenerator.Emit(OpCodes.Stloc, localBuilder);
-            iLGenerator.Emit(OpCodes.Ldloc, descriptors[0].LocalBuilder);
-        }
-
-
-
 
     }
 }

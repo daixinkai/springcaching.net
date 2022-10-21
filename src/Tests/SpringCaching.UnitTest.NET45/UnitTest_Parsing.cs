@@ -168,7 +168,12 @@ namespace SpringCaching.UnitTest.NET45
             //string a = (param != null) ? param.Name : null;
             //return a != "asd";
             //return _param.Count > 100 && _param.Name != null;
-            return _param.Id > 0;
+            return _param.Id > 0 && _param.Name != null && _param.Count > 0;
+        }
+
+        private bool GetCacheableCondition_01()
+        {
+            return _param.Id > 0 || _param.Name != null;
         }
 
     }

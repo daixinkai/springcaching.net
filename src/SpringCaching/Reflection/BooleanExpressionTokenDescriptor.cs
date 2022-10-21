@@ -207,7 +207,7 @@ namespace SpringCaching.Reflection
         public EmitLocalBuilderDescriptor? EmitValue(ILGenerator iLGenerator, IList<EmitFieldBuilderDescriptor> descriptors)
         {
             bool isCompare = Type == ExpressionType.Compare;
-            var leftType = EmitExpressionToken(iLGenerator, Left, descriptors, !isCompare, out var leftLocalBuilder);
+            var leftType = EmitExpressionToken(iLGenerator, Left!, descriptors, !isCompare, out var leftLocalBuilder);
             if (leftType == null)
             {
                 if (!isCompare)
