@@ -209,54 +209,6 @@ namespace SpringCaching.Reflection
             iLGenerator.Emit(OpCodes.Newobj, jsonKeyGeneratorConstructor);
         }
 
-        //protected static void AddExplicitAutoProperty<T>(TypeBuilder typeBuilder, T instance) where T : ISpringCachingRequirement
-        //{
-        //    foreach (var property in typeof(T).GetProperties())
-        //    {
-        //        MethodAttributes methodAttributes =
-        //            MethodAttributes.Private
-        //            | MethodAttributes.SpecialName
-        //            | MethodAttributes.HideBySig
-        //            | MethodAttributes.NewSlot
-        //            | MethodAttributes.Virtual
-        //            | MethodAttributes.Final;
-
-        //        //string prefix = property.DeclaringType.FullName + ".";
-        //        string prefix = property.DeclaringType!.GetFullName() + ".";
-        //        PropertyBuilder propertyBuilder = typeBuilder.DefineProperty(prefix + property.Name, PropertyAttributes.None, property.PropertyType, Type.EmptyTypes);
-        //        if (property.CanRead)
-        //        {
-        //            MethodBuilder propertyGet = typeBuilder.DefineMethod(prefix + "get_" + property.Name, methodAttributes, property.PropertyType, Type.EmptyTypes);
-        //            //propertyGet.SetCustomAttribute(() => new CompilerGeneratedAttribute());
-        //            ILGenerator iLGenerator = propertyGet.GetILGenerator();
-        //            var value = property.GetValue(instance);
-        //            iLGenerator.EmitObjectValue(value);
-        //            iLGenerator.Emit(OpCodes.Ret);
-        //            typeBuilder.DefineMethodOverride(propertyGet, property.GetMethod!);
-        //            propertyBuilder.SetGetMethod(propertyGet);
-        //        }
-
-        //        //if (property.CanWrite)
-        //        //{
-        //        //    MethodBuilder propertySet = typeBuilder.DefineMethod(prefix + "set_" + property.Name, methodAttributes, typeof(void), new Type[] { property.PropertyType });
-        //        //    //propertySet.SetCustomAttribute(() => new CompilerGeneratedAttribute());
-        //        //    propertySet.DefineParameter(1, ParameterAttributes.None, "value");
-        //        //    ILGenerator iLGenerator = propertySet.GetILGenerator();
-        //        //    iLGenerator.Emit(OpCodes.Ldarg_0);
-        //        //    iLGenerator.Emit(OpCodes.Ldfld, instanceFieldBuilder);
-        //        //    iLGenerator.Emit(OpCodes.Ldarg_1);
-        //        //    iLGenerator.Emit(OpCodes.Callvirt, property.SetMethod!);
-        //        //    iLGenerator.Emit(OpCodes.Ret);
-        //        //    typeBuilder.DefineMethodOverride(propertySet, property.SetMethod!);
-        //        //    propertyBuilder.SetSetMethod(propertySet);
-        //        //}
-
-        //        propertyBuilder.CopyCustomAttributes(property);
-
-        //    }
-        //}
-
-
     }
 
 }

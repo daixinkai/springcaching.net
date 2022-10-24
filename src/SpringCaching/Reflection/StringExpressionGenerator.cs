@@ -42,7 +42,7 @@ namespace SpringCaching.Reflection
             //localBuilder = iLGenerator.DeclareLocal(typeof(string));
             EmitConcatString(iLGenerator, tokenLocalBuilders);
             //iLGenerator.Emit(OpCodes.Stloc, localBuilder);
-            return EmitExpressionResult.Success(null);
+            return EmitExpressionResult.Success();
         }
         private static EmitStringLocalBuilderDescriptor? EmitStringExpressionToken(ILGenerator iLGenerator, ParsedExpressionToken parsedToken, IList<EmitFieldBuilderDescriptor> descriptors)
         {

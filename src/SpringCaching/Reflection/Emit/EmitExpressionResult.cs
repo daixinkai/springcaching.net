@@ -13,11 +13,30 @@ namespace SpringCaching.Reflection.Emit
 
         public LocalBuilder? LocalBuilder { get; private set; }
 
-        public static EmitExpressionResult Success(LocalBuilder? localBuilder)
+        public Type? Type { get; set; }
+
+        public static EmitExpressionResult Success()
+        {
+            return new EmitExpressionResult
+            {
+                Succeed = true
+            };
+        }
+
+        public static EmitExpressionResult Success(LocalBuilder localBuilder)
         {
             return new EmitExpressionResult
             {
                 LocalBuilder = localBuilder,
+                Succeed = true
+            };
+        }
+
+        public static EmitExpressionResult Success(Type type)
+        {
+            return new EmitExpressionResult
+            {
+                Type = type,
                 Succeed = true
             };
         }

@@ -63,6 +63,9 @@ namespace SpringCaching.Internal
                     tokens[i].Freeze();
                 }
             }
+
+            tokens = tokens.Where(s => !string.IsNullOrWhiteSpace(s.RawToken?.Value)).ToArray();
+
             List<ParsedExpressionToken> parsedTokens = new List<ParsedExpressionToken>();
 
             ArrayEx.ForEach(tokens, (current, next) =>
