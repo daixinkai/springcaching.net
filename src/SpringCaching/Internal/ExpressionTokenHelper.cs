@@ -12,7 +12,7 @@ namespace SpringCaching.Internal
 {
     internal static class ExpressionTokenHelper
     {
-        public static ExpressionToken[] ParseExpressionTokens(string expression)
+        public static ParsedExpressionToken[] ParseExpressionTokens(string expression)
         {
             var infixTokenizer = new InfixTokenizer();
             var tokens = infixTokenizer.Tokenize(expression);
@@ -63,7 +63,15 @@ namespace SpringCaching.Internal
                     tokens[i].Freeze();
                 }
             }
-            return tokens;
+            List<ParsedExpressionToken> parsedTokens = new List<ParsedExpressionToken>();
+
+            ArrayEx.ForEach(tokens, (current, next) =>
+            {
+                ParsedExpressionToken parsedToken = new ParsedExpressionToken(current);
+                parsedToken.NextToken = next;
+                parsedTokens.Add(parsedToken);
+            });
+            return parsedTokens.ToArray();
         }
 
         private static List<EmitPropertyDescriptor> GetEmitPropertyDescriptors(

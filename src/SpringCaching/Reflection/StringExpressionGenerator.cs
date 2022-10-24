@@ -19,12 +19,12 @@ namespace SpringCaching.Reflection
 
         public static EmitExpressionResult EmitExpression(ILGenerator iLGenerator, string expression, IList<EmitFieldBuilderDescriptor> descriptors)
         {
-            var tokens = ExpressionTokenHelper.ParseExpressionTokens(expression);
+            var parsedTokens = ExpressionTokenHelper.ParseExpressionTokens(expression);
 
             List<EmitStringLocalBuilderDescriptor> tokenLocalBuilders = new List<EmitStringLocalBuilderDescriptor>();
-            foreach (var token in tokens)
+            foreach (var parsedToken in parsedTokens)
             {
-                var tokenLocalBuilder = EmitStringExpressionToken(iLGenerator, token, descriptors);
+                var tokenLocalBuilder = EmitStringExpressionToken(iLGenerator, parsedToken, descriptors);
                 if (tokenLocalBuilder != null)
                 {
                     tokenLocalBuilders.Add(tokenLocalBuilder);
@@ -44,9 +44,9 @@ namespace SpringCaching.Reflection
             //iLGenerator.Emit(OpCodes.Stloc, localBuilder);
             return EmitExpressionResult.Success(null);
         }
-        private static EmitStringLocalBuilderDescriptor? EmitStringExpressionToken(ILGenerator iLGenerator, ExpressionToken token, IList<EmitFieldBuilderDescriptor> descriptors)
+        private static EmitStringLocalBuilderDescriptor? EmitStringExpressionToken(ILGenerator iLGenerator, ParsedExpressionToken parsedToken, IList<EmitFieldBuilderDescriptor> descriptors)
         {
-            switch (token.TokenType)
+            switch (parsedToken.Token.TokenType)
             {
                 case ExpressionTokenType.Operator:
                     break;
@@ -55,10 +55,10 @@ namespace SpringCaching.Reflection
                 case ExpressionTokenType.Comma:
                     break;
                 case ExpressionTokenType.Field:
-                    return EmitStringFieldExpressionToken(iLGenerator, token, descriptors);
+                    return EmitStringFieldExpressionToken(iLGenerator, parsedToken.Token, descriptors);
                 case ExpressionTokenType.SingleQuoted:
                 case ExpressionTokenType.DoubleQuoted:
-                    return EmitStringConstantExpressionToken(iLGenerator, token);
+                    return EmitStringConstantExpressionToken(iLGenerator, parsedToken.Token);
                 case ExpressionTokenType.Value:
                     break;
                 default:

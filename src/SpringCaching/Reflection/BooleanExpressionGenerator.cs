@@ -15,14 +15,11 @@ namespace SpringCaching.Reflection
 
         public static EmitExpressionResult EmitExpression(ILGenerator iLGenerator, string expression, IList<EmitFieldBuilderDescriptor> descriptors)
         {
-            var tokens = ExpressionTokenHelper.ParseExpressionTokens(expression);
-
-            var tokenDescriptors = LogicalBooleanExpressionTokenDescriptor.FromTokens(tokens, descriptors);
-
+            var parsedTokens = ExpressionTokenHelper.ParseExpressionTokens(expression);
+            var tokenDescriptors = LogicalBooleanExpressionTokenDescriptor.FromTokens(parsedTokens, descriptors);
             //var tokenDescriptors = BooleanExpressionTokenDescriptor.FromTokens(tokens, descriptors);
-
             List<EmitLocalBuilderDescriptor> tokenLocalBuilders = new List<EmitLocalBuilderDescriptor>();
-            LocalBuilder? localBuilder = null;
+            LocalBuilder? localBuilder = tokenDescriptors.Any(s => s.IsLogicalOr) ? iLGenerator.DeclareLocal(typeof(bool)) : null;
             foreach (var tokenDescriptor in tokenDescriptors)
             {
                 var tokenLocalBuilder = tokenDescriptor.EmitValue(iLGenerator, descriptors, ref localBuilder);

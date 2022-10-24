@@ -37,8 +37,8 @@ namespace SpringCaching.Reflection
             Compare
         }
 
-        public ExpressionToken? OpenParenthesisToken { get; private set; }
-        public ExpressionToken? CloseParenthesisToken { get; private set; }
+        public ParsedExpressionToken? OpenParenthesisToken { get; private set; }
+        public ParsedExpressionToken? CloseParenthesisToken { get; private set; }
 
         public ExpressionTokenDescriptor? Left { get; private set; }
 
@@ -120,14 +120,16 @@ namespace SpringCaching.Reflection
             }
         }
 
-        public static List<BooleanExpressionTokenDescriptor> FromTokens(IList<ExpressionToken> tokens, IList<EmitFieldBuilderDescriptor>? fieldBuilderDescriptors)
+        public static List<BooleanExpressionTokenDescriptor> FromTokens(IList<ParsedExpressionToken> parsedTokens, IList<EmitFieldBuilderDescriptor>? fieldBuilderDescriptors)
         {
             List<BooleanExpressionTokenDescriptor> descriptors = new List<BooleanExpressionTokenDescriptor>();
 
             BooleanExpressionTokenDescriptor currentDescriptor = new BooleanExpressionTokenDescriptor();
 
-            foreach (var token in tokens)
+            foreach (var parsedToken in parsedTokens)
             {
+                var token = parsedToken.Token;
+                var nextToken = parsedToken.NextToken;
                 if (token.TokenType == ExpressionTokenType.OpenParenthesis)
                 {
                     if (currentDescriptor!.IsCompleted)
@@ -135,14 +137,14 @@ namespace SpringCaching.Reflection
                         descriptors.Add(currentDescriptor);
                     }
                     currentDescriptor = new BooleanExpressionTokenDescriptor();
-                    currentDescriptor.OpenParenthesisToken = token;
+                    currentDescriptor.OpenParenthesisToken = parsedToken;
                 }
                 else if (token.TokenType == ExpressionTokenType.CloseParenthesis)
                 {
                     if (currentDescriptor!.IsCompleted)
                     {
                         descriptors.Add(currentDescriptor);
-                        currentDescriptor.CloseParenthesisToken = token;
+                        currentDescriptor.CloseParenthesisToken = parsedToken;
                         currentDescriptor = new BooleanExpressionTokenDescriptor();
                     }
                 }
@@ -184,10 +186,10 @@ namespace SpringCaching.Reflection
                     {
                         if (currentDescriptor.IsCompleted)
                         {
-                            currentDescriptor.IsLogicalOr = true;
                             descriptors.Add(currentDescriptor);
                         }
                         currentDescriptor = new BooleanExpressionTokenDescriptor();
+                        currentDescriptor.IsLogicalOr = true;
                     }
                     else if (token.OperatorType == OperatorType.LogicalNegation)
                     {
@@ -205,52 +207,6 @@ namespace SpringCaching.Reflection
                 }
             }
             if (currentDescriptor.IsCompleted)
-            {
-                descriptors.Add(currentDescriptor);
-            }
-            return descriptors;
-        }
-
-        public static List<BooleanExpressionTokenDescriptor> FromTokensOld(IList<ExpressionToken> tokens, IList<EmitFieldBuilderDescriptor>? fieldBuilderDescriptors)
-        {
-            List<BooleanExpressionTokenDescriptor> descriptors = new List<BooleanExpressionTokenDescriptor>();
-
-            BooleanExpressionTokenDescriptor? currentDescriptor = null;
-            foreach (var token in tokens)
-            {
-                if (token.TokenType == ExpressionTokenType.Field
-                    || token.TokenType == ExpressionTokenType.Value
-                    || token.TokenType == ExpressionTokenType.SingleQuoted
-                    || token.TokenType == ExpressionTokenType.DoubleQuoted
-                    )
-                {
-                    if (currentDescriptor == null || currentDescriptor.Compare == null)
-                    {
-                        currentDescriptor = new BooleanExpressionTokenDescriptor(new ExpressionTokenDescriptor(token, fieldBuilderDescriptors));
-                    }
-                    else
-                    {
-                        currentDescriptor.Right = new ExpressionTokenDescriptor(token, fieldBuilderDescriptors);
-                        descriptors.Add(currentDescriptor);
-                        currentDescriptor = null;
-                    }
-                    continue;
-                }
-                else if (token.TokenType == ExpressionTokenType.Operator)
-                {
-                    //if (currentDescriptor != null && s_supportOperatorTypes.Contains(token.OperatorType))
-                    if ((token.OperatorType == OperatorType.LogicalAnd || token.OperatorType == OperatorType.LogicalOr) && currentDescriptor != null)
-                    {
-                        descriptors.Add(currentDescriptor);
-                        currentDescriptor = null;
-                    }
-                    if (currentDescriptor != null && currentDescriptor.Compare == null)
-                    {
-                        currentDescriptor.Compare = token;
-                    }
-                }
-            }
-            if (currentDescriptor != null && currentDescriptor.IsCompleted)
             {
                 descriptors.Add(currentDescriptor);
             }

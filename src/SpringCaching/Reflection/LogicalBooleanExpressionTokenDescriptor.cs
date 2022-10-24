@@ -1,4 +1,5 @@
-﻿using SpringCaching.Parsing;
+﻿using SpringCaching.Internal;
+using SpringCaching.Parsing;
 using SpringCaching.Reflection.Emit;
 using System;
 using System.Collections.Generic;
@@ -34,9 +35,7 @@ namespace SpringCaching.Reflection
 
         //public LogicalOperatorType? ConnectLogicalType { get; set; }
 
-        public LogicalBooleanExpressionTokenDescriptor? Next { get; set; }
-
-        public LogicalOperatorType? NextLogicalType { get; set; }
+        public bool IsLogicalOr { get; set; }
 
         public string Debug
         {
@@ -50,10 +49,10 @@ namespace SpringCaching.Reflection
             }
         }
 
-        public static List<LogicalBooleanExpressionTokenDescriptor> FromTokens(IList<ExpressionToken> tokens, IList<EmitFieldBuilderDescriptor>? fieldBuilderDescriptors)
+        public static List<LogicalBooleanExpressionTokenDescriptor> FromTokens(IList<ParsedExpressionToken> parsedTokens, IList<EmitFieldBuilderDescriptor>? fieldBuilderDescriptors)
         {
 
-            var tokenDescriptors = BooleanExpressionTokenDescriptor.FromTokens(tokens, fieldBuilderDescriptors);
+            var tokenDescriptors = BooleanExpressionTokenDescriptor.FromTokens(parsedTokens, fieldBuilderDescriptors);
 
             var logicalTokenDescriptors = new List<LogicalBooleanExpressionTokenDescriptor>();
 
@@ -62,37 +61,33 @@ namespace SpringCaching.Reflection
             foreach (var tokenDescriptor in tokenDescriptors)
             {
                 string debug = tokenDescriptor.Debug;
+                if (tokenDescriptor.IsLogicalOr)
+                {
+                    var temp = new LogicalBooleanExpressionTokenDescriptor();
+                    if (current.ExpressionTokenDescriptors.Count > 0)
+                    {
+                        temp.IsLogicalOr = true;
+                        logicalTokenDescriptors.Add(current);
+                    }
+                    current = temp;
+                }
                 current.ExpressionTokenDescriptors.Add(tokenDescriptor);
                 if (tokenDescriptor.OpenParenthesisToken != null)
                 {
                     //begin
                 }
-                if (tokenDescriptor.IsLogicalOr)
-                {
-                    logicalTokenDescriptors.Add(current);
-                    //close
-                    current = new LogicalBooleanExpressionTokenDescriptor();
-                }
-                //if (tokenDescriptor.ConnectOperatorToken != null)
-                //{
-                //    if (current.ExpressionTokenDescriptors.Count == 1 && !current.ConnectLogicalType.HasValue)
-                //    {
-                //        current.ConnectLogicalType = (LogicalOperatorType)Enum.Parse(typeof(LogicalOperatorType), tokenDescriptor.ConnectOperatorToken.OperatorType.ToString());
-                //    }
-                //    else if (current.ExpressionTokenDescriptors.Count > 1 && !current.LogicalType.HasValue)
-                //    {
-                //        current.LogicalType = (LogicalOperatorType)Enum.Parse(typeof(LogicalOperatorType), tokenDescriptor.ConnectOperatorToken.OperatorType.ToString());
-                //        logicalTokenDescriptors.Add(current);
-                //        //close
-                //        //current = new LogicalBooleanExpressionTokenDescriptor();
-                //    }
-                //}
                 if (tokenDescriptor.CloseParenthesisToken != null)
                 {
-                    current.NextLogicalType = tokenDescriptor.IsLogicalOr ? LogicalOperatorType.LogicalOr : LogicalOperatorType.LogicalAnd;
+                    var temp = new LogicalBooleanExpressionTokenDescriptor();
+                    //current.NextLogicalType = tokenDescriptor.IsLogicalOr ? LogicalOperatorType.LogicalOr : LogicalOperatorType.LogicalAnd;
+
+                    if (tokenDescriptor.CloseParenthesisToken.NextToken != null)
+                    {
+                        temp.IsLogicalOr = true;
+                    }
                     logicalTokenDescriptors.Add(current);
                     //close
-                    current = new LogicalBooleanExpressionTokenDescriptor();
+                    current = temp;
                 }
             }
 
@@ -106,63 +101,62 @@ namespace SpringCaching.Reflection
 
         private static void Merge(List<LogicalBooleanExpressionTokenDescriptor> logicalTokenDescriptors)
         {
-            for (int i = 0; i < logicalTokenDescriptors.Count; i++)
+            ArrayEx.ForEach(logicalTokenDescriptors, (current, next) =>
             {
-                var current = logicalTokenDescriptors[i];
-                if (i < logicalTokenDescriptors.Count - 1)
+                if (next == null)
                 {
-                    var next = logicalTokenDescriptors[i + 1];
-                    if (current.NextLogicalType.HasValue && current.NextLogicalType!.Value == LogicalOperatorType.LogicalAnd)
-                    {
-                        //Merge
-                        current.ExpressionTokenDescriptors.AddRange(next.ExpressionTokenDescriptors);
-                        current.Next = next.Next;
-                        current.NextLogicalType = next.NextLogicalType;
-                        i--;
-                        logicalTokenDescriptors.Remove(next);
-                    }
-                    else
-                    {
-                        current.Next = next;
-                    }
+                    return false;
                 }
-            }
+                if (!next.IsLogicalOr)
+                {
+                    current.ExpressionTokenDescriptors.AddRange(next.ExpressionTokenDescriptors);
+                    return true;
+                }
+                return false;
+                //if (current.NextLogicalType.HasValue && current.NextLogicalType!.Value == LogicalOperatorType.LogicalAnd)
+                //{
+                //    //Merge
+                //    current.ExpressionTokenDescriptors.AddRange(next.ExpressionTokenDescriptors);
+                //    current.Next = next.Next;
+                //    current.NextLogicalType = next.NextLogicalType;
+                //    return true;
+                //}
+                //else
+                //{
+                //    current.Next = next;
+                //    return false;
+                //}
+            });
         }
-
-
 
 
         public EmitLocalBuilderDescriptor? EmitValue(ILGenerator iLGenerator, IList<EmitFieldBuilderDescriptor> descriptors, ref LocalBuilder? localBuilder)
         {
-            if (ExpressionTokenDescriptors.Count == 1)
+            if (ExpressionTokenDescriptors.Count == 1 && localBuilder == null)
             {
                 var emitResult = ExpressionTokenDescriptors[0].EmitValue(iLGenerator, descriptors);
                 if (emitResult != null)
                 {
                     localBuilder = emitResult!.LocalBuilder;
                 }
-                //EmitNext(iLGenerator, descriptors, ref localBuilder);
                 return emitResult;
             }
-            //if (!LogicalType.HasValue)
-            //{
-            //    var emitResult = ExpressionTokenDescriptors[0].EmitValue(iLGenerator, descriptors);
-            //    if (emitResult != null)
-            //    {
-            //        localBuilder = emitResult!.LocalBuilder;
-            //    }
-            //    return emitResult;
-            //}
-
 
             if (localBuilder == null)
             {
                 localBuilder = iLGenerator.DeclareLocal(typeof(bool));
             }
 
-            Label elseLabel = iLGenerator.DefineLabel();
-
-            Label lastLabel = iLGenerator.DefineLabel();
+            Label? logicalOrElseLabel = null;
+            if (IsLogicalOr)
+            {
+                logicalOrElseLabel = iLGenerator.DefineLabel();
+                iLGenerator.Emit(OpCodes.Ldloc, localBuilder);
+                iLGenerator.Emit(OpCodes.Ldc_I4_0);
+                iLGenerator.Emit(OpCodes.Bgt_S, logicalOrElseLabel.Value);
+            }
+            var elseLabel = iLGenerator.DefineLabel();
+            var lastLabel = iLGenerator.DefineLabel();
 
             for (int i = 0; i < ExpressionTokenDescriptors.Count; i++)
             {
@@ -183,18 +177,16 @@ namespace SpringCaching.Reflection
                 }
             }
 
-            iLGenerator.Emit(OpCodes.Stloc, localBuilder);
 
-            return new EmitLocalBuilderDescriptor(localBuilder);
-        }
-
-        private void EmitNext(ILGenerator iLGenerator, IList<EmitFieldBuilderDescriptor> descriptors, ref LocalBuilder? localBuilder)
-        {
-            if (Next == null || !NextLogicalType.HasValue)
+            if (IsLogicalOr)
             {
-                return;
+                iLGenerator.MarkLabel(logicalOrElseLabel!.Value);
+                iLGenerator.Emit(OpCodes.Ldc_I4_1);
             }
 
+            iLGenerator.Emit(OpCodes.Stloc, localBuilder);
+
+            return new EmitLocalBuilderDescriptor(localBuilder!);
         }
 
     }
