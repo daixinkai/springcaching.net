@@ -40,8 +40,6 @@ namespace SpringCaching.Reflection
         public ExpressionToken? OpenParenthesisToken { get; private set; }
         public ExpressionToken? CloseParenthesisToken { get; private set; }
 
-        public ExpressionToken? ConnectOperatorToken { get; private set; }
-
         public ExpressionTokenDescriptor? Left { get; private set; }
 
         public ExpressionType Type
@@ -63,7 +61,14 @@ namespace SpringCaching.Reflection
         public ExpressionToken? Compare { get; set; }
         public ExpressionTokenDescriptor? Right { get; set; }
 
+        /// <summary>
+        /// !xxxx
+        /// </summary>
         public bool IsLogicalNegation { get; set; }
+        /// <summary>
+        /// xxx||
+        /// </summary>
+        public bool IsLogicalOr { get; set; }
 
         public string Debug
         {
@@ -167,18 +172,22 @@ namespace SpringCaching.Reflection
                 }
                 else if (token.TokenType == ExpressionTokenType.Operator)
                 {
-                    //if (currentDescriptor != null && s_supportOperatorTypes.Contains(token.OperatorType))
-                    if (
-                        token.OperatorType == OperatorType.LogicalAnd ||
-                        token.OperatorType == OperatorType.LogicalOr
-                        )
+                    if (token.OperatorType == OperatorType.LogicalAnd)
                     {
                         if (currentDescriptor.IsCompleted)
                         {
                             descriptors.Add(currentDescriptor);
                         }
                         currentDescriptor = new BooleanExpressionTokenDescriptor();
-                        currentDescriptor!.ConnectOperatorToken = token;
+                    }
+                    else if (token.OperatorType == OperatorType.LogicalOr)
+                    {
+                        if (currentDescriptor.IsCompleted)
+                        {
+                            currentDescriptor.IsLogicalOr = true;
+                            descriptors.Add(currentDescriptor);
+                        }
+                        currentDescriptor = new BooleanExpressionTokenDescriptor();
                     }
                     else if (token.OperatorType == OperatorType.LogicalNegation)
                     {

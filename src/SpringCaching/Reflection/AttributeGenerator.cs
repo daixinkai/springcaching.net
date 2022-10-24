@@ -76,7 +76,7 @@ namespace SpringCaching.Reflection
                 MethodAttributes.Private
                 | MethodAttributes.HideBySig;
             string methodName = "Get" + attribute.GetType().Name.Replace("Attribute", "") + "Key_" + index;
-            var methodBuilder = typeBuilder.DefineMethod(methodName, methodAttributes, typeof(IKeyGenerator), Type.EmptyTypes);
+            var methodBuilder = typeBuilder.DefineMethod(methodName, methodAttributes, typeof(string), Type.EmptyTypes);
             var iLGenerator = methodBuilder.GetILGenerator();
             var emitExpressionResult = StringExpressionGenerator.EmitExpression(iLGenerator, attribute.Key!, descriptors);
             if (emitExpressionResult.Succeed)
