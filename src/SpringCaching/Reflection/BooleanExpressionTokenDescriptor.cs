@@ -75,10 +75,6 @@ namespace SpringCaching.Reflection
             get
             {
                 StringBuilder stringBuilder = new StringBuilder();
-                //if (OpenParenthesisToken != null)
-                //{
-                //    stringBuilder.Append("(");
-                //}
 
                 if (IsLogicalNegation)
                 {
@@ -86,21 +82,15 @@ namespace SpringCaching.Reflection
                 }
 
                 stringBuilder.Append(Left!.Token.Value!);
-
                 if (Compare != null)
                 {
                     stringBuilder.Append(" " + Compare!.Value!);
                 }
-
                 if (Right != null)
                 {
                     stringBuilder.Append(" " + Right!.Token.Value!);
                 }
 
-                //if (CloseParenthesisToken != null)
-                //{
-                //    stringBuilder.Append(")");
-                //}
                 return stringBuilder.ToString();
             }
         }
