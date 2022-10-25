@@ -14,22 +14,30 @@ namespace SpringCaching.UnitTest.NET45
         [TestMethod]
         public async Task TestMethod1()
         {
-
             //var ss = new SimpleKeyGenerators.StructToStringKeyGenerator<int>(1);
-
             DynamicAssembly dynamicAssembly = SpringCachingServiceProxy.DynamicAssembly;
             dynamicAssembly.DEBUG_MODE = true;
             var testServiceTypeInfo = SpringCachingServiceProxy.GetProxyType(typeof(TestService));
             dynamicAssembly.AssemblyBuilder.Save(dynamicAssembly.AssemblyName);
-
             var testServiceType = testServiceTypeInfo.AsType();
-
             ITestService testService = Activator.CreateInstance(testServiceType, new object[] { new EmptyCacheProvider(), new SpringCachingOptions() }) as ITestService;
-
             var names = await testService.GetNames(1);
             Assert.IsNotNull(names);
         }
 
+
+        [TestMethod]
+        public async Task TestMethod2()
+        {
+            DynamicAssembly dynamicAssembly = SpringCachingServiceProxy.DynamicAssembly;
+            dynamicAssembly.DEBUG_MODE = true;
+            var testServiceTypeInfo = SpringCachingServiceProxy.GetProxyType(typeof(TestUserService));
+            dynamicAssembly.AssemblyBuilder.Save(dynamicAssembly.AssemblyName);
+            var testServiceType = testServiceTypeInfo.AsType();
+            TestUserService testService = Activator.CreateInstance(testServiceType, new object[] { new EmptyCacheProvider(), new SpringCachingOptions() }) as TestUserService;
+            var user = await testService.GetUserAsync(1);
+            Assert.IsNotNull(user);
+        }
         //private static Expression CreateRecursiveExpression()
         //{
         //    var methodInfo = typeof(Console).GetMethod("WriteLine", new[] { typeof(String) });
