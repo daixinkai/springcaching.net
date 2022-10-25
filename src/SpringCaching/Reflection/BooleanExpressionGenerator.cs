@@ -17,25 +17,7 @@ namespace SpringCaching.Reflection
         {
             var parsedTokens = ExpressionTokenHelper.ParseExpressionTokens(expression);
             var tokenDescriptors = LogicalBooleanExpressionTokenDescriptor.FromTokens(parsedTokens, descriptors);
-            List<EmitLocalBuilderDescriptor> tokenLocalBuilders = new List<EmitLocalBuilderDescriptor>();
-            LocalBuilder? localBuilder = tokenDescriptors.Any(s => s.IsLogicalOr) ? iLGenerator.DeclareLocal(typeof(bool)) : null;
-            foreach (var tokenDescriptor in tokenDescriptors)
-            {
-                var tokenLocalBuilder = tokenDescriptor.EmitValue(iLGenerator, descriptors, ref localBuilder);
-                if (tokenLocalBuilder != null)
-                {
-                    tokenLocalBuilders.Add(tokenLocalBuilder);
-                }
-            }
-            if (tokenLocalBuilders.Count == 0)
-            {
-                return EmitExpressionResult.Fail();
-            }
-            if (tokenLocalBuilders.Count == 1)
-            {
-                return EmitExpressionResult.Success(localBuilder);
-            }
-            return EmitExpressionResult.Success();
+            return LogicalBooleanExpressionTokenDescriptor.EmitValue(iLGenerator, tokenDescriptors, descriptors);
         }
 
     }

@@ -136,7 +136,10 @@ namespace SpringCaching.Reflection
                     {
                         descriptors.Add(currentDescriptor);
                     }
-                    currentDescriptor = new BooleanExpressionTokenDescriptor();
+                    if (currentDescriptor.Left != null)
+                    {
+                        currentDescriptor = new BooleanExpressionTokenDescriptor();
+                    }
                     currentDescriptor.OpenParenthesisToken = parsedToken;
                 }
                 else if (token.TokenType == ExpressionTokenType.CloseParenthesis)
@@ -213,31 +216,34 @@ namespace SpringCaching.Reflection
             return descriptors;
         }
 
-        public EmitLocalBuilderDescriptor? EmitValue(ILGenerator iLGenerator, IList<EmitFieldBuilderDescriptor> descriptors)
+        public void EmitValue(ILGenerator iLGenerator, IList<EmitFieldBuilderDescriptor> descriptors)
         {
             if (Type == ExpressionType.Compare)
             {
-                return EmitCompare(iLGenerator, descriptors);
+                EmitCompare(iLGenerator, descriptors);
+                return;
             }
-            bool declareLocal = !IsLogicalNegation;
-            //declareLocal = false;
+            bool declareLocal;// = !IsLogicalNegation;
+            declareLocal = false;
             var leftEmitResult = EmitExpressionToken(iLGenerator, Left!, descriptors, declareLocal);
             if (!leftEmitResult.Succeed)
             {
-                leftEmitResult = EmitConstantExpressionToken(iLGenerator, "true", typeof(bool), declareLocal);
+                /*leftEmitResult =*/
+                EmitConstantExpressionToken(iLGenerator, "true", typeof(bool), declareLocal);
             }
 
-            var localBuilder = leftEmitResult.LocalBuilder;
+            //var localBuilder = leftEmitResult.LocalBuilder;
             if (IsLogicalNegation)
             {
-                localBuilder = iLGenerator.DeclareLocal(typeof(bool));
+                //var localBuilder = iLGenerator.DeclareLocal(typeof(bool));
                 ExpressionTokenHelper.EmitOperatorType(iLGenerator, OperatorType.LogicalNegation);
-                iLGenerator.Emit(OpCodes.Stloc, localBuilder);
+                //iLGenerator.Emit(OpCodes.Stloc, localBuilder);
+                //iLGenerator.Emit(OpCodes.Ldloc, localBuilder);
             }
-            return new EmitLocalBuilderDescriptor(localBuilder!);
+
         }
 
-        public EmitLocalBuilderDescriptor? EmitCompare(ILGenerator iLGenerator, IList<EmitFieldBuilderDescriptor> descriptors)
+        public void EmitCompare(ILGenerator iLGenerator, IList<EmitFieldBuilderDescriptor> descriptors)
         {
             var leftEmitResult = EmitExpressionToken(iLGenerator, Left!, descriptors, false);
             var emitOperator = EmitOperatorDescriptor.Create(leftEmitResult.Type!, Compare!.OperatorType, Right!);
@@ -248,9 +254,6 @@ namespace SpringCaching.Reflection
                 EmitConstantExpressionToken(iLGenerator, "true", typeof(bool), false);
             }
             emitOperator!.PostEmitOperator(iLGenerator);
-            LocalBuilder? localBuilder = iLGenerator.DeclareLocal(typeof(bool));
-            iLGenerator.Emit(OpCodes.Stloc, localBuilder);
-            return new EmitLocalBuilderDescriptor(localBuilder);
         }
 
         #region private

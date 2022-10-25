@@ -2,6 +2,7 @@
 using SpringCaching.Parsing;
 using SpringCaching.Reflection.Emit;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
@@ -31,23 +32,9 @@ namespace SpringCaching.Reflection
 
         public List<BooleanExpressionTokenDescriptor> ExpressionTokenDescriptors { get; } = new List<BooleanExpressionTokenDescriptor>();
 
-        //public LogicalOperatorType? LogicalType { get; set; }
-
-        //public LogicalOperatorType? ConnectLogicalType { get; set; }
-
         public bool IsLogicalOr { get; set; }
 
-        public string Debug
-        {
-            get
-            {
-                StringBuilder stringBuilder = new StringBuilder();
-
-
-
-                return stringBuilder.ToString();
-            }
-        }
+        public LogicalBooleanExpressionTokenDescriptor? Next { get; set; }
 
         public static List<LogicalBooleanExpressionTokenDescriptor> FromTokens(IList<ParsedExpressionToken> parsedTokens, IList<EmitFieldBuilderDescriptor>? fieldBuilderDescriptors)
         {
@@ -79,8 +66,6 @@ namespace SpringCaching.Reflection
                 if (tokenDescriptor.CloseParenthesisToken != null)
                 {
                     var temp = new LogicalBooleanExpressionTokenDescriptor();
-                    //current.NextLogicalType = tokenDescriptor.IsLogicalOr ? LogicalOperatorType.LogicalOr : LogicalOperatorType.LogicalAnd;
-
                     if (tokenDescriptor.CloseParenthesisToken.NextToken != null)
                     {
                         temp.IsLogicalOr = true;
@@ -103,6 +88,7 @@ namespace SpringCaching.Reflection
         {
             ArrayEx.ForEach(logicalTokenDescriptors, (current, next) =>
             {
+                current.Next = next;
                 if (next == null)
                 {
                     return false;
@@ -129,32 +115,15 @@ namespace SpringCaching.Reflection
             });
         }
 
-
-        public EmitLocalBuilderDescriptor? EmitValue(ILGenerator iLGenerator, IList<EmitFieldBuilderDescriptor> descriptors, ref LocalBuilder? localBuilder)
+        private void EmitValue(ILGenerator iLGenerator, IList<EmitFieldBuilderDescriptor> descriptors)
         {
-            if (ExpressionTokenDescriptors.Count == 1 && localBuilder == null)
+            if (ExpressionTokenDescriptors.Count == 1)
             {
-                var emitResult = ExpressionTokenDescriptors[0].EmitValue(iLGenerator, descriptors);
-                if (emitResult != null)
-                {
-                    localBuilder = emitResult!.LocalBuilder;
-                }
-                return emitResult;
+                ExpressionTokenDescriptors[0].EmitValue(iLGenerator, descriptors);
+                return;
             }
 
-            if (localBuilder == null)
-            {
-                localBuilder = iLGenerator.DeclareLocal(typeof(bool));
-            }
 
-            Label? logicalOrElseLabel = null;
-            if (IsLogicalOr)
-            {
-                logicalOrElseLabel = iLGenerator.DefineLabel();
-                iLGenerator.Emit(OpCodes.Ldloc, localBuilder);
-                iLGenerator.Emit(OpCodes.Ldc_I4_0);
-                iLGenerator.Emit(OpCodes.Bgt_S, logicalOrElseLabel.Value);
-            }
             var elseLabel = iLGenerator.DefineLabel();
             var lastLabel = iLGenerator.DefineLabel();
 
@@ -162,8 +131,7 @@ namespace SpringCaching.Reflection
             {
                 var expressionTokenDescriptor = ExpressionTokenDescriptors[i];
                 bool isLast = i == ExpressionTokenDescriptors.Count - 1;
-                var emitLocalBuilderDescriptor = expressionTokenDescriptor.EmitValue(iLGenerator, descriptors);
-                emitLocalBuilderDescriptor!.EmitValue(iLGenerator);
+                expressionTokenDescriptor.EmitValue(iLGenerator, descriptors);
                 if (!isLast)
                 {
                     iLGenerator.Emit(OpCodes.Brfalse_S, elseLabel);
@@ -178,15 +146,42 @@ namespace SpringCaching.Reflection
             }
 
 
-            if (IsLogicalOr)
+        }
+
+        public static EmitExpressionResult EmitValue(ILGenerator iLGenerator, IList<LogicalBooleanExpressionTokenDescriptor> logicalDescriptors, IList<EmitFieldBuilderDescriptor> descriptors)
+        {
+            if (logicalDescriptors.Count == 0)
             {
-                iLGenerator.MarkLabel(logicalOrElseLabel!.Value);
-                iLGenerator.Emit(OpCodes.Ldc_I4_1);
+                return EmitExpressionResult.Fail();
+            }
+            LocalBuilder localBuilder = iLGenerator.DeclareLocal(typeof(bool));
+
+            Label? logicalOrLabel = null;
+
+            foreach (var logicalDescriptor in logicalDescriptors)
+            {
+                logicalDescriptor.EmitValue(iLGenerator, descriptors);
+                if (logicalDescriptor.Next != null)
+                {
+                    if (!logicalOrLabel.HasValue)
+                    {
+                        logicalOrLabel = iLGenerator.DefineLabel();
+                    }
+                    iLGenerator.Emit(OpCodes.Brtrue_S, logicalOrLabel.Value);
+                    continue;
+                }
+                if (logicalOrLabel.HasValue)
+                {
+                    var lastLabel = iLGenerator.DefineLabel();
+                    iLGenerator.Emit(OpCodes.Br_S, lastLabel);
+                    iLGenerator.MarkLabel(logicalOrLabel.Value);
+                    iLGenerator.Emit(OpCodes.Ldc_I4_1);
+                    iLGenerator.MarkLabel(lastLabel);
+                }
             }
 
             iLGenerator.Emit(OpCodes.Stloc, localBuilder);
-
-            return new EmitLocalBuilderDescriptor(localBuilder!);
+            return EmitExpressionResult.Success(localBuilder);
         }
 
     }
