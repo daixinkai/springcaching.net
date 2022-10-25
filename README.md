@@ -74,6 +74,7 @@
 - [x] !#param.Id.HasValue
 - [x] #id > 0 && #param.Id.HasValue
 - [x] !(#id > 0 && !#param.Id.HasValue)
+- [ ] !(#id > 0 || !#param.Id.HasValue)
 - [x] !(#id > 0 && !#param.Id.HasValue) || #param.Count > 0
 
 
