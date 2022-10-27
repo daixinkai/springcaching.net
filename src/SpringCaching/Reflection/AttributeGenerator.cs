@@ -61,7 +61,7 @@ namespace SpringCaching.Reflection
                 EmitSimpleKeyGenerator(iLGenerator, descriptors);
                 return;
             }
-            var keyMethodBuilder = DefineGetKeyGeneratorMethod(typeBuilder, index, attribute, descriptors);
+            var keyMethodBuilder = DefineGetKeyMethod(typeBuilder, index, attribute, descriptors);
             iLGenerator.Emit(OpCodes.Ldarg_0);
             iLGenerator.Emit(OpCodes.Ldftn, keyMethodBuilder);
             //new FuncPredicateGenerator(invoker)
@@ -69,7 +69,7 @@ namespace SpringCaching.Reflection
             iLGenerator.Emit(OpCodes.Newobj, typeof(FuncKeyGenerator).GetConstructorEx());
         }
 
-        private MethodBuilder DefineGetKeyGeneratorMethod(TypeBuilder typeBuilder, int index, CacheBaseAttribute attribute, IList<EmitFieldBuilderDescriptor> descriptors)
+        private MethodBuilder DefineGetKeyMethod(TypeBuilder typeBuilder, int index, CacheBaseAttribute attribute, IList<EmitFieldBuilderDescriptor> descriptors)
         {
             //create method
             MethodAttributes methodAttributes =
