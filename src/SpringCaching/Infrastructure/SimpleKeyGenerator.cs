@@ -81,6 +81,7 @@ namespace SpringCaching.Infrastructure
 #else
                 string json = Encoding.UTF8.GetString(SystemTextJsonCacheSerializer.JsonCacheSerializer.SerializeObject(_value));
 #endif
+                json = json.Replace(":", "-");
                 return IncludePrefix ? GetPrefix() + json : json;
             }
 
@@ -90,7 +91,7 @@ namespace SpringCaching.Infrastructure
 
         protected abstract string? GetKey();
 
-        string? IKeyGenerator.GetKey(string? expression, IStringExpressionParser parser, ISpringCachingRequirement requirement) => GetKey();
+        string? IKeyGenerator.GetKey(string? expression, ISpringCachingRequirement requirement) => GetKey();
 
     }
 }

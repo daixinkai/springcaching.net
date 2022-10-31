@@ -221,13 +221,13 @@ namespace SpringCaching.Proxy
         {
             if (cacheRequirement.KeyGenerator != null)
             {
-                return GetCacheKey(cacheRequirement.Value, cacheRequirement.KeyGenerator.GetKey(cacheRequirement.Key, proxy.Options.KeyExpressionParser, requirement));
+                return GetCacheKey(cacheRequirement.Value, cacheRequirement.KeyGenerator.GetKey(cacheRequirement.Key, requirement));
             }
             if (cacheRequirement.Key == null)
             {
                 return cacheRequirement.Value;
             }
-            return GetCacheKey(cacheRequirement.Value, DefaultKeyGenerator.Instance.GetKey(cacheRequirement.Key, proxy.Options.KeyExpressionParser, requirement));
+            return GetCacheKey(cacheRequirement.Value, DefaultKeyGenerator.Instance.GetKey(cacheRequirement.Key, requirement));
         }
 
         private static string GetCacheKey(string cacheableValue, string? cacheableKey)
@@ -261,16 +261,16 @@ namespace SpringCaching.Proxy
                 return true;
             }
             var conditionGenerator = cacheableRequirement.ConditionGenerator ?? DefaultPredicateGenerator.Instance;
-            return IsPredicate(cacheableRequirement.Condition, conditionGenerator, proxy.Options.ConditionExpressionParser, requirement);
+            return IsPredicate(cacheableRequirement.Condition, conditionGenerator, requirement);
         }
 
-        private static bool IsPredicate(string? expression, IPredicateGenerator predicateGenerator, IBooleanExpressionParser parser, ISpringCachingRequirement requirement)
+        private static bool IsPredicate(string? expression, IPredicateGenerator predicateGenerator, ISpringCachingRequirement requirement)
         {
             if (string.IsNullOrWhiteSpace(expression))
             {
                 return true;
             }
-            return predicateGenerator.Predicate(expression, parser, requirement);
+            return predicateGenerator.Predicate(expression, requirement);
         }
 
 

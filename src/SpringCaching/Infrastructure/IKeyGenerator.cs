@@ -10,6 +10,6 @@ namespace SpringCaching.Infrastructure
 {
     public interface IKeyGenerator
     {
-        string? GetKey(string? expression, IStringExpressionParser parser, ISpringCachingRequirement requirement);
+        string? GetKey(string? expression, ISpringCachingRequirement requirement);
     }
 }

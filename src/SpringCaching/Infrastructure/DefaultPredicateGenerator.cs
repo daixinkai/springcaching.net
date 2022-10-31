@@ -11,13 +11,6 @@ namespace SpringCaching.Infrastructure
     internal class DefaultPredicateGenerator : IPredicateGenerator
     {
         public static readonly DefaultPredicateGenerator Instance = new DefaultPredicateGenerator();
-        public bool Predicate(string? expression, IBooleanExpressionParser parser, ISpringCachingRequirement requirement)
-        {
-            if (expression == null)
-            {
-                return true;
-            }
-            return parser.Parse(expression, requirement.Arguments).Value;
-        }
+        public bool Predicate(string? expression, ISpringCachingRequirement requirement) => true;
     }
 }

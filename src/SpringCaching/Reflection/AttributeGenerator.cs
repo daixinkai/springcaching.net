@@ -34,7 +34,29 @@ namespace SpringCaching.Reflection
                 iLGenerator.EmitSetProperty(typeof(CacheRequirementBase).GetProperty("Condition")!, attribute.Condition, true);
             }
 
-            if (descriptors.Count > 0)
+            #region KeyGenerator
+            if (attribute.KeyGenerator != null)
+            {
+                if (!typeof(IKeyGenerator).IsAssignableFrom(attribute.KeyGenerator))
+                {
+                    throw new ArgumentException($"Type {attribute.KeyGenerator.FullName} must be implementation from IKeyGenerator!");
+                }
+                if (!attribute.KeyGenerator.IsPublic)
+                {
+                    throw new ArgumentException($"Type {attribute.KeyGenerator.FullName} must be public!");
+                }
+                //new xxxxKeyGenerator()
+                var keyGeneratorConstructor = attribute.KeyGenerator.GetConstructorEx(Type.EmptyTypes);
+                if (keyGeneratorConstructor == null)
+                {
+                    throw new ArgumentException($"Type {attribute.KeyGenerator.FullName} has no default constructor!");
+                }
+                iLGenerator.Emit(OpCodes.Dup);
+                iLGenerator.Emit(OpCodes.Newobj, keyGeneratorConstructor);
+                iLGenerator.Emit(OpCodes.Callvirt, typeof(CacheRequirementBase).GetProperty("KeyGenerator")!.SetMethod!);
+                iLGenerator.Emit(OpCodes.Nop);
+            }
+            else if (descriptors.Count > 0)
             {
                 // KeyGenerator
                 iLGenerator.Emit(OpCodes.Dup);
@@ -42,8 +64,31 @@ namespace SpringCaching.Reflection
                 iLGenerator.Emit(OpCodes.Callvirt, typeof(CacheRequirementBase).GetProperty("KeyGenerator")!.SetMethod!);
                 iLGenerator.Emit(OpCodes.Nop);
             }
+            #endregion
 
-            if (!string.IsNullOrWhiteSpace(attribute.Condition) && descriptors.Count > 0)
+            #region ConditionGenerator
+            if (attribute.ConditionGenerator != null)
+            {
+                if (!typeof(IPredicateGenerator).IsAssignableFrom(attribute.ConditionGenerator))
+                {
+                    throw new ArgumentException($"Type {attribute.ConditionGenerator.FullName} must be implementation from IPredicateGenerator!");
+                }
+                if (!attribute.ConditionGenerator.IsPublic)
+                {
+                    throw new ArgumentException($"Type {attribute.ConditionGenerator.FullName} must be public!");
+                }
+                //new xxxxConditionGenerator()
+                var conditionGeneratorConstructor = attribute.ConditionGenerator.GetConstructorEx(Type.EmptyTypes);
+                if (conditionGeneratorConstructor == null)
+                {
+                    throw new ArgumentException($"Type {attribute.ConditionGenerator.FullName} has no default constructor!");
+                }
+                iLGenerator.Emit(OpCodes.Dup);
+                iLGenerator.Emit(OpCodes.Newobj, conditionGeneratorConstructor);
+                iLGenerator.Emit(OpCodes.Callvirt, typeof(CacheRequirementBase).GetProperty("ConditionGenerator")!.SetMethod!);
+                iLGenerator.Emit(OpCodes.Nop);
+            }
+            else if (!string.IsNullOrWhiteSpace(attribute.Condition) && descriptors.Count > 0)
             {
                 //ConditionGenerator
                 iLGenerator.Emit(OpCodes.Dup);
@@ -51,6 +96,7 @@ namespace SpringCaching.Reflection
                 iLGenerator.Emit(OpCodes.Callvirt, typeof(CacheRequirementBase).GetProperty("ConditionGenerator")!.SetMethod!);
                 iLGenerator.Emit(OpCodes.Nop);
             }
+            #endregion
 
         }
 

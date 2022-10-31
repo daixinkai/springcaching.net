@@ -1,4 +1,4 @@
-﻿using SpringCaching.Requirement;
+﻿using SpringCaching.Infrastructure;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -28,6 +28,16 @@ namespace SpringCaching
         /// Default is "", meaning the method result is always cached.
         /// </summary>
         public string? Condition { get; set; }
+        /// <summary>
+        /// The bean name of the custom <see cref="IKeyGenerator"/> to use.
+        /// Mutually exclusive with the key attribute.
+        /// </summary>
+        public Type? KeyGenerator { get; set; }
+        /// <summary>
+        /// The bean name of the custom <see cref="IPredicateGenerator"/> to use.
+        /// Mutually exclusive with the key attribute.
+        /// </summary>
+        public Type? ConditionGenerator { get; set; }
 
     }
 }

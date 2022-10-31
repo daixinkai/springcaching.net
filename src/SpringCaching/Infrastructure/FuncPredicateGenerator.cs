@@ -17,7 +17,7 @@ namespace SpringCaching.Infrastructure
 
         private readonly Func<bool> _func;
 
-        bool IPredicateGenerator.Predicate(string? expression, IBooleanExpressionParser parser, ISpringCachingRequirement requirement)
+        bool IPredicateGenerator.Predicate(string? expression, ISpringCachingRequirement requirement)
         {
             return _func.Invoke();
         }

@@ -9,7 +9,13 @@ namespace SpringCaching.Tests
     [SpringCaching]
     public class TestUserService
     {
-        [Cacheable("users", Key = "#id", Condition = "#id>0", ExpirationPolicy = ExpirationPolicy.Absolute, ExpirationUnit = ExpirationUnit.Minute, ExpirationValue = 1)]
+        [Cacheable("users",
+            Key = "#id",
+            Condition = "#id>0",
+            //ConditionGenerator = typeof(TestPredicateGenerator),
+            ExpirationPolicy = ExpirationPolicy.Absolute,
+            ExpirationUnit = ExpirationUnit.Minute,
+            ExpirationValue = 1)]
         public virtual Task<UserResultDto> GetUserAsync(int id)
         {
             return Task.FromResult(new UserResultDto

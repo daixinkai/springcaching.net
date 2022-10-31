@@ -10,6 +10,6 @@ namespace SpringCaching.Infrastructure
 {
     public interface IPredicateGenerator
     {
-        bool Predicate(string? expression, IBooleanExpressionParser parser, ISpringCachingRequirement requirement);
+        bool Predicate(string? expression, ISpringCachingRequirement requirement);
     }
 }

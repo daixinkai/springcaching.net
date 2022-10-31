@@ -18,7 +18,7 @@ namespace SpringCaching.Infrastructure
 
         private readonly Func<string> _func;
 
-        string? IKeyGenerator.GetKey(string? expression, IStringExpressionParser parser, ISpringCachingRequirement requirement)
+        string? IKeyGenerator.GetKey(string? expression, ISpringCachingRequirement requirement)
         {
             return _func.Invoke();
         }
