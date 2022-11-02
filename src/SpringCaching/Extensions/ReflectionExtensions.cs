@@ -210,9 +210,17 @@ namespace SpringCaching
                     iLGenerator.Emit(OpCodes.Ldc_I4_8);
                     break;
                 default:
-                    iLGenerator.Emit(OpCodes.Ldc_I4_S, value);
+                    if (value > -128 && value <= 128)
+                    {
+                        iLGenerator.Emit(OpCodes.Ldc_I4_S, value);
+                    }
+                    else
+                    {
+                        iLGenerator.Emit(OpCodes.Ldc_I4, value);
+                    }
                     break;
             }
+            
         }
 
         public static LocalBuilder? EmitNullablePropertyValue(this ILGenerator iLGenerator, PropertyInfo property)

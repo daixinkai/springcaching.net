@@ -15,7 +15,7 @@ namespace SpringCaching.Tests
             //ConditionGenerator = typeof(TestPredicateGenerator),
             ExpirationPolicy = ExpirationPolicy.Absolute,
             ExpirationUnit = ExpirationUnit.Minute,
-            ExpirationValue = 1)]
+            ExpirationValue = 600)]
         public virtual Task<UserResultDto> GetUserAsync(int id)
         {
             return Task.FromResult(new UserResultDto
