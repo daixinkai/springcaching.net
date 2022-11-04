@@ -84,7 +84,7 @@
 <details>
 <summary>TestUserService</summary>
 
-<pre><code> 
+```csharp
     [SpringCaching]
     public class TestUserService
     {
@@ -110,14 +110,14 @@
         }
 
     }
-</code></pre>
+```
 </details>
 
 <details>
 <summary>TestUserServiceProxy</summary>
 
-<pre><code> 
-[StructLayout(LayoutKind.Auto, CharSet = CharSet.Auto)]
+```csharp
+  [StructLayout(LayoutKind.Auto, CharSet = CharSet.Auto)]
 	public class TestUserService_BB93BE8338034C5FBC946FB266372676 : TestUserService, ISpringCachingProxy
 	{
 		// Token: 0x06000001 RID: 1 RVA: 0x00002378 File Offset: 0x00000578
@@ -414,5 +414,5 @@
 			private TestUserService_BB93BE8338034C5FBC946FB266372676 _this_Service;
 		}
 	}
-</code></pre>
+```
 </details>
