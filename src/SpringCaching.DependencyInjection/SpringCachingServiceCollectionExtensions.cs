@@ -69,16 +69,16 @@ namespace Microsoft.Extensions.DependencyInjection
             return null;
         }
 
-        private static Type? CreateProxyType(object serviceInstance)
-        {
-            var serviceType = serviceInstance.GetType();
-            if (serviceType.IsDefined(typeof(SpringCachingAttribute), true) && !serviceType.IsDefined(typeof(NonSpringCachingAttribute)))
-            {
-                var typeInfo = SpringCachingServiceProxy.GetProxyType(serviceInstance);
-                return typeInfo?.AsType();
-            }
-            return null;
-        }
+        //private static Type? CreateProxyType(object serviceInstance)
+        //{
+        //    var serviceType = serviceInstance.GetType();
+        //    if (serviceType.IsDefined(typeof(SpringCachingAttribute), true) && !serviceType.IsDefined(typeof(NonSpringCachingAttribute)))
+        //    {
+        //        var typeInfo = SpringCachingServiceProxy.GetProxyType(serviceInstance);
+        //        return typeInfo?.AsType();
+        //    }
+        //    return null;
+        //}
 
 
         private static void RemoveService(IServiceCollection services, Type serviceType)
