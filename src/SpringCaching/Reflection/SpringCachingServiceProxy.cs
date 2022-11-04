@@ -53,5 +53,35 @@ namespace SpringCaching.Reflection
             //s_serviceProxyMap.Add(serviceType, proxyType!);
             return proxyType.TypeInfo;
         }
+
+        //public static TypeInfo? GetProxyType(object serviceInstance)
+        //{
+        //    if (serviceInstance == null)
+        //    {
+        //        return null;
+        //    }
+        //    var serviceType = serviceInstance.GetType();
+        //    if (serviceType.IsGenericType && serviceType.IsGenericTypeDefinition)
+        //    {
+        //        return null;
+        //    }
+        //    if (serviceType.IsSealed)
+        //    {
+        //        return null;
+        //    }
+        //    //if (s_serviceProxyMap.TryGetValue(serviceType, out var proxyType))
+        //    //{
+        //    //    return proxyType.TypeInfo;
+        //    //}
+        //    var proxyType = new SpringCachingServiceInstanceProxyInfo(serviceType)
+        //    {
+        //        DynamicAssembly = s_dynamicAssembly,
+        //        Suffix = s_suffix
+        //    };
+        //    proxyType.Build();
+        //    //s_serviceProxyMap.Add(serviceType, proxyType!);
+        //    return proxyType.TypeInfo;
+        //}
+
     }
 }

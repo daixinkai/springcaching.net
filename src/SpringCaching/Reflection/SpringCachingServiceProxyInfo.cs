@@ -87,7 +87,7 @@ namespace SpringCaching.Reflection
                 constructorIlGenerator.Emit(OpCodes.Ldarg_0);
                 for (int i = 0; i < serviceTypeConstructorParameters.Length; i++)
                 {
-                    constructorIlGenerator.Emit(OpCodes.Ldarg_S, i + 1);
+                    constructorIlGenerator.EmitLdarg(i + 1);
                 }
                 constructorIlGenerator.Emit(OpCodes.Call, serviceTypeConstructor);
                 constructorIlGenerator.Emit(OpCodes.Nop);
@@ -95,10 +95,10 @@ namespace SpringCaching.Reflection
             if (_implementProxy)
             {
                 constructorIlGenerator.Emit(OpCodes.Ldarg_0);
-                constructorIlGenerator.Emit(OpCodes.Ldarg_S, index + 1);
+                constructorIlGenerator.EmitLdarg(index + 1);
                 constructorIlGenerator.Emit(OpCodes.Stfld, _cacheProviderFieldBuilder!);
                 constructorIlGenerator.Emit(OpCodes.Ldarg_0);
-                constructorIlGenerator.Emit(OpCodes.Ldarg_S, index + 2);
+                constructorIlGenerator.EmitLdarg(index + 2);
                 constructorIlGenerator.Emit(OpCodes.Stfld, _optionsFieldBuilder!);
             }
             constructorIlGenerator.Emit(OpCodes.Ret);
@@ -241,7 +241,7 @@ namespace SpringCaching.Reflection
             iLGenerator.Emit(OpCodes.Ldarg_0); //this
             for (int i = 1; i <= parameters.Length; i++)
             {
-                iLGenerator.Emit(OpCodes.Ldarg_S, i);
+                iLGenerator.EmitLdarg(i);
             }
 
             iLGenerator.Emit(OpCodes.Newobj, anonymousMethodClassTypeBuild.Item2);

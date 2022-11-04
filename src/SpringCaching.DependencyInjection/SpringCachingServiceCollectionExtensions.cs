@@ -43,6 +43,12 @@ namespace Microsoft.Extensions.DependencyInjection
                 else if (serviceDescriptor.ImplementationInstance != null)
                 {
                     //not support
+                    //var proxyType = CreateProxyType(serviceDescriptor.ImplementationInstance);
+                    //if (proxyType != null)
+                    //{
+                    //    RemoveService(services, serviceDescriptor.ServiceType);
+                    //    services.Add(ServiceDescriptor.Singleton(serviceDescriptor.ServiceType, Activator.CreateInstance(proxyType, serviceDescriptor.ImplementationInstance)));
+                    //}
                 }
                 else if (serviceDescriptor.ImplementationFactory != null)
                 {
@@ -58,6 +64,17 @@ namespace Microsoft.Extensions.DependencyInjection
             if (serviceType.IsDefined(typeof(SpringCachingAttribute), true) && !serviceType.IsDefined(typeof(NonSpringCachingAttribute)))
             {
                 var typeInfo = SpringCachingServiceProxy.GetProxyType(serviceType);
+                return typeInfo?.AsType();
+            }
+            return null;
+        }
+
+        private static Type? CreateProxyType(object serviceInstance)
+        {
+            var serviceType = serviceInstance.GetType();
+            if (serviceType.IsDefined(typeof(SpringCachingAttribute), true) && !serviceType.IsDefined(typeof(NonSpringCachingAttribute)))
+            {
+                var typeInfo = SpringCachingServiceProxy.GetProxyType(serviceInstance);
                 return typeInfo?.AsType();
             }
             return null;
