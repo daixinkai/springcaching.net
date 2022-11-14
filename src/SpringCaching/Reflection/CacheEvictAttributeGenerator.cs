@@ -39,13 +39,13 @@ namespace SpringCaching.Reflection
 
             var iLGenerator = methodBuilder.GetILGenerator();
             //like new CacheEvictDescriptor[]{x,x,x,x}
-            iLGenerator.Emit(OpCodes.Ldc_I4, cacheEvictAttributes.Count);
+            iLGenerator.EmitInt32Value(cacheEvictAttributes.Count);
             iLGenerator.Emit(OpCodes.Newarr, typeof(ICacheEvictRequirement));
             int index = 0;
             foreach (var cacheEvictRequirementMethod in cacheEvictRequirementMethods)
             {
                 iLGenerator.Emit(OpCodes.Dup);
-                iLGenerator.Emit(OpCodes.Ldc_I4, index);
+                iLGenerator.EmitInt32Value(index);
                 iLGenerator.Emit(OpCodes.Ldarg_0);
                 iLGenerator.Emit(OpCodes.Call, cacheEvictRequirementMethod);
                 iLGenerator.Emit(OpCodes.Stelem_Ref);

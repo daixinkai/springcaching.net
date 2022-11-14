@@ -140,13 +140,13 @@ namespace SpringCaching.Reflection
             }
             method = typeof(string).GetMethod("Concat", new Type[] { typeof(string[]) });
             //new string[]{x,x,x,x,x,}
-            iLGenerator.Emit(OpCodes.Ldc_I4, stringDescriptors.Count);
+            iLGenerator.EmitInt32Value(stringDescriptors.Count);
             iLGenerator.Emit(OpCodes.Newarr, typeof(string));
             int index = 0;
             foreach (var descriptor in stringDescriptors)
             {
                 iLGenerator.Emit(OpCodes.Dup);
-                iLGenerator.Emit(OpCodes.Ldc_I4, index);
+                iLGenerator.EmitInt32Value(index);
                 descriptor.EmitValue(iLGenerator);
                 iLGenerator.Emit(OpCodes.Stelem_Ref);
                 index++;

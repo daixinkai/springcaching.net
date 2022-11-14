@@ -22,15 +22,7 @@ namespace SpringCaching
             }
             else if (value is bool boolValue)
             {
-                if (boolValue)
-                {
-                    iLGenerator.Emit(OpCodes.Ldc_I4_1);
-                }
-                else
-                {
-                    iLGenerator.Emit(OpCodes.Ldc_I4_0);
-                }
-
+                iLGenerator.EmitBooleanValue(boolValue);
             }
             else if (value is int int32Value)
             {
@@ -102,6 +94,18 @@ namespace SpringCaching
                     break;
             }
 
+        }
+
+        public static void EmitBooleanValue(this ILGenerator iLGenerator, bool value)
+        {
+            if (value)
+            {
+                iLGenerator.Emit(OpCodes.Ldc_I4_1);
+            }
+            else
+            {
+                iLGenerator.Emit(OpCodes.Ldc_I4_0);
+            }
         }
 
         public static LocalBuilder? EmitNullablePropertyValue(this ILGenerator iLGenerator, PropertyInfo property)

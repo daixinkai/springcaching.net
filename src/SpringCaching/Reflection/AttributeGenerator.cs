@@ -238,13 +238,13 @@ namespace SpringCaching.Reflection
             }
 
             //new object[]{x,x,x,x,x,}
-            iLGenerator.Emit(OpCodes.Ldc_I4, descriptors.Count);
+            iLGenerator.EmitInt32Value(descriptors.Count);
             iLGenerator.Emit(OpCodes.Newarr, typeof(object));
             int index = 0;
             foreach (var descriptor in descriptors)
             {
                 iLGenerator.Emit(OpCodes.Dup);
-                iLGenerator.Emit(OpCodes.Ldc_I4, index);
+                iLGenerator.EmitInt32Value(index);
                 descriptor.EmitValue(iLGenerator);
                 descriptor.EmitBox(iLGenerator);
                 iLGenerator.Emit(OpCodes.Stelem_Ref);

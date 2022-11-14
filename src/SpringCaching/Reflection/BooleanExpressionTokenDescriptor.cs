@@ -314,7 +314,7 @@ namespace SpringCaching.Reflection
             }
             else if (type == typeof(int) && int.TryParse(value, out var intValue))
             {
-                iLGenerator.Emit(OpCodes.Ldc_I4, intValue);
+                iLGenerator.EmitInt32Value(intValue);
             }
             else if (type == typeof(long) && long.TryParse(value, out var longValue))
             {

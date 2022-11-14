@@ -48,13 +48,13 @@ namespace SpringCaching.Reflection
 
             var iLGenerator = methodBuilder.GetILGenerator();
             //like new CacheCacheableDescriptor[]{x,x,x,x}
-            iLGenerator.Emit(OpCodes.Ldc_I4, cacheableAttributes.Count);
+            iLGenerator.EmitInt32Value(cacheableAttributes.Count);
             iLGenerator.Emit(OpCodes.Newarr, typeof(ICacheableRequirement));
             int index = 0;
             foreach (var cacheableRequirementMethod in cacheableRequirementMethods)
             {
                 iLGenerator.Emit(OpCodes.Dup);
-                iLGenerator.Emit(OpCodes.Ldc_I4, index);
+                iLGenerator.EmitInt32Value(index);
                 iLGenerator.Emit(OpCodes.Ldarg_0);
                 iLGenerator.Emit(OpCodes.Call, cacheableRequirementMethod);
                 iLGenerator.Emit(OpCodes.Stelem_Ref);

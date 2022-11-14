@@ -37,13 +37,13 @@ namespace SpringCaching.Reflection
 
             var iLGenerator = methodBuilder.GetILGenerator();
             //like new CachePutDescriptor[]{x,x,x,x}
-            iLGenerator.Emit(OpCodes.Ldc_I4, cachePutAttributes.Count);
+            iLGenerator.EmitInt32Value(cachePutAttributes.Count);
             iLGenerator.Emit(OpCodes.Newarr, typeof(ICachePutRequirement));
             int index = 0;
             foreach (var cachePutRequirementMethod in cachePutRequirementMethods)
             {
                 iLGenerator.Emit(OpCodes.Dup);
-                iLGenerator.Emit(OpCodes.Ldc_I4, index);
+                iLGenerator.EmitInt32Value(index);
                 iLGenerator.Emit(OpCodes.Ldarg_0);
                 iLGenerator.Emit(OpCodes.Call, cachePutRequirementMethod);
                 iLGenerator.Emit(OpCodes.Stelem_Ref);
