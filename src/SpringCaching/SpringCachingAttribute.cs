@@ -15,6 +15,7 @@ namespace SpringCaching
         /// <summary>
         /// The bean name of the custom <see cref="ICacheProviderFactory"/> to use.
         /// Mutually exclusive with the key attribute.
+        /// <para>When <see cref="CacheProvider"/>  exists , ignore <see cref="CacheProviderFactory"/></para>
         /// </summary>
         public Type? CacheProviderFactory { get; set; }
     }
