@@ -10,20 +10,27 @@ using System.Threading.Tasks;
 
 namespace SpringCaching.Reflection
 {
-    internal class SpringCachingServiceProxyInfo
+    public class SpringCachingServiceProxyInfo : IDisposable
     {
-        public SpringCachingServiceProxyInfo(Type serviceType)
+        internal SpringCachingServiceProxyInfo(Type serviceType, DynamicAssembly dynamicAssembly)
         {
             ServiceType = serviceType;
+            _dynamicAssembly = dynamicAssembly;
         }
         public Type ServiceType { get; }
 
         public TypeInfo? TypeInfo { get; private set; }
-        public string? Suffix { get; set; }
-        public DynamicAssembly? DynamicAssembly { get; set; }
 
+        public Type? CacheProviderType { get; private set; }
+
+        public Type? CacheProviderFactoryType { get; private set; }
+
+        internal string? Suffix { get; set; }
+
+        private DynamicAssembly _dynamicAssembly;
         private TypeBuilder? _typeBuilder;
         private FieldBuilder? _cacheProviderFieldBuilder;
+        private FieldBuilder? _cacheProvideFactoryFieldBuilder;
         private FieldBuilder? _optionsFieldBuilder;
 
         private bool _implementProxy;
@@ -34,14 +41,26 @@ namespace SpringCaching.Reflection
             {
                 return;
             }
+
+            var springCachingAttribute = ServiceType.GetCustomAttribute<SpringCachingAttribute>();
+
+            if (springCachingAttribute != null)
+            {
+                SetSpringCachingAttributeData(springCachingAttribute);
+            }
+
             string typeFullName = ServiceType.FullName + "_" + Suffix; ;
             _typeBuilder = CreateTypeBuilder(typeFullName, ServiceType);
 
             if (!typeof(ISpringCachingProxy).IsAssignableFrom(ServiceType))
             {
                 _implementProxy = true;
-                _cacheProviderFieldBuilder = _typeBuilder.DefineField("_cacheProvider", typeof(ICacheProvider), FieldAttributes.Private);
+                _cacheProviderFieldBuilder = _typeBuilder.DefineField("_cacheProvider", CacheProviderType ?? typeof(ICacheProvider), FieldAttributes.Private);
                 _optionsFieldBuilder = _typeBuilder.DefineField("_options", typeof(SpringCachingOptions), FieldAttributes.Private);
+                if (CacheProviderFactoryType != null)
+                {
+                    _cacheProvideFactoryFieldBuilder = _typeBuilder.DefineField("_cacheProvideFactory", CacheProviderFactoryType, FieldAttributes.Private);
+                }
             }
 
             if (ServiceType.GetConstructors().Length > 1)
@@ -52,14 +71,16 @@ namespace SpringCaching.Reflection
             var serviceTypeConstructorParameters = serviceTypeConstructor.GetParameters();
 
             var constructorParameterTypes = _implementProxy ?
-                serviceTypeConstructorParameters.Select(s => s.ParameterType).Concat(new Type[] { typeof(ICacheProvider), typeof(SpringCachingOptions) }).ToArray()
+                serviceTypeConstructorParameters.Select(s => s.ParameterType).Concat(new Type[] {
+                 _cacheProvideFactoryFieldBuilder?.FieldType ?? CacheProviderType ?? typeof(ICacheProvider),
+                    typeof(SpringCachingOptions) }).ToArray()
                 : serviceTypeConstructorParameters.Select(s => s.ParameterType).ToArray();
 
             #region Constructor
             ConstructorBuilder constructorBuilder = _typeBuilder.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, constructorParameterTypes);
             int index = 0;
 
-            string cacheProviderParameterName = "springCachingCacheProvider";
+            string cacheProviderParameterName = _cacheProvideFactoryFieldBuilder == null ? "springCachingCacheProvider" : "springCachingCacheProviderFactory";
             string optionsParameterName = "springCachingOptions";
             foreach (var item in serviceTypeConstructorParameters)
             {
@@ -96,6 +117,10 @@ namespace SpringCaching.Reflection
             {
                 constructorIlGenerator.Emit(OpCodes.Ldarg_0);
                 constructorIlGenerator.EmitLdarg(index + 1);
+                if (_cacheProvideFactoryFieldBuilder != null)
+                {
+                    constructorIlGenerator.Emit(OpCodes.Callvirt, typeof(ICacheProviderFactory).GetMethod("GetCacheProvider")!);
+                }
                 constructorIlGenerator.Emit(OpCodes.Stfld, _cacheProviderFieldBuilder!);
                 constructorIlGenerator.Emit(OpCodes.Ldarg_0);
                 constructorIlGenerator.EmitLdarg(index + 2);
@@ -135,6 +160,7 @@ namespace SpringCaching.Reflection
             _typeBuilder.CopyCustomAttributes(ServiceType, typeof(SpringCachingAttribute));
             TypeInfo = _typeBuilder.CreateTypeInfo();
         }
+
 
         private void BuildMethod(MethodInfo method)
         {
@@ -189,6 +215,36 @@ namespace SpringCaching.Reflection
 
         }
 
+        private void SetSpringCachingAttributeData(SpringCachingAttribute springCachingAttribute)
+        {
+            if (springCachingAttribute.CacheProvider != null)
+            {
+                CheckImpl(typeof(ICacheProvider), springCachingAttribute.CacheProvider);
+                CacheProviderType = springCachingAttribute.CacheProvider;
+            }
+            if (CacheProviderType == null && springCachingAttribute.CacheProviderFactory != null)
+            {
+                CheckImpl(typeof(ICacheProviderFactory), springCachingAttribute.CacheProviderFactory);
+                CacheProviderFactoryType = springCachingAttribute.CacheProviderFactory;
+            }
+        }
+
+        private void CheckImpl(Type serviceType, Type implType)
+        {
+            //check 
+            if (!serviceType.IsAssignableFrom(implType))
+            {
+                throw new ArgumentException($"type {implType.FullName} is not implement from {serviceType.Name}");
+            }
+            if (!implType.IsClass)
+            {
+                throw new ArgumentException($"type {implType.FullName} is must be a class");
+            }
+            if (implType.IsAbstract)
+            {
+                throw new ArgumentException($"type {implType.FullName} can not be abstract");
+            }
+        }
 
         /// <summary>
         /// 这里需要生成降级方法委托
@@ -266,7 +322,7 @@ namespace SpringCaching.Reflection
 
         private TypeBuilder CreateTypeBuilder(string typeName, Type? parentType)
         {
-            return DynamicAssembly!.ModuleBuilder.DefineType(typeName,
+            return _dynamicAssembly!.ModuleBuilder.DefineType(typeName,
                           TypeAttributes.Public |
                           TypeAttributes.Class |
                           TypeAttributes.AutoClass |
@@ -333,5 +389,12 @@ namespace SpringCaching.Reflection
             return returnType;
         }
 
+        public void Dispose()
+        {
+            _typeBuilder = null;
+            _cacheProviderFieldBuilder = null;
+            _cacheProvideFactoryFieldBuilder = null;
+            _optionsFieldBuilder = null;
+        }
     }
 }

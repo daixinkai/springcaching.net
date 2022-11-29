@@ -11,7 +11,7 @@ namespace SpringCaching.Reflection
 {
     public static class SpringCachingServiceProxy
     {
-        //private static readonly IDictionary<Type, SpringCachingServiceProxyInfo> s_serviceProxyMap = new Dictionary<Type, SpringCachingServiceProxyInfo>();
+
         private static readonly DynamicAssembly s_dynamicAssembly = new();
 
 
@@ -22,7 +22,7 @@ namespace SpringCaching.Reflection
         private static readonly string s_suffix = Guid.NewGuid().ToString("N").ToUpper();
 #endif
 
-        public static TypeInfo? GetProxyType(Type serviceType)
+        public static SpringCachingServiceProxyInfo? GetServiceProxyInfo(Type serviceType)
         {
             if (serviceType.IsInterface)
             {
@@ -39,19 +39,13 @@ namespace SpringCaching.Reflection
             if (serviceType.IsSealed)
             {
                 return null;
-            }
-            //if (s_serviceProxyMap.TryGetValue(serviceType, out var proxyType))
-            //{
-            //    return proxyType.TypeInfo;
-            //}
-            var proxyType = new SpringCachingServiceProxyInfo(serviceType)
+            }            
+            var proxyType = new SpringCachingServiceProxyInfo(serviceType, s_dynamicAssembly)
             {
-                DynamicAssembly = s_dynamicAssembly,
                 Suffix = s_suffix
             };
             proxyType.Build();
-            //s_serviceProxyMap.Add(serviceType, proxyType!);
-            return proxyType.TypeInfo;
+            return proxyType;
         }
 
         //public static TypeInfo? GetProxyType(object serviceInstance)

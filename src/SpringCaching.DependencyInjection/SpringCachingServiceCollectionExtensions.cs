@@ -33,11 +33,13 @@ namespace Microsoft.Extensions.DependencyInjection
             {
                 if (serviceDescriptor.ImplementationType != null)
                 {
-                    var proxyType = CreateProxyType(serviceDescriptor.ImplementationType);
+                    var proxyType = CreateServiceProxyInfo(serviceDescriptor.ImplementationType);
                     if (proxyType != null)
                     {
-                        RemoveService(services, serviceDescriptor.ServiceType);
-                        services.Add(ServiceDescriptor.Describe(serviceDescriptor.ServiceType, proxyType, serviceDescriptor.Lifetime));
+                        using (proxyType)
+                        {
+                            AddServiceProxy(services, serviceDescriptor, proxyType);
+                        }
                     }
                 }
                 else if (serviceDescriptor.ImplementationInstance != null)
@@ -59,12 +61,11 @@ namespace Microsoft.Extensions.DependencyInjection
         }
 
 
-        private static Type? CreateProxyType(Type serviceType)
+        private static SpringCachingServiceProxyInfo? CreateServiceProxyInfo(Type serviceType)
         {
             if (serviceType.IsDefined(typeof(SpringCachingAttribute), true) && !serviceType.IsDefined(typeof(NonSpringCachingAttribute)))
             {
-                var typeInfo = SpringCachingServiceProxy.GetProxyType(serviceType);
-                return typeInfo?.AsType();
+                return SpringCachingServiceProxy.GetServiceProxyInfo(serviceType);
             }
             return null;
         }
@@ -84,6 +85,25 @@ namespace Microsoft.Extensions.DependencyInjection
         private static void RemoveService(IServiceCollection services, Type serviceType)
         {
             services.RemoveAll(serviceType);
+        }
+
+        private static bool HasService(IServiceCollection services, Type serviceType)
+        {
+            return services.Any(s => s.ServiceType == serviceType);
+        }
+
+        private static void AddServiceProxy(IServiceCollection services, ServiceDescriptor serviceDescriptor, SpringCachingServiceProxyInfo serviceProxyInfo)
+        {
+            RemoveService(services, serviceDescriptor.ServiceType);
+            services.Add(ServiceDescriptor.Describe(serviceDescriptor.ServiceType, serviceProxyInfo.TypeInfo!.AsType(), serviceDescriptor.Lifetime));
+            if (serviceProxyInfo.CacheProviderType != null && !HasService(services, serviceProxyInfo.CacheProviderType))
+            {
+                services.TryAddSingleton(serviceProxyInfo.CacheProviderType);
+            }
+            if (serviceProxyInfo.CacheProviderFactoryType != null && !HasService(services, serviceProxyInfo.CacheProviderFactoryType))
+            {
+                services.TryAddSingleton(serviceProxyInfo.CacheProviderFactoryType);
+            }
         }
 
     }

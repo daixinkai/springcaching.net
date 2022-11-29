@@ -7,7 +7,10 @@ using System.Threading.Tasks;
 
 namespace SpringCaching.Tests
 {
-    [SpringCaching]
+    [SpringCaching(
+        //CacheProvider = typeof(TestCacheProvider),
+        //CacheProviderFactory = typeof(TestCacheProviderFactory)
+        )]
     public class TestService : ITestService//, ISpringCachingProxy
     {
 
@@ -68,7 +71,7 @@ namespace SpringCaching.Tests
             //Condition = "#param?.Param?.Name!=null",
             //Condition = "!(#param.Id.HasValue&&#param.Name!=null)||!(#param.Count>0||#param.Id!=null)", //not support
             Condition = "!(#param.Count>0||#param.Id!=null)", //not support
-            //Condition = "!(#param.Count>0&&#param.Id!=null)", //supported
+                                                              //Condition = "!(#param.Count>0&&#param.Id!=null)", //supported
             ExpirationPolicy = ExpirationPolicy.Absolute,
             ExpirationUnit = ExpirationUnit.Minute,
             ExpirationValue = 1)]

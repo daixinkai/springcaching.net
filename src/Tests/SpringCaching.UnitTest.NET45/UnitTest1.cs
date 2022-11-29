@@ -17,10 +17,24 @@ namespace SpringCaching.UnitTest.NET45
             //var ss = new SimpleKeyGenerators.StructToStringKeyGenerator<int>(1);
             DynamicAssembly dynamicAssembly = SpringCachingServiceProxy.DynamicAssembly;
             dynamicAssembly.DEBUG_MODE = true;
-            var testServiceTypeInfo = SpringCachingServiceProxy.GetProxyType(typeof(TestService));
+            var testServiceTypeInfo = SpringCachingServiceProxy.GetServiceProxyInfo(typeof(TestService));
             dynamicAssembly.AssemblyBuilder.Save(dynamicAssembly.AssemblyName);
-            var testServiceType = testServiceTypeInfo.AsType();
-            ITestService testService = Activator.CreateInstance(testServiceType, new object[] { new EmptyCacheProvider(), new SpringCachingOptions() }) as ITestService;
+            var testServiceType = testServiceTypeInfo.TypeInfo.AsType();
+            object[] param = new object[2];
+            param[1] = new SpringCachingOptions();
+            if (testServiceTypeInfo.CacheProviderType != null)
+            {
+                param[0] = Activator.CreateInstance(testServiceTypeInfo.CacheProviderType);
+            }
+            else if (testServiceTypeInfo.CacheProviderFactoryType != null)
+            {
+                param[0] = Activator.CreateInstance(testServiceTypeInfo.CacheProviderFactoryType);
+            }
+            else
+            {
+                param[0] = new EmptyCacheProvider();
+            }
+            ITestService testService = Activator.CreateInstance(testServiceType, param) as ITestService;
             var names = await testService.GetNames(1);
             Assert.IsNotNull(names);
         }
@@ -31,10 +45,24 @@ namespace SpringCaching.UnitTest.NET45
         {
             DynamicAssembly dynamicAssembly = SpringCachingServiceProxy.DynamicAssembly;
             dynamicAssembly.DEBUG_MODE = true;
-            var testServiceTypeInfo = SpringCachingServiceProxy.GetProxyType(typeof(TestUserService));
+            var testServiceTypeInfo = SpringCachingServiceProxy.GetServiceProxyInfo(typeof(TestUserService));
             dynamicAssembly.AssemblyBuilder.Save(dynamicAssembly.AssemblyName);
-            var testServiceType = testServiceTypeInfo.AsType();
-            TestUserService testService = Activator.CreateInstance(testServiceType, new object[] { new EmptyCacheProvider(), new SpringCachingOptions() }) as TestUserService;
+            var testServiceType = testServiceTypeInfo.TypeInfo.AsType();
+            object[] param = new object[2];
+            param[1] = new SpringCachingOptions();
+            if (testServiceTypeInfo.CacheProviderType != null)
+            {
+                param[0] = Activator.CreateInstance(testServiceTypeInfo.CacheProviderType);
+            }
+            else if (testServiceTypeInfo.CacheProviderFactoryType != null)
+            {
+                param[0] = Activator.CreateInstance(testServiceTypeInfo.CacheProviderFactoryType);
+            }
+            else
+            {
+                param[0] = new EmptyCacheProvider();
+            }
+            TestUserService testService = Activator.CreateInstance(testServiceType, param) as TestUserService;
             var user = await testService.GetUserAsync(1);
             Assert.IsNotNull(user);
         }
