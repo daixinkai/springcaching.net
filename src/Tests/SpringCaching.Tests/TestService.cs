@@ -73,7 +73,7 @@ namespace SpringCaching.Tests
             Condition = "!(#param.Count>0||#param.Id!=null)", //not support
                                                               //Condition = "!(#param.Count>0&&#param.Id!=null)", //supported
             ExpirationPolicy = ExpirationPolicy.Absolute,
-            ExpirationUnit = ExpirationUnit.Minute,
+            ExpirationUnit = ExpirationUnit.Hour,
             ExpirationValue = 1)]
         public virtual Task<List<string>> GetNames(TestServiceParam param)
         {

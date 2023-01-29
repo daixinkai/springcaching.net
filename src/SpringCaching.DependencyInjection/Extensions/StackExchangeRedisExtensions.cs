@@ -78,15 +78,20 @@ namespace SpringCaching.DependencyInjection
             foreach (var endPoint in connection.GetEndPoints())
             {
                 var server = connection.GetServer(endPoint);
-                //if (!(server.IsConnected && !server.IsReplica))
+#if NET6_0_OR_GREATER
+                if (!server.IsConnected || server.IsReplica)
+                {
+                    continue;
+                }
+#else
                 if (!server.IsConnected)
                 {
                     continue;
                 }
-                var keys = server.Keys(pattern: keyPattern).ToArray();
-                if (keys.Length > 0)
+#endif
+                foreach (var key in server.Keys(database: database.Database, pattern: keyPattern))
                 {
-                    database.KeyDelete(keys);
+                    database.KeyDelete(key);
                 }
                 break;
             }
@@ -101,20 +106,25 @@ namespace SpringCaching.DependencyInjection
             foreach (var endPoint in connection.GetEndPoints())
             {
                 var server = connection.GetServer(endPoint);
-                //if (!(server.IsConnected && !server.IsReplica))
+#if NET6_0_OR_GREATER
+                if (!server.IsConnected || server.IsReplica)
+                {
+                    continue;
+                }
+                await foreach (var key in server.KeysAsync(database: database.Database, pattern: keyPattern))
+                {
+                    await database.KeyDeleteAsync(key).ConfigureAwait(false);
+                }
+#else
                 if (!server.IsConnected)
                 {
                     continue;
                 }
-#if NET6_0_OR_GREATER
-                var keys = server.Keys(pattern: keyPattern).ToArray();
-#else
-                var keys = server.Keys(pattern: keyPattern).ToArray();
-#endif
-                if (keys.Length > 0)
+                foreach (var key in server.Keys(database: database.Database, pattern: keyPattern))
                 {
-                    await database.KeyDeleteAsync(keys).ConfigureAwait(false);
+                    await database.KeyDeleteAsync(key).ConfigureAwait(false);
                 }
+#endif
                 break;
             }
         }
