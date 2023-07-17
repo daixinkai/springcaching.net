@@ -30,6 +30,13 @@ namespace SpringCaching.Tests
             return GetAllNameTests(new int[random.Next(1, 10)].Select(s => random.Next(1, 10000)).ToArray(), null, 1);
         }
 
+        [Cacheable("getAllNames", ExpirationPolicy = ExpirationPolicy.Absolute, ExpirationUnit = ExpirationUnit.Minute, ExpirationValue = 1)]
+        public virtual Task<List<string>> GetAllNames(int? id1, int? id2)
+        {
+            Random random = new Random();
+            return GetAllNameTests(new int[random.Next(1, 10)].Select(s => random.Next(1, 10000)).ToArray(), null, 1);
+        }
+
         [Cacheable("getAllNameTests", Key = "#ids", ExpirationPolicy = ExpirationPolicy.Absolute, ExpirationUnit = ExpirationUnit.Minute, ExpirationValue = 1)]
         public virtual Task<List<string>> GetAllNameTests(int[] ids, string[] names, int id)
         {

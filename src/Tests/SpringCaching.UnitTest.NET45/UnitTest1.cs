@@ -11,6 +11,21 @@ namespace SpringCaching.UnitTest.NET45
     [TestClass]
     public class UnitTest1
     {
+        // Token: 0x04000005 RID: 5
+        private int? _id1;
+
+        // Token: 0x04000006 RID: 6
+        private int? _id2;
+
+        private void TestJsonKeyGenerator()
+        {
+            var keyGenerator = new SimpleKeyGenerator.JsonKeyGenerator<object[]>(new object[]
+              {
+                        this._id1,
+                        this._id2
+              });
+        }
+
         [TestMethod]
         public async Task TestMethod1()
         {
@@ -35,7 +50,8 @@ namespace SpringCaching.UnitTest.NET45
                 param[0] = new EmptyCacheProvider();
             }
             ITestService testService = Activator.CreateInstance(testServiceType, param) as ITestService;
-            var names = await testService.GetNames(1);
+            var names = await testService.GetAllNames(1, 1);
+            //var names = await testService.GetNames(1);
             Assert.IsNotNull(names);
         }
 

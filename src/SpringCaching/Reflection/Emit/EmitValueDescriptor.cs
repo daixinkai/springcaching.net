@@ -20,7 +20,8 @@ namespace SpringCaching.Reflection.Emit
         public void EmitBox(ILGenerator iLGenerator)
         {
             //box
-            if (EmitValueType.IsValueTypeEx())
+            //if (EmitValueType.IsValueTypeEx())
+            if (EmitValueType.IsValueType)
             {
                 iLGenerator.Emit(OpCodes.Box, EmitValueType);
             }

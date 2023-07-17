@@ -10,6 +10,7 @@ namespace SpringCaching.Tests
     {
         string ServiceId { get; set; }
         Task<List<string>> GetAllNames();
+        Task<List<string>> GetAllNames(int? id1, int? id2);
         Task<List<string>> GetNames(int id);
         Task<List<string>> GetNames(string id);
         Task<List<string>> GetNames(TestServiceParam param);
