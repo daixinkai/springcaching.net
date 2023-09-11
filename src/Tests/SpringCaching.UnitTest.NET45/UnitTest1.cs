@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿#if DEBUG
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SpringCaching.Infrastructure;
 using SpringCaching.Reflection;
 using SpringCaching.Tests;
@@ -108,3 +109,4 @@ namespace SpringCaching.UnitTest.NET45
 
     }
 }
+#endif
