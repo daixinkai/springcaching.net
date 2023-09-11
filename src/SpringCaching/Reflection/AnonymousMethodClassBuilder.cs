@@ -77,7 +77,7 @@ namespace SpringCaching.Reflection
             ILGenerator constructorIlGenerator = constructorBuilder.GetILGenerator();
 
             CallBaseTypeDefaultConstructor(constructorIlGenerator, typeBuilder.BaseType!);
-            constructorIlGenerator.Emit(OpCodes.Nop);
+            constructorIlGenerator.EmitNop();
             if (fieldBuilders.Count > 0)
             {
                 for (int i = 0; i < fieldBuilders.Count; i++)

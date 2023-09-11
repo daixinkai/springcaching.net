@@ -54,7 +54,7 @@ namespace SpringCaching.Reflection
                 iLGenerator.Emit(OpCodes.Dup);
                 iLGenerator.Emit(OpCodes.Newobj, keyGeneratorConstructor);
                 iLGenerator.Emit(OpCodes.Callvirt, typeof(CacheRequirementBase).GetProperty("KeyGenerator")!.SetMethod!);
-                iLGenerator.Emit(OpCodes.Nop);
+                iLGenerator.EmitNop();
             }
             else if (descriptors.Count > 0)
             {
@@ -62,7 +62,7 @@ namespace SpringCaching.Reflection
                 iLGenerator.Emit(OpCodes.Dup);
                 EmitKeyGenerator(typeBuilder, index, iLGenerator, attribute, descriptors);
                 iLGenerator.Emit(OpCodes.Callvirt, typeof(CacheRequirementBase).GetProperty("KeyGenerator")!.SetMethod!);
-                iLGenerator.Emit(OpCodes.Nop);
+                iLGenerator.EmitNop();
             }
             #endregion
 
@@ -86,7 +86,7 @@ namespace SpringCaching.Reflection
                 iLGenerator.Emit(OpCodes.Dup);
                 iLGenerator.Emit(OpCodes.Newobj, conditionGeneratorConstructor);
                 iLGenerator.Emit(OpCodes.Callvirt, typeof(CacheRequirementBase).GetProperty("ConditionGenerator")!.SetMethod!);
-                iLGenerator.Emit(OpCodes.Nop);
+                iLGenerator.EmitNop();
             }
             else if (!string.IsNullOrWhiteSpace(attribute.Condition) && descriptors.Count > 0)
             {
@@ -94,7 +94,7 @@ namespace SpringCaching.Reflection
                 iLGenerator.Emit(OpCodes.Dup);
                 EmitConditionGenerator(typeBuilder, index, iLGenerator, attribute, descriptors);
                 iLGenerator.Emit(OpCodes.Callvirt, typeof(CacheRequirementBase).GetProperty("ConditionGenerator")!.SetMethod!);
-                iLGenerator.Emit(OpCodes.Nop);
+                iLGenerator.EmitNop();
             }
             #endregion
 

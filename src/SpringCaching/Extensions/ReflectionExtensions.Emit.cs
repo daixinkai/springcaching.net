@@ -44,7 +44,7 @@ namespace SpringCaching
             iLGenerator.Emit(OpCodes.Callvirt, property.SetMethod!);
             if (dup)
             {
-                iLGenerator.Emit(OpCodes.Nop);
+                iLGenerator.EmitNop();
             }
         }
 
@@ -152,5 +152,14 @@ namespace SpringCaching
                     break;
             }
         }
+
+
+        public static void EmitNop(this ILGenerator _)
+        {
+//#if DEBUG
+//            _.Emit(OpCodes.Nop);
+//#endif
+        }
+
     }
 }

@@ -26,7 +26,7 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             var springCachingBuilder = new DependencyInjectionSpringCachingBuilder(services);
             setup?.Invoke(springCachingBuilder.Options);
-            services.AddSingleton<ICacheProvider, DistributedCacheProvider>();
+            services.TryAddSingleton<ICacheProvider, DistributedCacheProvider>();
             services.AddSingleton(springCachingBuilder.Options);
             //scan service
             foreach (var serviceDescriptor in services.ToList())

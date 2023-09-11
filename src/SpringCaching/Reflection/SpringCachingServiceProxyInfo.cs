@@ -111,7 +111,7 @@ namespace SpringCaching.Reflection
                     constructorIlGenerator.EmitLdarg(i + 1);
                 }
                 constructorIlGenerator.Emit(OpCodes.Call, serviceTypeConstructor);
-                constructorIlGenerator.Emit(OpCodes.Nop);
+                constructorIlGenerator.EmitNop();
             }
             if (_implementProxy)
             {
