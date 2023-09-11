@@ -11,12 +11,12 @@ namespace SpringCaching.Infrastructure
     public class FuncKeyGenerator : IKeyGenerator
     {
 
-        public FuncKeyGenerator(Func<string> func)
+        public FuncKeyGenerator(Func<string?> func)
         {
             _func = func;
         }
 
-        private readonly Func<string> _func;
+        private readonly Func<string?> _func;
 
         string? IKeyGenerator.GetKey(string? expression, ISpringCachingRequirement requirement)
         {

@@ -17,11 +17,21 @@ namespace SpringCaching.Reflection.Emit
 
         public abstract void EmitValue(ILGenerator iLGenerator);
 
-        public void EmitBox(ILGenerator iLGenerator)
+        /// <summary>
+        /// when type = int? :
+        /// <para>excludeNullable = true : skip box</para>
+        /// <para>excludeNullable = false : box</para>
+        /// </summary>
+        /// <param name="iLGenerator"></param>
+        /// <param name="excludeNullable"></param>
+        public void EmitBox(ILGenerator iLGenerator, bool excludeNullable)
         {
             //box
-            //if (EmitValueType.IsValueTypeEx())
-            if (EmitValueType.IsValueType)
+            if (!excludeNullable && EmitValueType.IsValueType)
+            {
+                iLGenerator.Emit(OpCodes.Box, EmitValueType);
+            }
+            else if (EmitValueType.IsValueTypeEx())
             {
                 iLGenerator.Emit(OpCodes.Box, EmitValueType);
             }

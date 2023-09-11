@@ -12,6 +12,13 @@ namespace SpringCaching
         {
             return type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>);
         }
+
+        /// <summary>
+        /// <para>int => true</para>
+        /// <para>int? => false</para>
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
         public static bool IsValueTypeEx(this Type type)
         {
             return type.IsValueType && !type.IsNullableType();

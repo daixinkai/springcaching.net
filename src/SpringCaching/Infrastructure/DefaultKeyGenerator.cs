@@ -22,7 +22,7 @@ namespace SpringCaching.Infrastructure
 #if NET45 || NETSTANDARD2_0
             string json = Encoding.UTF8.GetString(NewtonsoftJsonCacheSerializer.JsonCacheSerializer.SerializeObject(arguments));
 #else
-                string json = Encoding.UTF8.GetString(SystemTextJsonCacheSerializer.JsonCacheSerializer.SerializeObject(arguments));
+            string json = Encoding.UTF8.GetString(SystemTextJsonCacheSerializer.JsonCacheSerializer.SerializeObject(arguments));
 #endif
             return json.Replace(":", "-");
         }

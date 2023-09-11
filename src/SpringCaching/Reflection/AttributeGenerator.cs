@@ -246,7 +246,7 @@ namespace SpringCaching.Reflection
                 iLGenerator.Emit(OpCodes.Dup);
                 iLGenerator.EmitInt32Value(index);
                 descriptor.EmitValue(iLGenerator);
-                descriptor.EmitBox(iLGenerator);
+                descriptor.EmitBox(iLGenerator, false);
                 iLGenerator.Emit(OpCodes.Stelem_Ref);
                 index++;
             }

@@ -104,7 +104,7 @@ namespace SpringCaching.Reflection.Emit
             }
             if (IsLast)
             {
-                EmitBox(iLGenerator);
+                EmitBox(iLGenerator, true);
             }
             iLGenerator.MarkLabel(falseLabel);
             iLGenerator.Emit(OpCodes.Stloc, LocalBuilder);
