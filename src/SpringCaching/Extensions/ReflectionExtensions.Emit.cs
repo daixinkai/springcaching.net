@@ -153,7 +153,7 @@ namespace SpringCaching
             }
         }
 
-        public static void EmitLdargS(this ILGenerator iLGenerator, int index)
+        private static void EmitLdargS(this ILGenerator iLGenerator, int index)
         {
             if (index > byte.MaxValue)
             {

@@ -71,9 +71,12 @@ namespace SpringCaching.Reflection
             var serviceTypeConstructorParameters = serviceTypeConstructor.GetParameters();
 
             var constructorParameterTypes = _implementProxy ?
-                serviceTypeConstructorParameters.Select(s => s.ParameterType).Concat(new Type[] {
+                serviceTypeConstructorParameters
+                .Select(s => s.ParameterType)
+                .Concat(new Type[] {
                  _cacheProvideFactoryFieldBuilder?.FieldType ?? CacheProviderType ?? typeof(ICacheProvider),
-                    typeof(SpringCachingOptions) }).ToArray()
+                    typeof(SpringCachingOptions) }
+                ).ToArray()
                 : serviceTypeConstructorParameters.Select(s => s.ParameterType).ToArray();
 
             #region Constructor

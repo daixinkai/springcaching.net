@@ -44,7 +44,7 @@ namespace SpringCaching.Proxy
             return null;
         }
 
-        protected string? ToStringFromStruct<T>(T value) where T : struct
+        protected string ToStringFromStruct<T>(T value) where T : struct
              => value.ToString();
 
         protected string? ToStringFromClass<T>(T? value) where T : class
