@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using SpringCaching.Serialization;
 
@@ -17,24 +18,19 @@ namespace SpringCaching.Serialization
         {
             Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
             PropertyNameCaseInsensitive = true,
-            DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
+#if NET5_0_OR_GREATER
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+#else
+            IgnoreNullValues = true,
+#endif
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         };
 
         public byte[] SerializeObject(object? value)
-        {
-            //if (value == null)
-            //{
-            //    return JsonSerializer.SerializeToUtf8Bytes(value, typeof(object), JsonSerializerOptions);
-            //}
-            //return JsonSerializer.SerializeToUtf8Bytes(value, value!.GetType(), JsonSerializerOptions);
-            return JsonSerializer.SerializeToUtf8Bytes(value, JsonSerializerOptions);
-        }
+            => JsonSerializer.SerializeToUtf8Bytes(value, JsonSerializerOptions);
 
         public TResult? DeserializeObject<TResult>(byte[] value)
-        {
-            return JsonSerializer.Deserialize<TResult>(value, JsonSerializerOptions);
-        }
+            => JsonSerializer.Deserialize<TResult>(value, JsonSerializerOptions);
 
 
     }
