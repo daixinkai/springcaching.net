@@ -23,11 +23,12 @@ namespace SpringCaching.Serialization
 
         public byte[] SerializeObject(object? value)
         {
-            if (value == null)
-            {
-                return JsonSerializer.SerializeToUtf8Bytes(value, typeof(object), JsonSerializerOptions);
-            }
-            return JsonSerializer.SerializeToUtf8Bytes(value, value!.GetType(), JsonSerializerOptions);
+            //if (value == null)
+            //{
+            //    return JsonSerializer.SerializeToUtf8Bytes(value, typeof(object), JsonSerializerOptions);
+            //}
+            //return JsonSerializer.SerializeToUtf8Bytes(value, value!.GetType(), JsonSerializerOptions);
+            return JsonSerializer.SerializeToUtf8Bytes(value, JsonSerializerOptions);
         }
 
         public TResult? DeserializeObject<TResult>(byte[] value)
