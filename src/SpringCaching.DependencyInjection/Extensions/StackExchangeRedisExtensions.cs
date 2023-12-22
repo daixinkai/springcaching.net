@@ -15,7 +15,11 @@ namespace SpringCaching.DependencyInjection
         static StackExchangeRedisExtensions()
         {
             AddFieldDelegate(typeof(RedisCache), "_cache");
+#if NET8_0_OR_GREATER
+            AddFieldDelegate(typeof(RedisCache), "_instancePrefix");
+#else
             AddFieldDelegate(typeof(RedisCache), "_instance");
+#endif
         }
 
         private static Delegate CreateFieldDelegate(Type type, string fieldName)
@@ -53,25 +57,30 @@ namespace SpringCaching.DependencyInjection
 
         public static IDatabase GetDatabase(this RedisCache redisCache)
         {
-            IDatabase database = redisCache.GetFieldValue<IDatabase>("_cache");
+            var database = redisCache.GetFieldValue<IDatabase>("_cache");
             if (database == null)
             {
                 redisCache.GetType().GetMethod("Connect", BindingFlags.Instance | BindingFlags.NonPublic)!
                     .Invoke(redisCache, Array.Empty<object>());
                 database = redisCache.GetFieldValue<IDatabase>("_cache");
             }
-            return database;
+            return database!;
         }
 
-        public static string GetInstanceName(this RedisCache redisCache)
+        public static string? GetInstanceName(this RedisCache redisCache)
         {
-            string instanceName = redisCache.GetFieldValue<string>("_instance");
+#if NET8_0_OR_GREATER
+            var redisKey = redisCache.GetStructFieldValue<RedisKey>("_instancePrefix");
+            return redisKey;
+#else
+            var instanceName = redisCache.GetFieldValue<string>("_instance");
             return instanceName;
+#endif
         }
 
         public static void DeleteKeyByPattern(this RedisCache redisCache, string keyPattern)
         {
-            string instanceName = redisCache.GetInstanceName();
+            var instanceName = redisCache.GetInstanceName();
             keyPattern = instanceName + keyPattern;
             var database = redisCache.GetDatabase();
             var connection = database.Multiplexer;
@@ -99,7 +108,7 @@ namespace SpringCaching.DependencyInjection
 
         public static async Task DeleteKeyByPatternAsync(this RedisCache redisCache, string keyPattern)
         {
-            string instanceName = redisCache.GetInstanceName();
+            var instanceName = redisCache.GetInstanceName();
             keyPattern = instanceName + keyPattern;
             var database = redisCache.GetDatabase();
             var connection = database.Multiplexer;
@@ -129,10 +138,17 @@ namespace SpringCaching.DependencyInjection
             }
         }
 
-        private static TField GetFieldValue<TField>(this RedisCache redisCache, string fieldName)
+        private static TField? GetFieldValue<TField>(this RedisCache redisCache, string fieldName) where TField : class
         {
             return GetFieldDelegate<RedisCache, TField>(fieldName)!.Invoke(redisCache);
         }
+
+#if NET8_0_OR_GREATER
+        private static TField GetStructFieldValue<TField>(this RedisCache redisCache, string fieldName) where TField : struct
+        {
+            return GetFieldDelegate<RedisCache, TField>(fieldName)!.Invoke(redisCache);
+        }
+#endif
 
     }
 }

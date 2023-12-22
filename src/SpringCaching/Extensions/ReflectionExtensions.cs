@@ -233,9 +233,9 @@ namespace SpringCaching
                 data.Constructor,
                 data.ConstructorArguments.Select(GetArgumentValue).ToArray(),
                 propertyArguments.Select(s => (PropertyInfo)s.MemberInfo).ToArray(),
-                propertyArguments.Select(s => s.TypedValue.Value).ToArray(),
+                propertyArguments.Select(s => s.TypedValue.Value!).ToArray(),
                 fieldArguments.Select(s => (FieldInfo)s.MemberInfo).ToArray(),
-                fieldArguments.Select(s => s.TypedValue.Value).ToArray());
+                fieldArguments.Select(s => s.TypedValue.Value!).ToArray());
             return customAttributeBuilder;
         }
 
