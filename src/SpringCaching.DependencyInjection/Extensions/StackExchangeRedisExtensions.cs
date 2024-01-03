@@ -60,8 +60,8 @@ namespace SpringCaching.DependencyInjection
             var database = redisCache.GetFieldValue<IDatabase>("_cache");
             if (database == null)
             {
-                redisCache.GetType().GetMethod("Connect", BindingFlags.Instance | BindingFlags.NonPublic)!
-                    .Invoke(redisCache, Array.Empty<object>());
+                var method = typeof(RedisCache).GetMethod("Connect", BindingFlags.Instance | BindingFlags.NonPublic);
+                method?.Invoke(redisCache, Array.Empty<object>());
                 database = redisCache.GetFieldValue<IDatabase>("_cache");
             }
             return database!;
