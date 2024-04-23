@@ -41,7 +41,7 @@ namespace SpringCaching.Reflection
                 {
                     throw new ArgumentException($"Type {attribute.KeyGenerator.FullName} must be implementation from IKeyGenerator!");
                 }
-                if (!attribute.KeyGenerator.IsPublic)
+                if (!attribute.KeyGenerator.IsPublic && !attribute.KeyGenerator.IsNestedPublic)
                 {
                     throw new ArgumentException($"Type {attribute.KeyGenerator.FullName} must be public!");
                 }
@@ -73,7 +73,7 @@ namespace SpringCaching.Reflection
                 {
                     throw new ArgumentException($"Type {attribute.ConditionGenerator.FullName} must be implementation from IPredicateGenerator!");
                 }
-                if (!attribute.ConditionGenerator.IsPublic)
+                if (!attribute.ConditionGenerator.IsPublic && !attribute.ConditionGenerator.IsNestedPublic)
                 {
                     throw new ArgumentException($"Type {attribute.ConditionGenerator.FullName} must be public!");
                 }
