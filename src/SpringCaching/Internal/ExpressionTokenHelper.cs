@@ -79,8 +79,8 @@ namespace SpringCaching.Internal
 
         private static List<EmitPropertyDescriptor> GetEmitPropertyDescriptors(
             ExpressionToken token,
-            IList<EmitFieldBuilderDescriptor> descriptors,
-            out EmitFieldBuilderDescriptor? fieldDescriptor
+            IList<EmitParameterValueDescriptor> descriptors,
+            out EmitParameterValueDescriptor? paramDescriptor
             )
         {
             string value = token.Value!;
@@ -95,18 +95,18 @@ namespace SpringCaching.Internal
                 {
                     fieldName = fieldName.TrimEnd('?');
                 }
-                fieldDescriptor = descriptors.FirstOrDefault(s => s.Parameter.Name == fieldName);
+                paramDescriptor = descriptors.FirstOrDefault(s => s.ParameterName == fieldName);
                 fieldList.RemoveAt(0);
             }
             else
             {
-                fieldDescriptor = descriptors.FirstOrDefault(s => s.Parameter.Name == value);
+                paramDescriptor = descriptors.FirstOrDefault(s => s.ParameterName == value);
                 fieldList = new List<string>();
             }
 
             var propertyDescriptors = new List<EmitPropertyDescriptor>();
 
-            if (fieldDescriptor == null)
+            if (paramDescriptor == null)
             {
                 return propertyDescriptors;
             }
@@ -115,7 +115,7 @@ namespace SpringCaching.Internal
             if (fieldList.Count > 0)
             {
                 bool lastCheckNull = checkFieldNull;
-                Type propertyType = fieldDescriptor.Parameter.ParameterType;
+                Type propertyType = paramDescriptor.ParameterType;
                 //property
                 foreach (var item in fieldList)
                 {
@@ -144,7 +144,7 @@ namespace SpringCaching.Internal
             return propertyDescriptors;
         }
 
-        public static EmitCallPropertyDescriptor? GetEmitCallPropertyDescriptor(ExpressionToken token, IList<EmitFieldBuilderDescriptor> descriptors)
+        public static EmitCallPropertyDescriptor? GetEmitCallPropertyDescriptor(ExpressionToken token, IList<EmitParameterValueDescriptor> descriptors)
         {
             var propertyDescriptors = GetEmitPropertyDescriptors(token, descriptors, out var fieldDescriptor);
             if (fieldDescriptor == null)

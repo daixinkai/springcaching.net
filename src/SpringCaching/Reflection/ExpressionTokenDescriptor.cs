@@ -12,7 +12,7 @@ namespace SpringCaching.Reflection
 {
     internal class ExpressionTokenDescriptor
     {
-        public ExpressionTokenDescriptor(ExpressionToken token, IList<EmitFieldBuilderDescriptor>? descriptors)
+        public ExpressionTokenDescriptor(ExpressionToken token, IList<EmitParameterValueDescriptor>? descriptors)
         {
             Token = token;
             if (descriptors != null)
@@ -29,7 +29,7 @@ namespace SpringCaching.Reflection
 
         public EmitCallPropertyDescriptor? EmitCallPropertyDescriptor { get; private set; }
 
-        public void TrySetTokenValueType(IList<EmitFieldBuilderDescriptor> descriptors)
+        public void TrySetTokenValueType(IList<EmitParameterValueDescriptor> descriptors)
         {
 
             var simpleType = TokenType switch

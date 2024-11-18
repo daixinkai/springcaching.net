@@ -13,7 +13,7 @@ namespace SpringCaching.Reflection
     internal static class BooleanExpressionGenerator
     {
 
-        public static EmitExpressionResult EmitExpression(ILGenerator iLGenerator, string expression, IList<EmitFieldBuilderDescriptor> descriptors)
+        public static EmitExpressionResult EmitExpression(ILGenerator iLGenerator, string expression, IList<EmitParameterValueDescriptor> descriptors)
         {
             var parsedTokens = ExpressionTokenHelper.ParseExpressionTokens(expression);
             var tokenDescriptors = LogicalBooleanExpressionTokenDescriptor.FromTokens(parsedTokens, descriptors);

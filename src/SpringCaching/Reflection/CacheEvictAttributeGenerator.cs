@@ -14,7 +14,7 @@ namespace SpringCaching.Reflection
 {
     internal class CacheEvictAttributeGenerator : AttributeGenerator
     {
-        public override bool Build(TypeBuilder typeBuilder, Type attributeType, IList<Attribute> attributes, IList<EmitFieldBuilderDescriptor> descriptors)
+        public override bool Build(TypeBuilder typeBuilder, MethodInfo methodInfo, Type attributeType, IList<Attribute> attributes, IList<EmitFieldBuilderDescriptor> descriptors)
         {
             if (attributeType != typeof(CacheEvictAttribute))
             {

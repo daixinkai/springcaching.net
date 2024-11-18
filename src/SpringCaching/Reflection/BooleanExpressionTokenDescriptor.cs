@@ -110,7 +110,7 @@ namespace SpringCaching.Reflection
             }
         }
 
-        public static List<BooleanExpressionTokenDescriptor> FromTokens(IList<ParsedExpressionToken> parsedTokens, IList<EmitFieldBuilderDescriptor>? fieldBuilderDescriptors)
+        public static List<BooleanExpressionTokenDescriptor> FromTokens(IList<ParsedExpressionToken> parsedTokens, IList<EmitParameterValueDescriptor>?parameterDescriptors)
         {
             List<BooleanExpressionTokenDescriptor> descriptors = new List<BooleanExpressionTokenDescriptor>();
 
@@ -149,16 +149,16 @@ namespace SpringCaching.Reflection
                 {
                     if (currentDescriptor!.Left == null)
                     {
-                        currentDescriptor.Left = new ExpressionTokenDescriptor(token, fieldBuilderDescriptors);
+                        currentDescriptor.Left = new ExpressionTokenDescriptor(token, parameterDescriptors);
                     }
                     else if (currentDescriptor!.Compare == null)
                     {
                         currentDescriptor = new BooleanExpressionTokenDescriptor();
-                        currentDescriptor.Left = new ExpressionTokenDescriptor(token, fieldBuilderDescriptors);
+                        currentDescriptor.Left = new ExpressionTokenDescriptor(token, parameterDescriptors);
                     }
                     else if (currentDescriptor.Right == null)
                     {
-                        currentDescriptor.Right = new ExpressionTokenDescriptor(token, fieldBuilderDescriptors);
+                        currentDescriptor.Right = new ExpressionTokenDescriptor(token, parameterDescriptors);
                     }
                     else
                     {
@@ -206,7 +206,7 @@ namespace SpringCaching.Reflection
             return descriptors;
         }
 
-        public void EmitValue(ILGenerator iLGenerator, IList<EmitFieldBuilderDescriptor> descriptors)
+        public void EmitValue(ILGenerator iLGenerator, IList<EmitParameterValueDescriptor> descriptors)
         {
             if (Type == ExpressionType.Compare)
             {
@@ -233,7 +233,7 @@ namespace SpringCaching.Reflection
 
         }
 
-        public void EmitCompare(ILGenerator iLGenerator, IList<EmitFieldBuilderDescriptor> descriptors)
+        public void EmitCompare(ILGenerator iLGenerator, IList<EmitParameterValueDescriptor> descriptors)
         {
             var leftEmitResult = EmitExpressionToken(iLGenerator, Left!, descriptors, false);
             var emitOperator = EmitOperatorDescriptor.Create(leftEmitResult.Type!, Compare!.OperatorType, Right!);
@@ -248,7 +248,7 @@ namespace SpringCaching.Reflection
 
         #region private
 
-        private static EmitExpressionResult EmitExpressionToken(ILGenerator iLGenerator, ExpressionTokenDescriptor tokenDescriptor, IList<EmitFieldBuilderDescriptor> descriptors, bool declareLocal)
+        private static EmitExpressionResult EmitExpressionToken(ILGenerator iLGenerator, ExpressionTokenDescriptor tokenDescriptor, IList<EmitParameterValueDescriptor> descriptors, bool declareLocal)
         {
             switch (tokenDescriptor.TokenType)
             {
@@ -274,7 +274,7 @@ namespace SpringCaching.Reflection
         private static EmitExpressionResult EmitFieldExpressionToken(
             ILGenerator iLGenerator,
             ExpressionTokenDescriptor tokenDescriptor,
-            IList<EmitFieldBuilderDescriptor> descriptors,
+            IList<EmitParameterValueDescriptor> descriptors,
             bool declareLocal
             )
         {

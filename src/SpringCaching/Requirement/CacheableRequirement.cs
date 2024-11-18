@@ -20,5 +20,9 @@ namespace SpringCaching.Requirement
         public int ExpirationValue { get; set; }
         /// <inheritdoc />
         public bool UnlessNull { get; set; }
+        /// <inheritdoc />
+        public string? ResultCondition { get; set; }
+        /// <inheritdoc />
+        public IResultPredicateGenerator? ResultConditionGenerator { get; set; }
     }
 }

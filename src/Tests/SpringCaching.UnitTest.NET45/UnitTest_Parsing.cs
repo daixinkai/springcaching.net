@@ -99,7 +99,8 @@ namespace SpringCaching.UnitTest.NET45
             return new CacheableRequirement("getNames")
             {
                 KeyGenerator = GetCacheableKeyGenerator_0(param),
-                ConditionGenerator = new FuncPredicateGenerator(GetCacheableCondition_00),
+                ConditionGenerator = new FuncPredicateGenerator(GetCacheableCondition_00),                
+                ResultConditionGenerator=new ResultFuncPredicateGenerator<UserResultDto>(GetCacheableResultCondition_01),
                 ExpirationPolicy = ExpirationPolicy.Absolute,
                 ExpirationUnit = ExpirationUnit.Minute,
                 ExpirationValue = 1
@@ -176,6 +177,11 @@ namespace SpringCaching.UnitTest.NET45
         }
 
         private bool GetCacheableCondition_01()
+        {
+            return _param.Id.HasValue;
+        }
+
+        private bool GetCacheableResultCondition_01(UserResultDto result)
         {
             return _param.Id.HasValue;
         }

@@ -9,17 +9,17 @@ namespace SpringCaching.Reflection.Emit
 {
     internal class EmitCallPropertyDescriptor
     {
-        public EmitCallPropertyDescriptor(EmitFieldBuilderDescriptor fieldDescriptor, List<EmitPropertyDescriptor> propertyDescriptors)
+        public EmitCallPropertyDescriptor(EmitValueDescriptor descriptor, List<EmitPropertyDescriptor> propertyDescriptors)
         {
-            FieldDescriptor = fieldDescriptor;
+            Descriptor = descriptor;
             PropertyDescriptors = propertyDescriptors;
 
             EmitValueDescriptor = propertyDescriptors.Count > 0 ?
                propertyDescriptors[propertyDescriptors.Count - 1] :
-               fieldDescriptor;
+               descriptor;
 
         }
-        public EmitFieldBuilderDescriptor FieldDescriptor { get; }
+        public EmitValueDescriptor Descriptor { get; }
         public List<EmitPropertyDescriptor> PropertyDescriptors { get; }
 
         public EmitValueDescriptor EmitValueDescriptor { get; }
@@ -29,8 +29,8 @@ namespace SpringCaching.Reflection.Emit
 
         public EmitValueDescriptor EmitValue(ILGenerator iLGenerator)
         {
-            FieldDescriptor.EmitValue(iLGenerator);
-            EmitValueDescriptor parentDescriptor = FieldDescriptor;
+            Descriptor.EmitValue(iLGenerator);
+            EmitValueDescriptor parentDescriptor = Descriptor;
             foreach (var descriptor in PropertyDescriptors)
             {
                 descriptor.ParentDescriptor = parentDescriptor;

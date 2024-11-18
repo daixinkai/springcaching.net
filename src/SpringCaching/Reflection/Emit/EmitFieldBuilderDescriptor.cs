@@ -8,17 +8,13 @@ using System.Threading.Tasks;
 
 namespace SpringCaching.Reflection.Emit
 {
-    internal class EmitFieldBuilderDescriptor : EmitValueDescriptor
+    internal class EmitFieldBuilderDescriptor : EmitParameterValueDescriptor
     {
-        public EmitFieldBuilderDescriptor(ParameterInfo parameter, FieldBuilder fieldBuilder)
+        public EmitFieldBuilderDescriptor(ParameterInfo parameter, FieldBuilder fieldBuilder) : base(parameter.Name!, parameter.ParameterType)
         {
-            Parameter = parameter;
             FieldBuilder = fieldBuilder;
         }
-        public ParameterInfo Parameter { get; }
         public FieldBuilder FieldBuilder { get; }
-
-        public override Type EmitValueType => Parameter.ParameterType;
 
         public override void EmitValue(ILGenerator iLGenerator)
         {

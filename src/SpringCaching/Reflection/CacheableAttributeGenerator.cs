@@ -15,7 +15,7 @@ namespace SpringCaching.Reflection
 
     internal class CacheableAttributeGenerator : AttributeGenerator
     {
-        public override bool Build(TypeBuilder typeBuilder, Type attributeType, IList<Attribute> attributes, IList<EmitFieldBuilderDescriptor> descriptors)
+        public override bool Build(TypeBuilder typeBuilder, MethodInfo methodInfo, Type attributeType, IList<Attribute> attributes, IList<EmitFieldBuilderDescriptor> descriptors)
         {
             if (attributeType != typeof(CacheableAttribute))
             {
@@ -34,7 +34,7 @@ namespace SpringCaching.Reflection
 
             #region override SpringCachingRequirementProxy.GetCacheableRequirements
 
-            var cacheableRequirementMethods = DefineCacheableRequirementMethods(typeBuilder, cacheableAttributes, descriptors);
+            var cacheableRequirementMethods = DefineCacheableRequirementMethods(typeBuilder, methodInfo, cacheableAttributes, descriptors);
 
             var method = typeof(SpringCachingRequirementProxy).GetMethod("GetCacheableRequirements")!;
 
@@ -66,7 +66,7 @@ namespace SpringCaching.Reflection
         }
 
 
-        private void GeneratorCacheableRequirement(TypeBuilder typeBuilder, int index, ILGenerator iLGenerator, CacheableAttribute attribute, IList<EmitFieldBuilderDescriptor> descriptors)
+        private void GeneratorCacheableRequirement(TypeBuilder typeBuilder, MethodInfo methodInfo, int index, ILGenerator iLGenerator, CacheableAttribute attribute, IList<EmitFieldBuilderDescriptor> descriptors)
         {
             iLGenerator.Emit(OpCodes.Ldstr, attribute.Value);
             iLGenerator.Emit(OpCodes.Newobj, typeof(CacheableRequirement).GetConstructorEx());
@@ -81,10 +81,16 @@ namespace SpringCaching.Reflection
             {
                 iLGenerator.EmitSetProperty(typeof(CacheableRequirement).GetProperty("UnlessNull")!, attribute.UnlessNull, true);
             }
+            //ResultCondition
+            if (attribute.ResultCondition != null)
+            {
+                iLGenerator.EmitSetProperty(typeof(CacheableRequirement).GetProperty("ResultCondition")!, attribute.ResultCondition, true);
+            }
             SetDefaultProperty(typeBuilder, index, iLGenerator, attribute, descriptors);
+            SetResultConditionProperty(typeBuilder, methodInfo, index, iLGenerator, attribute, typeof(CacheableRequirement));
         }
 
-        private List<MethodBuilder> DefineCacheableRequirementMethods(TypeBuilder typeBuilder, IList<CacheableAttribute> cacheableAttributes, IList<EmitFieldBuilderDescriptor> descriptors)
+        private List<MethodBuilder> DefineCacheableRequirementMethods(TypeBuilder typeBuilder, MethodInfo methodInfo, IList<CacheableAttribute> cacheableAttributes, IList<EmitFieldBuilderDescriptor> descriptors)
         {
             MethodAttributes methodAttributes =
                 MethodAttributes.Private
@@ -95,7 +101,7 @@ namespace SpringCaching.Reflection
             {
                 var methodBuilder = typeBuilder.DefineMethod("GetCacheableRequirement_" + index, methodAttributes, typeof(ICacheableRequirement), Type.EmptyTypes);
                 var iLGenerator = methodBuilder.GetILGenerator();
-                GeneratorCacheableRequirement(typeBuilder, index, iLGenerator, cacheableAttribute, descriptors);
+                GeneratorCacheableRequirement(typeBuilder, methodInfo, index, iLGenerator, cacheableAttribute, descriptors);
                 iLGenerator.Emit(OpCodes.Ret);
                 index++;
                 methodBuilders.Add(methodBuilder);

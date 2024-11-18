@@ -13,6 +13,7 @@ namespace SpringCaching.Tests
             Key = "#id",
             Condition = "#id>0",
             //ConditionGenerator = typeof(TestPredicateGenerator),
+            ResultCondition ="#result!=null",
             ExpirationPolicy = ExpirationPolicy.Absolute,
             ExpirationUnit = ExpirationUnit.Minute,
             ExpirationValue = 600)]

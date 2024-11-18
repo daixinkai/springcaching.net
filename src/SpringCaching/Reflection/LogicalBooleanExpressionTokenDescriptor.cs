@@ -63,10 +63,10 @@ namespace SpringCaching.Reflection
             }
         }
 
-        public static List<LogicalBooleanExpressionTokenDescriptor> FromTokens(IList<ParsedExpressionToken> parsedTokens, IList<EmitFieldBuilderDescriptor>? fieldBuilderDescriptors)
+        public static List<LogicalBooleanExpressionTokenDescriptor> FromTokens(IList<ParsedExpressionToken> parsedTokens, IList<EmitParameterValueDescriptor>? parameterBuilderDescriptors)
         {
 
-            var tokenDescriptors = BooleanExpressionTokenDescriptor.FromTokens(parsedTokens, fieldBuilderDescriptors);
+            var tokenDescriptors = BooleanExpressionTokenDescriptor.FromTokens(parsedTokens, parameterBuilderDescriptors);
 
             var logicalTokenDescriptors = new List<LogicalBooleanExpressionTokenDescriptor>();
 
@@ -147,7 +147,7 @@ namespace SpringCaching.Reflection
             });
         }
 
-        private void EmitValue(ILGenerator iLGenerator, IList<EmitFieldBuilderDescriptor> descriptors)
+        private void EmitValue(ILGenerator iLGenerator, IList<EmitParameterValueDescriptor> descriptors)
         {
 
 #if DEBUG
@@ -191,7 +191,7 @@ namespace SpringCaching.Reflection
 
         }
 
-        public static EmitExpressionResult EmitValue(ILGenerator iLGenerator, IList<LogicalBooleanExpressionTokenDescriptor> logicalDescriptors, IList<EmitFieldBuilderDescriptor> descriptors)
+        public static EmitExpressionResult EmitValue(ILGenerator iLGenerator, IList<LogicalBooleanExpressionTokenDescriptor> logicalDescriptors, IList<EmitParameterValueDescriptor> descriptors)
         {
             if (logicalDescriptors.Count == 0)
             {

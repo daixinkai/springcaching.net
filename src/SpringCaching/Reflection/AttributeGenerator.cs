@@ -16,9 +16,9 @@ using SpringCaching.Requirement;
 namespace SpringCaching.Reflection
 {
 
-    internal abstract class AttributeGenerator
+    internal abstract partial class AttributeGenerator
     {
-        public abstract bool Build(TypeBuilder typeBuilder, Type attributeType, IList<Attribute> attributes, IList<EmitFieldBuilderDescriptor> descriptors);
+        public abstract bool Build(TypeBuilder typeBuilder, MethodInfo methodInfo, Type attributeType, IList<Attribute> attributes, IList<EmitFieldBuilderDescriptor> descriptors);
 
 
         protected void SetDefaultProperty(TypeBuilder typeBuilder, int index, ILGenerator iLGenerator, CacheBaseAttribute attribute, IList<EmitFieldBuilderDescriptor> descriptors)
@@ -107,7 +107,7 @@ namespace SpringCaching.Reflection
                 EmitSimpleKeyGenerator(iLGenerator, descriptors);
                 return;
             }
-            var keyMethodBuilder = DefineGetKeyMethod(typeBuilder, index, attribute, descriptors);
+            var keyMethodBuilder = DefineGetKeyMethod(typeBuilder, index, attribute, descriptors.Cast<EmitParameterValueDescriptor>().ToList());
             iLGenerator.Emit(OpCodes.Ldarg_0);
             iLGenerator.Emit(OpCodes.Ldftn, keyMethodBuilder);
             //new FuncPredicateGenerator(invoker)
@@ -115,7 +115,7 @@ namespace SpringCaching.Reflection
             iLGenerator.Emit(OpCodes.Newobj, typeof(FuncKeyGenerator).GetConstructorEx());
         }
 
-        private MethodBuilder DefineGetKeyMethod(TypeBuilder typeBuilder, int index, CacheBaseAttribute attribute, IList<EmitFieldBuilderDescriptor> descriptors)
+        private MethodBuilder DefineGetKeyMethod(TypeBuilder typeBuilder, int index, CacheBaseAttribute attribute, IList<EmitParameterValueDescriptor> descriptors)
         {
             //create method
             MethodAttributes methodAttributes =
@@ -164,7 +164,7 @@ namespace SpringCaching.Reflection
             string methodName = "Get" + attribute.GetType().Name.Replace("Attribute", "") + "Condition_" + index;
             var methodBuilder = typeBuilder.DefineMethod(methodName, methodAttributes, typeof(bool), Type.EmptyTypes);
             var iLGenerator = methodBuilder.GetILGenerator();
-            var emitExpressionResult = BooleanExpressionGenerator.EmitExpression(iLGenerator, attribute.Condition!, descriptors);
+            var emitExpressionResult = BooleanExpressionGenerator.EmitExpression(iLGenerator, attribute.Condition!, descriptors.Cast<EmitParameterValueDescriptor>().ToList());
             if (emitExpressionResult.Succeed)
             {
                 if (emitExpressionResult.LocalBuilder != null)
@@ -193,7 +193,7 @@ namespace SpringCaching.Reflection
             {
                 // xx.ToString()
                 var descriptor = descriptors[0];
-                var parameterType = descriptor.Parameter.ParameterType;
+                var parameterType = descriptor.ParameterType;
                 if (parameterType == typeof(string))
                 {
                     //new SimpleKeyGenerator.StringKeyGenerator

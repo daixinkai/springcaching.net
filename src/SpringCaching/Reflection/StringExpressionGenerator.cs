@@ -17,7 +17,7 @@ namespace SpringCaching.Reflection
     internal static class StringExpressionGenerator
     {
 
-        public static EmitExpressionResult EmitExpression(ILGenerator iLGenerator, string expression, IList<EmitFieldBuilderDescriptor> descriptors)
+        public static EmitExpressionResult EmitExpression(ILGenerator iLGenerator, string expression, IList<EmitParameterValueDescriptor> descriptors)
         {
             var parsedTokens = ExpressionTokenHelper.ParseExpressionTokens(expression);
 
@@ -44,7 +44,7 @@ namespace SpringCaching.Reflection
             //iLGenerator.Emit(OpCodes.Stloc, localBuilder);
             return EmitExpressionResult.Success();
         }
-        private static EmitStringLocalBuilderDescriptor? EmitStringExpressionToken(ILGenerator iLGenerator, ParsedExpressionToken parsedToken, IList<EmitFieldBuilderDescriptor> descriptors)
+        private static EmitStringLocalBuilderDescriptor? EmitStringExpressionToken(ILGenerator iLGenerator, ParsedExpressionToken parsedToken, IList<EmitParameterValueDescriptor> descriptors)
         {
             switch (parsedToken.Token.TokenType)
             {
@@ -67,7 +67,7 @@ namespace SpringCaching.Reflection
             return null;
         }
 
-        private static EmitStringLocalBuilderDescriptor? EmitStringFieldExpressionToken(ILGenerator iLGenerator, ExpressionToken token, IList<EmitFieldBuilderDescriptor> descriptors)
+        private static EmitStringLocalBuilderDescriptor? EmitStringFieldExpressionToken(ILGenerator iLGenerator, ExpressionToken token, IList<EmitParameterValueDescriptor> descriptors)
         {
 
             var emitCallPropertyDescriptor = ExpressionTokenHelper.GetEmitCallPropertyDescriptor(token, descriptors);

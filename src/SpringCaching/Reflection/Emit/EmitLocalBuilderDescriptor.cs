@@ -19,7 +19,7 @@ namespace SpringCaching.Reflection.Emit
         public override Type EmitValueType => LocalBuilder.LocalType;
 
         public override void EmitValue(ILGenerator iLGenerator)
-        {
+        {            
             iLGenerator.Emit(OpCodes.Ldloc, LocalBuilder);
         }
 

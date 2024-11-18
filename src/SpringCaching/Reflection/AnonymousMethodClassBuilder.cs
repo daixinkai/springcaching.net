@@ -15,31 +15,33 @@ namespace SpringCaching.Reflection
     {
         static AnonymousMethodClassBuilder()
         {
-            s_attributeGenerators = new List<AttributeGenerator>();
-            s_attributeGenerators.Add(new CacheableAttributeGenerator());
-            s_attributeGenerators.Add(new CacheEvictAttributeGenerator());
-            s_attributeGenerators.Add(new CachePutAttributeGenerator());
+            s_attributeGenerators = new List<AttributeGenerator>
+            {
+                new CacheableAttributeGenerator(),
+                new CacheEvictAttributeGenerator(),
+                new CachePutAttributeGenerator()
+            };
         }
         private static readonly List<AttributeGenerator> s_attributeGenerators;
 
-        public static Tuple<TypeBuilder, ConstructorInfo, MethodInfo> BuildType(ModuleBuilder moduleBuilder, MethodInfo method, ParameterInfo[] parameters, CacheBaseAttribute[] attributes)
-        {
-#if DEBUG && NET45
-            string _suffix = method.Name + "_" + string.Join("_", parameters.Select(s => s.ParameterType.Name));
-#else
-            string _suffix = Guid.NewGuid().ToString("N").ToUpper();
-#endif
-            string typeName = method.DeclaringType!.Name;
-            typeName += "_" + _suffix;
-            string nameSpace = method.DeclaringType.Namespace + ".Anonymous";
-            string fullName = nameSpace + "." + typeName;
-            if (fullName.StartsWith("."))
-            {
-                fullName = fullName.TrimStart('.');
-            }
-            TypeBuilder typeBuilder = CreateTypeBuilder(moduleBuilder, fullName, typeof(SpringCachingRequirementProxy));
-            return FillType(typeBuilder, method, parameters, attributes);
-        }
+        //        public static Tuple<TypeBuilder, ConstructorInfo, MethodInfo> BuildType(ModuleBuilder moduleBuilder, MethodInfo method, ParameterInfo[] parameters, CacheBaseAttribute[] attributes)
+        //        {
+        //#if DEBUG && NET45
+        //            string _suffix = method.Name + "_" + string.Join("_", parameters.Select(s => s.ParameterType.Name));
+        //#else
+        //            string _suffix = Guid.NewGuid().ToString("N").ToUpper();
+        //#endif
+        //            string typeName = method.DeclaringType!.Name;
+        //            typeName += "_" + _suffix;
+        //            string nameSpace = method.DeclaringType.Namespace + ".Anonymous";
+        //            string fullName = nameSpace + "." + typeName;
+        //            if (fullName.StartsWith("."))
+        //            {
+        //                fullName = fullName.TrimStart('.');
+        //            }
+        //            TypeBuilder typeBuilder = CreateTypeBuilder(moduleBuilder, fullName, typeof(SpringCachingRequirementProxy));
+        //            return FillType(typeBuilder, method, parameters, attributes);
+        //        }
 
 
         public static Tuple<TypeBuilder, ConstructorInfo, MethodInfo> BuildType(TypeBuilder nestedForTypeBuilder, MethodInfo method, ParameterInfo[] parameters, CacheBaseAttribute[] attributes)
@@ -165,7 +167,7 @@ namespace SpringCaching.Reflection
                 {
                     foreach (var attributeGenerator in s_attributeGenerators)
                     {
-                        if (attributeGenerator.Build(typeBuilder, typeof(CacheableAttribute), cacheableAttributes, fieldBuilderDescribes))
+                        if (attributeGenerator.Build(typeBuilder, method, typeof(CacheableAttribute), cacheableAttributes, fieldBuilderDescribes))
                         {
                             continue;
                         }
@@ -176,7 +178,7 @@ namespace SpringCaching.Reflection
                 {
                     foreach (var attributeGenerator in s_attributeGenerators)
                     {
-                        if (attributeGenerator.Build(typeBuilder, typeof(CacheEvictAttribute), cacheEvictAttributes, fieldBuilderDescribes))
+                        if (attributeGenerator.Build(typeBuilder, method, typeof(CacheEvictAttribute), cacheEvictAttributes, fieldBuilderDescribes))
                         {
                             continue;
                         }
@@ -187,7 +189,7 @@ namespace SpringCaching.Reflection
                 {
                     foreach (var attributeGenerator in s_attributeGenerators)
                     {
-                        if (attributeGenerator.Build(typeBuilder, typeof(CachePutAttribute), cachePutAttributes, fieldBuilderDescribes))
+                        if (attributeGenerator.Build(typeBuilder, method, typeof(CachePutAttribute), cachePutAttributes, fieldBuilderDescribes))
                         {
                             continue;
                         }
@@ -266,7 +268,7 @@ namespace SpringCaching.Reflection
                 {
                     var descriptor = descriptors[i];
                     iLGenerator.Emit(OpCodes.Ldloc, map);
-                    iLGenerator.Emit(OpCodes.Ldstr, descriptor.Parameter.Name!);
+                    iLGenerator.Emit(OpCodes.Ldstr, descriptor.ParameterName!);
                     descriptor.EmitValue(iLGenerator);
                     descriptor.EmitBox(iLGenerator, false);
                     iLGenerator.Emit(OpCodes.Callvirt, addMethod);

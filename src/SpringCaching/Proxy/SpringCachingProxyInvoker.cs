@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using System.Linq.Expressions;
 
 namespace SpringCaching.Proxy
 {
@@ -241,14 +242,19 @@ namespace SpringCaching.Proxy
 
         private static bool IsCacheResult<TResult>(ICacheableRequirement cacheableRequirement, ISpringCachingProxy proxy, ISpringCachingRequirement requirement, TResult? result)
         {
-            return IsCacheResult(cacheableRequirement, result) && IsConditionPredicate(cacheableRequirement, proxy, requirement);
+            return IsCacheResultCondition(cacheableRequirement, proxy, requirement, result) && IsConditionPredicate(cacheableRequirement, proxy, requirement);
         }
 
-        private static bool IsCacheResult<TResult>(ICacheableRequirement cacheableRequirement, TResult? result)
+        private static bool IsCacheResultCondition<TResult>(ICacheableRequirement cacheableRequirement, ISpringCachingProxy proxy, ISpringCachingRequirement requirement, TResult? result)
         {
             if (cacheableRequirement.UnlessNull && result == null)
             {
                 //if result is null, don't cache it
+                return false;
+            }
+            if (!IsResultConditionPredicate(cacheableRequirement, proxy, requirement, result))
+            {
+                //if ResultCondition is false, don't cache it
                 return false;
             }
             return true;
@@ -262,6 +268,24 @@ namespace SpringCaching.Proxy
             }
             var conditionGenerator = cacheableRequirement.ConditionGenerator ?? DefaultPredicateGenerator.Instance;
             return IsPredicate(cacheableRequirement.Condition, conditionGenerator, requirement);
+        }
+
+        private static bool IsResultConditionPredicate<TResult>(ICacheableRequirement cacheableRequirement, ISpringCachingProxy proxy, ISpringCachingRequirement requirement, TResult? result)
+        {
+            if (string.IsNullOrWhiteSpace(cacheableRequirement.ResultCondition))
+            {
+                return true;
+            }
+            var conditionGenerator = cacheableRequirement.ResultConditionGenerator;
+            if (conditionGenerator == null)
+            {
+                return true;
+            }
+            if (conditionGenerator is IResultPredicateGenerator<TResult> resultConditionGenerator)
+            {
+                return resultConditionGenerator.Predicate(cacheableRequirement.ResultCondition, requirement, result);
+            }
+            return conditionGenerator.Predicate(cacheableRequirement.ResultCondition, requirement, result);
         }
 
         private static bool IsPredicate(string? expression, IPredicateGenerator predicateGenerator, ISpringCachingRequirement requirement)

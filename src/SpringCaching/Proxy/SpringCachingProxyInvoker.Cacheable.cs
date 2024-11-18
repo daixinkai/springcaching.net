@@ -56,7 +56,7 @@ namespace SpringCaching.Proxy
                 {
                     continue;
                 }
-                if (!IsCacheResult(cacheableRequirement, invokerValue))
+                if (!IsCacheResultCondition(cacheableRequirement, proxy, requirement, invokerValue))
                 {
                     continue;
                 }
@@ -111,8 +111,8 @@ namespace SpringCaching.Proxy
                 if (!keyDescriptor.Key)
                 {
                     continue;
-                }
-                if (!IsCacheResult(cacheableRequirement, invokerValue))
+                }                
+                if (!IsCacheResultCondition(cacheableRequirement, proxy, requirement, invokerValue))
                 {
                     continue;
                 }

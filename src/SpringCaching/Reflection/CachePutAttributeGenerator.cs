@@ -14,7 +14,7 @@ namespace SpringCaching.Reflection
 {
     internal class CachePutAttributeGenerator : AttributeGenerator
     {
-        public override bool Build(TypeBuilder typeBuilder, Type attributeType, IList<Attribute> attributes, IList<EmitFieldBuilderDescriptor> descriptors)
+        public override bool Build(TypeBuilder typeBuilder, MethodInfo methodInfo, Type attributeType, IList<Attribute> attributes, IList<EmitFieldBuilderDescriptor> descriptors)
         {
             if (attributeType != typeof(CachePutAttribute))
             {
@@ -24,7 +24,7 @@ namespace SpringCaching.Reflection
 
             #region override SpringCachingRequirementProxy.GetCacheEvictRequirements
 
-            var cachePutRequirementMethods = DefineCachePutRequirementMethods(typeBuilder, cachePutAttributes, descriptors);
+            var cachePutRequirementMethods = DefineCachePutRequirementMethods(typeBuilder, methodInfo, cachePutAttributes, descriptors);
 
             var method = typeof(SpringCachingRequirementProxy).GetMethod("GetCachePutRequirements")!;
             MethodAttributes methodAttributes =
@@ -55,7 +55,7 @@ namespace SpringCaching.Reflection
             return true;
         }
 
-        private void GeneratorCachePutRequirement(TypeBuilder typeBuilder, int index, ILGenerator iLGenerator, CachePutAttribute attribute, IList<EmitFieldBuilderDescriptor> descriptors)
+        private void GeneratorCachePutRequirement(TypeBuilder typeBuilder, MethodInfo methodInfo, int index, ILGenerator iLGenerator, CachePutAttribute attribute, IList<EmitFieldBuilderDescriptor> descriptors)
         {
             iLGenerator.Emit(OpCodes.Ldstr, attribute.Value);
             iLGenerator.Emit(OpCodes.Newobj, typeof(CachePutRequirement).GetConstructorEx());
@@ -71,10 +71,11 @@ namespace SpringCaching.Reflection
                 iLGenerator.EmitSetProperty(typeof(CachePutRequirement).GetProperty("UnlessNull")!, attribute.UnlessNull, true);
             }
             SetDefaultProperty(typeBuilder, index, iLGenerator, attribute, descriptors);
+            SetResultConditionProperty(typeBuilder, methodInfo, index, iLGenerator, attribute, typeof(CacheableRequirement));
         }
 
 
-        private List<MethodBuilder> DefineCachePutRequirementMethods(TypeBuilder typeBuilder, IList<CachePutAttribute> cachePutAttributes, IList<EmitFieldBuilderDescriptor> descriptors)
+        private List<MethodBuilder> DefineCachePutRequirementMethods(TypeBuilder typeBuilder, MethodInfo methodInfo, IList<CachePutAttribute> cachePutAttributes, IList<EmitFieldBuilderDescriptor> descriptors)
         {
             MethodAttributes methodAttributes =
                 MethodAttributes.Private
@@ -85,7 +86,7 @@ namespace SpringCaching.Reflection
             {
                 var methodBuilder = typeBuilder.DefineMethod("GetCachePutRequirement_" + index, methodAttributes, typeof(ICacheableRequirement), Type.EmptyTypes);
                 var iLGenerator = methodBuilder.GetILGenerator();
-                GeneratorCachePutRequirement(typeBuilder, index, iLGenerator, cachePutAttribute, descriptors);
+                GeneratorCachePutRequirement(typeBuilder, methodInfo, index, iLGenerator, cachePutAttribute, descriptors);
                 iLGenerator.Emit(OpCodes.Ret);
                 index++;
                 methodBuilders.Add(methodBuilder);
