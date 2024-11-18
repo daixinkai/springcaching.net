@@ -21,7 +21,13 @@
             // method must be virtual
             return Task.FromResult(new List<string>());
         }
-        [Cacheable("getNames_Param", Key = "#param.Id", Condition = "#param.Id>=0&&#param.Name!=null", ExpirationPolicy = ExpirationPolicy.Absolute, ExpirationUnit = ExpirationUnit.Minute, ExpirationValue = 1)]
+        [Cacheable("getNames_Param", 
+            Key = "#param.Id", 
+            Condition = "#param.Id>=0&&#param.Name!=null",
+            ResultCondition = "#result!=null&&#result.Count>0",
+            ExpirationPolicy = ExpirationPolicy.Absolute, 
+            ExpirationUnit = ExpirationUnit.Minute, 
+            ExpirationValue = 1)]       
         public virtual Task<List<string>> GetNames(TestServiceParam param)
         {
             return Task.FromResult(new List<string>() { param.Id.ToString(), param.Name });
