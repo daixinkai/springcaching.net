@@ -19,7 +19,7 @@ namespace SpringCaching.Reflection
             {
                 if (!typeof(IPredicateGenerator).IsAssignableFrom(attribute.ResultConditionGenerator))
                 {
-                    throw new ArgumentException($"Type {attribute.ResultConditionGenerator.FullName} must be implementation from IPredicateGenerator!");
+                    throw new ArgumentException($"Type {attribute.ResultConditionGenerator.FullName} must be implementation from IResultPredicateGenerator!");
                 }
                 if (!attribute.ResultConditionGenerator.IsPublic && !attribute.ResultConditionGenerator.IsNestedPublic)
                 {

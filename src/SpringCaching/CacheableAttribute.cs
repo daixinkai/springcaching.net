@@ -45,7 +45,7 @@ namespace SpringCaching
         /// The bean name of the custom <see cref="IResultPredicateGenerator"/> or <see cref="IResultPredicateGenerator{TResult}"/> to use.
         /// Mutually exclusive with the key attribute.
         /// </summary>
-        [Obsolete("Unfinished")]
+        [Obsolete("Unfinished", true)]
         public Type? ResultConditionGenerator { get; set; }
     }
 }
