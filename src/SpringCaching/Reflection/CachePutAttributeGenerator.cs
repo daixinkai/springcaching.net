@@ -70,8 +70,13 @@ namespace SpringCaching.Reflection
             {
                 iLGenerator.EmitSetProperty(typeof(CachePutRequirement).GetProperty("UnlessNull")!, attribute.UnlessNull, true);
             }
+            //ResultCondition
+            if (attribute.ResultCondition != null)
+            {
+                iLGenerator.EmitSetProperty(typeof(CachePutRequirement).GetProperty("ResultCondition")!, attribute.ResultCondition, true);
+            }
             SetDefaultProperty(typeBuilder, index, iLGenerator, attribute, descriptors);
-            SetResultConditionProperty(typeBuilder, methodInfo, index, iLGenerator, attribute, typeof(CacheableRequirement));
+            SetResultConditionProperty(typeBuilder, methodInfo, index, iLGenerator, attribute, typeof(CachePutRequirement));
         }
 
 

@@ -78,7 +78,7 @@ namespace SpringCaching.Tests
             //Condition = "#param?.Param?.Name!=null",
             //Condition = "!(#param.Id.HasValue&&#param.Name!=null)||!(#param.Count>0||#param.Id!=null)", //not support
             Condition = "!(#param.Count>0||#param.Id!=null)", //not support
-                                                              //Condition = "!(#param.Count>0&&#param.Id!=null)", //supported
+            //Condition = "!(#param.Count>0&&#param.Id!=null)", //supported
             ResultCondition = "#result!=null&&#result.Count>0",
             ExpirationPolicy = ExpirationPolicy.Absolute,
             ExpirationUnit = ExpirationUnit.Hour,

@@ -146,12 +146,12 @@ namespace SpringCaching.Internal
 
         public static EmitCallPropertyDescriptor? GetEmitCallPropertyDescriptor(ExpressionToken token, IList<EmitParameterValueDescriptor> descriptors)
         {
-            var propertyDescriptors = GetEmitPropertyDescriptors(token, descriptors, out var fieldDescriptor);
-            if (fieldDescriptor == null)
+            var propertyDescriptors = GetEmitPropertyDescriptors(token, descriptors, out var paramDescriptor);
+            if (paramDescriptor == null)
             {
                 return null;
             }
-            return new EmitCallPropertyDescriptor(fieldDescriptor, propertyDescriptors);
+            return new EmitCallPropertyDescriptor(paramDescriptor, propertyDescriptors);
         }
 
         public static void EmitOperatorType(ILGenerator iLGenerator, OperatorType operatorType)
